@@ -210,9 +210,10 @@ function renderList() {
     card.onclick = () => showDetail(recipe.id);
     const tags = [recipe.cuisine, ...(recipe.cooking_methods || []), recipe.course]
       .filter(Boolean);
+    const metaHtml = recipe.time_minutes ? `<div class="recipe-meta">${recipe.time_minutes} 分鐘</div>` : "";
     card.innerHTML = `
       <h3>${escapeHtml(recipe.title)}</h3>
-      <div class="recipe-meta">${escapeHtml(recipe.servings || "")}${recipe.time_minutes ? ` · ${recipe.time_minutes} 分鐘` : ""}</div>
+      ${metaHtml}
       <div class="tag-row">${tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>
     `;
     el.appendChild(card);
@@ -308,11 +309,12 @@ function showDetail(id) {
       <button class="delete-recipe-btn" id="delete-recipe-btn">🗑 刪除食譜</button>
     </div>
     <h2 class="detail-title">${escapeHtml(recipe.title)}</h2>
-    <div class="detail-meta">
-      ${escapeHtml(recipe.servings || "")}
-      ${recipe.time_minutes ? ` · ${recipe.time_minutes} 分鐘` : ""}
-      ${recipe.source ? ` · 來源：${escapeHtml(recipe.source)}` : ""}
-    </div>
+    ${(() => {
+      const metaParts = [];
+      if (recipe.time_minutes) metaParts.push(`${recipe.time_minutes} 分鐘`);
+      if (recipe.source) metaParts.push(`來源：${escapeHtml(recipe.source)}`);
+      return metaParts.length ? `<div class="detail-meta">${metaParts.join(" · ")}</div>` : "";
+    })()}
     ${renderShoppingList(recipe)}
     <p class="legend"><span class="dot"></span>綠色底色代表素材庫已有此項目</p>
 

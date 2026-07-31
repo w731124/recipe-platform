@@ -29,7 +29,7 @@
 2. 依照下方 schema 解析成 JSON，`id` 用有意義的 kebab-case slug（例如 `shrimp-stirfry-scallion`），避免與 `data/recipes/index.json` 中既有 id 重複。
 3. `cuisine` / `cooking_methods` / `main_ingredient_types` / `course` / `spice_level` 這幾個欄位的值**必須**從 `data/taxonomy.json` 既有詞彙表裡選，不可自創新詞；`ingredients[].category` 則固定從 `pantry_categories` 詞彙表裡選（見下方「食材分類」）。如果現有詞彙表都不合適，先跟使用者確認要不要擴充詞彙表，再動手改 `taxonomy.json`，不要偷偷塞一個表裡沒有的值進食譜。
 4. `raw_input` 欄位保留使用者貼上的原文，不要省略、不要摘要（保留原始貼上的文字，不是「重組後」的版本——重組是解析步驟的中間產物，`raw_input` 是給人事後對照原文用的）。
-5. **份量欄位（`amount`/`unit`）、`servings`、`time_minutes` 這些「原文有寫就照抄，原文沒寫就整個欄位省略」，不要因為缺份量或缺人份就停下來問使用者，也不要自己亂猜一個數字湊上去。** 真正需要拿給使用者 review 的，是解析過程中有實質判斷風險的地方：食材別名/身份判斷有疑慮（例如原文縮寫看不出指的是哪個食材）、表格重組的結果（尤其是 Excel 貼上這種容易錯位的來源）、`spice_level` 的自動判斷結果（見下方規則，判斷完仍要在回覆裡附上依據，讓使用者一眼能看出來合不合理）。
+5. **份量欄位（`amount`/`unit`）、`time_minutes` 這些「原文有寫就照抄，原文沒寫就整個欄位省略」，不要因為缺份量就停下來問使用者，也不要自己亂猜一個數字湊上去。網站不顯示、也不管理「幾人份」，所以 schema 沒有 `servings` 欄位，解析時不用特別找/填這個資訊。** 真正需要拿給使用者 review 的，是解析過程中有實質判斷風險的地方：食材別名/身份判斷有疑慮（例如原文縮寫看不出指的是哪個食材）、表格重組的結果（尤其是 Excel 貼上這種容易錯位的來源）、`spice_level` 的自動判斷結果（見下方規則，判斷完仍要在回覆裡附上依據，讓使用者一眼能看出來合不合理）。
 6. 寫入 `data/recipes/{id}.json`，並把 `{id}` 加進 `data/recipes/index.json` 陣列（別忘記這一步，前端靠這份 index 才知道要 fetch 哪些檔案）。
 7. `git add`, `git commit`（訊息可用「新增食譜：{title}」）——照上方「Git commit / push 規則」，commit 不用再問，但 push 前要先問使用者。
 
@@ -40,7 +40,6 @@
   "id": "string，kebab-case",
   "title": "string",
   "source": "string，可留空字串",
-  "servings": "string，例如 2人份，原文沒提到就省略整個欄位",
   "time_minutes": "number，原文沒提到就省略整個欄位",
   "ingredients": [
     {
