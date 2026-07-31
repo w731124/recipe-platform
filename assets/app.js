@@ -10,6 +10,7 @@ const state = {
   synonyms: {},
   ingredientFamilies: {},
   taxonomy: {},
+  selectedPantryCategory: null,
   activeFilters: {
     cuisine: null,
     cooking_methods: new Set(),
@@ -481,6 +482,8 @@ function renderPantryView() {
         <p class="legend">Token 只會存在這個瀏覽器的 localStorage，不會寫進原始碼或 repo，只用來呼叫 GitHub API。</p>
       </div>`;
 
+  const selectedCategory = token ? state.selectedPantryCategory : null;
+
   const categoriesHtml = state.pantryCategories.map(cat => {
     const items = state.pantry[cat] || [];
     const chips = items.length
@@ -490,7 +493,10 @@ function renderPantryView() {
             ${token ? `<button class="chip-remove" data-cat="${escapeHtml(cat)}" data-name="${escapeHtml(name)}" title="移除">×</button>` : ""}
           </span>`).join("")
       : `<span class="legend">（尚無項目）</span>`;
-    return `<div class="pantry-category">
+    const classes = ["pantry-category"];
+    if (token) classes.push("selectable");
+    if (cat === selectedCategory) classes.push("selected");
+    return `<div class="${classes.join(" ")}" data-category="${escapeHtml(cat)}">
       <h3>${escapeHtml(cat)}</h3>
       <div class="pantry-chips">${chips}</div>
     </div>`;
@@ -498,13 +504,11 @@ function renderPantryView() {
 
   const addForm = token
     ? `<div class="pantry-add-form">
-        <h3>新增食材</h3>
+        <h3>新增食材${selectedCategory ? `到「${escapeHtml(selectedCategory)}」` : ""}</h3>
+        ${!selectedCategory ? `<p class="legend">先點選下方一個食材分類的卡片，再輸入食材名稱。</p>` : ""}
         <div class="token-input-row">
-          <select id="pantry-add-category">
-            ${state.pantryCategories.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("")}
-          </select>
-          <input type="text" id="pantry-add-name" placeholder="食材名稱，例如：肉桂">
-          <button class="btn-primary" id="pantry-add-btn">新增</button>
+          <input type="text" id="pantry-add-name" placeholder="食材名稱，例如：肉桂" ${selectedCategory ? "" : "disabled"}>
+          <button class="btn-primary" id="pantry-add-btn" ${selectedCategory ? "" : "disabled"}>新增</button>
         </div>
       </div>`
     : "";
@@ -534,11 +538,21 @@ function renderPantryView() {
   } else {
     document.getElementById("gh-token-clear").onclick = () => {
       clearGhToken();
+      state.selectedPantryCategory = null;
       renderPantryView();
     };
 
+    el.querySelectorAll(".pantry-category.selectable").forEach(card => {
+      card.onclick = () => {
+        const cat = card.dataset.category;
+        state.selectedPantryCategory = state.selectedPantryCategory === cat ? null : cat;
+        renderPantryView();
+      };
+    });
+
     el.querySelectorAll(".chip-remove").forEach(btn => {
-      btn.onclick = async () => {
+      btn.onclick = async (e) => {
+        e.stopPropagation(); // 不要觸發外層卡片的分類選取
         const { cat, name } = btn.dataset;
         setBusy(true);
         showStatus(`移除「${name}」中…`, false);
@@ -552,21 +566,22 @@ function renderPantryView() {
       };
     });
 
-    document.getElementById("pantry-add-btn").onclick = async () => {
-      const category = document.getElementById("pantry-add-category").value;
-      const nameInput = document.getElementById("pantry-add-name");
-      const name = nameInput.value;
-      if (!name.trim()) return;
-      setBusy(true);
-      showStatus(`新增「${name}」中…`, false);
-      try {
-        await addPantryItem(category, name);
-        renderPantryView();
-      } catch (err) {
-        setBusy(false);
-        showStatus(err.message, true);
-      }
-    };
+    if (selectedCategory) {
+      document.getElementById("pantry-add-btn").onclick = async () => {
+        const nameInput = document.getElementById("pantry-add-name");
+        const name = nameInput.value;
+        if (!name.trim()) return;
+        setBusy(true);
+        showStatus(`新增「${name}」中…`, false);
+        try {
+          await addPantryItem(selectedCategory, name);
+          renderPantryView();
+        } catch (err) {
+          setBusy(false);
+          showStatus(err.message, true);
+        }
+      };
+    }
   }
 }
 
