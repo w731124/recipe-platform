@@ -20,7 +20,7 @@
     { "name": "麵水（煮麵時保留）", "amount": "約200", "unit": "ml", "category": "調味料" },
     { "name": "乾白酒（如 Sauvignon Blanc、Pinot Grigio、Chardonnay 等不甜白酒，推薦加入）", "amount": "50", "unit": "ml", "category": "調味料" },
     { "name": "檸檬汁（起鍋前加入，可提鮮）", "amount": "1", "unit": "茶匙", "category": "調味料" },
-    { "name": "黑胡椒", "amount": "適量", "category": "調味粉" },
+    { "name": "黑胡椒粉", "amount": "適量", "category": "調味粉" },
     { "name": "巴西里（乾燥或新鮮）", "amount": "適量", "category": "香草" },
     { "name": "辣椒碎（可選）", "amount": "1/4～1/2茶匙", "category": "香料" }
   ],
