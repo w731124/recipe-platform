@@ -256,13 +256,16 @@ function utf8ToBase64(str) {
   return btoa(binary);
 }
 
-async function commitPantryUpdate(newPantry, message) {
+async function commitPantryUpdate(newPantry, message, attempt = 0) {
   const token = getGhToken();
   if (!token) throw new Error("尚未設定 GitHub token");
 
   const getRes = await fetch(
-    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PANTRY_PATH}?ref=${GH_BRANCH}`,
-    { headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" } }
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PANTRY_PATH}?ref=${GH_BRANCH}&_=${Date.now()}`,
+    {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+      cache: "no-store",
+    }
   );
   if (!getRes.ok) throw new Error(`讀取目前 GitHub 上的檔案失敗（HTTP ${getRes.status}）`);
   const getData = await getRes.json();
@@ -281,8 +284,13 @@ async function commitPantryUpdate(newPantry, message) {
     }
   );
   if (!putRes.ok) {
+    if (putRes.status === 409 && attempt < 3) {
+      // GitHub 讀取到的 sha 偶爾會有短暫的傳播延遲，稍等一下重抓最新版本再試
+      await new Promise(resolve => setTimeout(resolve, 700 * (attempt + 1)));
+      return commitPantryUpdate(newPantry, message, attempt + 1);
+    }
     if (putRes.status === 409) {
-      throw new Error("有其他變更同時發生（衝突），請重新整理頁面後再試一次。");
+      throw new Error("有其他變更同時發生（衝突），已自動重試多次仍失敗，請重新整理頁面後再試一次。");
     }
     const err = await putRes.json().catch(() => ({}));
     throw new Error(`寫入 GitHub 失敗（HTTP ${putRes.status}）：${err.message || "未知錯誤"}`);
