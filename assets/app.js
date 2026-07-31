@@ -256,7 +256,15 @@ function utf8ToBase64(str) {
   return btoa(binary);
 }
 
-async function commitPantryUpdate(newPantry, message, attempt = 0) {
+function base64ToUtf8(b64) {
+  const binary = atob(b64.replace(/\n/g, ""));
+  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+// mutateFn(currentPantry) -> newPantry，永遠是「先抓 GitHub 上真正最新的內容，套用變更，再寫回去」，
+// 不依賴頁面載入時的 state.pantry（那份可能是 GitHub Pages 部署延遲下的舊版），避免連續操作互相覆蓋。
+async function updatePantryOnGitHub(mutateFn, message, attempt = 0) {
   const token = getGhToken();
   if (!token) throw new Error("尚未設定 GitHub token");
 
@@ -269,6 +277,8 @@ async function commitPantryUpdate(newPantry, message, attempt = 0) {
   );
   if (!getRes.ok) throw new Error(`讀取目前 GitHub 上的檔案失敗（HTTP ${getRes.status}）`);
   const getData = await getRes.json();
+  const currentPantry = JSON.parse(base64ToUtf8(getData.content));
+  const newPantry = mutateFn(currentPantry);
 
   const content = utf8ToBase64(JSON.stringify(newPantry, null, 2) + "\n");
   const putRes = await fetch(
@@ -285,9 +295,9 @@ async function commitPantryUpdate(newPantry, message, attempt = 0) {
   );
   if (!putRes.ok) {
     if (putRes.status === 409 && attempt < 3) {
-      // GitHub 讀取到的 sha 偶爾會有短暫的傳播延遲，稍等一下重抓最新版本再試
+      // sha 剛好在這瞬間被別的變更超前，重抓最新內容再套用一次變更
       await new Promise(resolve => setTimeout(resolve, 700 * (attempt + 1)));
-      return commitPantryUpdate(newPantry, message, attempt + 1);
+      return updatePantryOnGitHub(mutateFn, message, attempt + 1);
     }
     if (putRes.status === 409) {
       throw new Error("有其他變更同時發生（衝突），已自動重試多次仍失敗，請重新整理頁面後再試一次。");
@@ -295,27 +305,31 @@ async function commitPantryUpdate(newPantry, message, attempt = 0) {
     const err = await putRes.json().catch(() => ({}));
     throw new Error(`寫入 GitHub 失敗（HTTP ${putRes.status}）：${err.message || "未知錯誤"}`);
   }
-  return putRes.json();
+  return newPantry;
 }
 
 async function addPantryItem(category, name) {
   const trimmed = name.trim();
   if (!trimmed) return;
-  const updated = JSON.parse(JSON.stringify(state.pantry));
-  if (!updated[category]) updated[category] = [];
-  if (updated[category].includes(trimmed)) throw new Error("這個項目已經在食材庫裡了");
-  updated[category].push(trimmed);
-  await commitPantryUpdate(updated, `素材庫：新增「${trimmed}」`);
-  state.pantry = updated;
-  state.pantryFlat = flattenPantry(updated);
+  const newPantry = await updatePantryOnGitHub(current => {
+    const updated = JSON.parse(JSON.stringify(current));
+    if (!updated[category]) updated[category] = [];
+    if (updated[category].includes(trimmed)) throw new Error("這個項目已經在食材庫裡了");
+    updated[category].push(trimmed);
+    return updated;
+  }, `素材庫：新增「${trimmed}」`);
+  state.pantry = newPantry;
+  state.pantryFlat = flattenPantry(newPantry);
 }
 
 async function removePantryItem(category, name) {
-  const updated = JSON.parse(JSON.stringify(state.pantry));
-  updated[category] = (updated[category] || []).filter(n => n !== name);
-  await commitPantryUpdate(updated, `素材庫：移除「${name}」`);
-  state.pantry = updated;
-  state.pantryFlat = flattenPantry(updated);
+  const newPantry = await updatePantryOnGitHub(current => {
+    const updated = JSON.parse(JSON.stringify(current));
+    updated[category] = (updated[category] || []).filter(n => n !== name);
+    return updated;
+  }, `素材庫：移除「${name}」`);
+  state.pantry = newPantry;
+  state.pantryFlat = flattenPantry(newPantry);
 }
 
 function renderPantryView() {
