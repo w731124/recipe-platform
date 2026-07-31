@@ -56,7 +56,19 @@ function flattenPantry(pantry) {
 // 有關的話，比對時不能用寬鬆的雙向 substring 比對，否則會因為「青花椒粉」這種複合詞字面上
 // 包含「青花椒」而被誤判成同義詞命中（實際上形態不同，不該直接判定已有）。
 function relatesToFamily(name) {
-  return Object.keys(state.ingredientFamilies).some(root => name.includes(root) || root.includes(name));
+  return Object.keys(state.ingredientFamilies).some(root => looseMatch(root, name));
+}
+
+// 單一漢字幾乎都是「字根」而非完整食材名（米／酒／醋／油／糖／粉這類字常常組成完全不同的
+// 食材，例如「米」vs「米酒」vs「味醂」的別名「米霖」），所以兩個字串的寬鬆子字串比對，
+// 只有在比較短的那一邊長度 ≥ 2 時才採用，太短就只接受完全相等，避免「米」誤判命中
+// 「米酒」「米霖」這種同字根但其實是不同食材的狀況。
+const MIN_LOOSE_MATCH_LEN = 2;
+function looseMatch(a, b) {
+  if (a === b) return true;
+  const shorter = a.length <= b.length ? a : b;
+  if (shorter.length < MIN_LOOSE_MATCH_LEN) return false;
+  return a.includes(b) || b.includes(a);
 }
 
 // ---- 素材庫比對（同義詞庫查表，見規格 5 節）----
@@ -66,9 +78,11 @@ function isInPantry(ingredientName) {
   let matchedGroup = false;
   for (const [canonical, aliases] of Object.entries(state.synonyms)) {
     const hit = aliases.some(alias => {
-      if (name.includes(alias)) return true;
-      if (alias.includes(name)) return !ambiguous;
-      return false;
+      if (alias === name) return true;
+      if (!looseMatch(alias, name)) return false;
+      // name 比 alias 短，代表食譜寫得比同義詞籠統，跟家族相關時交給家族機制軟提示，不直接判定已有
+      if (name.length < alias.length) return !ambiguous;
+      return true; // name 比 alias 長/相等，食譜寫得比同義詞更具體，可以放心比對
     });
     if (hit) {
       matchedGroup = true;
@@ -78,7 +92,7 @@ function isInPantry(ingredientName) {
   if (matchedGroup) return false; // 同義詞群組存在，但素材庫沒有該項目
   if (ambiguous) return false; // 跟家族有關的籠統詞交給 familyStatus 處理，這裡不用寬鬆比對誤判成已有
   // 回退：沒有對應同義詞群組時，直接對素材庫做包含比對
-  return state.pantryFlat.some(p => name.includes(p) || p.includes(name));
+  return state.pantryFlat.some(p => looseMatch(p, name));
 }
 
 // 「同一家族但品種/形態不確定」的軟比對（例：食譜寫「花椒」，庫存有「紅花椒粒」「青花椒粉」，
@@ -86,7 +100,7 @@ function isInPantry(ingredientName) {
 function familyStatus(ingredientName) {
   const name = ingredientName.trim();
   for (const [family, members] of Object.entries(state.ingredientFamilies)) {
-    if (name.includes(family) || family.includes(name)) {
+    if (looseMatch(family, name)) {
       if (members.some(m => state.pantryFlat.includes(m))) return true;
     }
   }
