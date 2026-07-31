@@ -30,12 +30,16 @@ npx serve .
 2. 依照 `CLAUDE.md` 的規則解析、review、寫入 `data/recipes/`，更新 `data/recipes/index.json`。
 3. `git push`。
 
+## 食材庫分頁
+
+網站有「食譜」「食材庫」兩個分頁。食材庫依分類顯示目前手邊有的食材，並在每則食譜詳細頁列出「還需要買」清單。任何人都可以唯讀瀏覽食材庫；要新增/刪除項目，需要在食材庫分頁貼上一組只給這個 repo Contents 寫入權限的 GitHub fine-grained token（只存在你自己瀏覽器的 localStorage），之後新增/刪除會直接透過 GitHub API 建立 commit。細節見 `CLAUDE.md`「食材庫網站直接寫入」一節。
+
 ## 目錄結構
 
 ```
 index.html / assets/          網站前端（vanilla JS，無框架）
-data/taxonomy.json            分類詞彙表（菜系/烹調方式/主食材類型/餐點角色/辣度）
-data/pantry.json              個人素材庫（人工維護的字串陣列）
+data/taxonomy.json            分類詞彙表（菜系/烹調方式/主食材類型/餐點角色/辣度/食材庫分類）
+data/pantry.json              個人素材庫（依分類分組的物件，單項新增/刪除可由網站直接寫入）
 data/synonyms.json            食材同義詞庫（AI 離線輔助生成，人工 review）
 data/recipes/index.json       食譜檔案清單（前端靠這份才知道要抓哪些檔案）
 data/recipes/{id}.json        單筆食譜資料

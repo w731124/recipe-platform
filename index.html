@@ -10,6 +10,10 @@
   <header class="site-header">
     <h1>食譜筆記本</h1>
     <p class="subtitle">統一格式整理的個人食譜資料庫</p>
+    <nav class="tabs">
+      <button class="tab-btn active" id="tab-recipes" type="button">食譜</button>
+      <button class="tab-btn" id="tab-pantry" type="button">食材庫</button>
+    </nav>
   </header>
 
   <main id="app">
@@ -18,6 +22,10 @@
       <section class="recipe-list" id="recipe-list"></section>
     </div>
     <div id="detail-view" class="hidden"></div>
+  </main>
+
+  <main id="pantry-app" class="hidden">
+    <div id="pantry-view"></div>
   </main>
 
   <footer class="site-footer">
