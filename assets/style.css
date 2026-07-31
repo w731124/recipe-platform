@@ -123,16 +123,19 @@ body {
 
 ul.ingredient-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 ul.ingredient-list li {
-  display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  display: flex; flex-direction: column; gap: 2px;
   padding: 8px 10px; border: 1px solid #cfc6b8; border-radius: 8px; font-size: 0.9rem;
   background: var(--card-bg);
   box-shadow: 0 1px 2px rgba(43, 38, 32, 0.07);
 }
+.ing-main { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 ul.ingredient-list li.have { background: var(--pantry-yes); border-color: var(--pantry-yes-text); }
 ul.ingredient-list li.have .ing-name { color: var(--pantry-yes-text); font-weight: 600; }
 ul.ingredient-list li.maybe { background: var(--pantry-maybe); border-color: var(--pantry-maybe-text); }
 ul.ingredient-list li.maybe .ing-name { color: var(--pantry-maybe-text); font-weight: 600; }
-.ing-amount { color: var(--muted); }
+.ing-amount { color: var(--muted); flex-shrink: 0; }
+.ing-note { font-size: 0.75rem; color: var(--muted); }
+.ing-note-optional { color: var(--accent); font-weight: 600; }
 .ing-hint {
   display: inline-flex; align-items: center; justify-content: center;
   width: 15px; height: 15px; border-radius: 50%; margin-left: 4px;

@@ -191,14 +191,30 @@ function renderList() {
   });
 }
 
+// 把「洋蔥（切絲）」拆成 { base: "洋蔥", note: "切絲" }，讓卡片可以把備註獨立成小字第二行，
+// 不用把處理方式/可選說明全部擠在食材名稱裡。
+function splitIngredientNote(name) {
+  const match = name.match(/^(.*?)[（(]([^）(]*)[）)]\s*$/);
+  if (!match) return { base: name.trim(), note: "" };
+  return { base: match[1].trim(), note: match[2].trim() };
+}
+
 function renderIngredientList(items) {
   if (!items || items.length === 0) return "<p class=\"legend\">（無）</p>";
   return `<ul class="ingredient-list">${items.map(item => {
     const status = pantryStatus(item.name);
     const hint = status === "maybe" ? `<span class="ing-hint" title="家族相近，品種或形態可能不同，請自行確認">？</span>` : "";
+    const { base, note } = splitIngredientNote(item.name);
+    const isOptionalNote = /可選|推薦/.test(note);
+    const noteHtml = note
+      ? `<div class="ing-note${isOptionalNote ? " ing-note-optional" : ""}">${escapeHtml(note)}</div>`
+      : "";
     return `<li class="${status}">
-      <span class="ing-name">${escapeHtml(item.name)}${hint}</span>
-      <span class="ing-amount">${escapeHtml([item.amount, item.unit].filter(Boolean).join(" "))}</span>
+      <div class="ing-main">
+        <span class="ing-name">${escapeHtml(base)}${hint}</span>
+        <span class="ing-amount">${escapeHtml([item.amount, item.unit].filter(Boolean).join(" "))}</span>
+      </div>
+      ${noteHtml}
     </li>`;
   }).join("")}</ul>`;
 }
