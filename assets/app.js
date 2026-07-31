@@ -59,16 +59,31 @@ function relatesToFamily(name) {
   return Object.keys(state.ingredientFamilies).some(root => looseMatch(root, name));
 }
 
-// 單一漢字幾乎都是「字根」而非完整食材名（米／酒／醋／油／糖／粉這類字常常組成完全不同的
-// 食材，例如「米」vs「米酒」vs「味醂」的別名「米霖」），所以兩個字串的寬鬆子字串比對，
-// 只有在比較短的那一邊長度 ≥ 2 時才採用，太短就只接受完全相等，避免「米」誤判命中
-// 「米酒」「米霖」這種同字根但其實是不同食材的狀況。
 const MIN_LOOSE_MATCH_LEN = 2;
 function looseMatch(a, b) {
   if (a === b) return true;
   const shorter = a.length <= b.length ? a : b;
   if (shorter.length < MIN_LOOSE_MATCH_LEN) return false;
   return a.includes(b) || b.includes(a);
+}
+
+// 中文很多食材名是「字＋字」直接黏在一起組成完全不同的食材，不是原本那個食材的變體
+// （米→米酒、醬油→醬油膏、花→花椒，都是「較長字串包含較短字串」但其實是不同東西）。
+// 只有兩種情況可以放心把「較長字串包含較短字串」當作同一食材的延伸寫法：
+//   1. 較短字串出現在開頭，後面接的是括號備註（例：「辣椒（切末）」延伸自「辣椒」）。
+//   2. 較短字串出現在結尾，前面是「新鮮/乾燥/生/熟」這類不影響食材本身的敘述性前綴。
+// 其餘一律視為不同食材，不可放心比對，避免「醬油膏」被誤判成「醬油」已有。
+const SAFE_DESCRIPTIVE_PREFIXES = ["新鮮", "乾燥", "生", "熟", "冷凍", "有機", "去皮", "帶皮"];
+function safeExtension(longer, shorter) {
+  if (longer === shorter) return true;
+  if (shorter.length < MIN_LOOSE_MATCH_LEN) return false;
+  const idx = longer.indexOf(shorter);
+  if (idx === -1) return false;
+  const before = longer.slice(0, idx);
+  const after = longer.slice(idx + shorter.length);
+  const beforeOk = before === "" || SAFE_DESCRIPTIVE_PREFIXES.includes(before);
+  const afterOk = after === "" || after.startsWith("（") || after.startsWith("(");
+  return beforeOk && afterOk;
 }
 
 // ---- 素材庫比對（同義詞庫查表，見規格 5 節）----
@@ -79,10 +94,9 @@ function isInPantry(ingredientName) {
   for (const [canonical, aliases] of Object.entries(state.synonyms)) {
     const hit = aliases.some(alias => {
       if (alias === name) return true;
-      if (!looseMatch(alias, name)) return false;
-      // name 比 alias 短，代表食譜寫得比同義詞籠統，跟家族相關時交給家族機制軟提示，不直接判定已有
-      if (name.length < alias.length) return !ambiguous;
-      return true; // name 比 alias 長/相等，食譜寫得比同義詞更具體，可以放心比對
+      if (safeExtension(name, alias)) return true; // 食譜寫得比同義詞更具體（安全的前綴/備註延伸）
+      if (looseMatch(alias, name) && name.length < alias.length) return !ambiguous;
+      return false;
     });
     if (hit) {
       matchedGroup = true;
@@ -91,8 +105,8 @@ function isInPantry(ingredientName) {
   }
   if (matchedGroup) return false; // 同義詞群組存在，但素材庫沒有該項目
   if (ambiguous) return false; // 跟家族有關的籠統詞交給 familyStatus 處理，這裡不用寬鬆比對誤判成已有
-  // 回退：沒有對應同義詞群組時，直接對素材庫做包含比對
-  return state.pantryFlat.some(p => looseMatch(p, name));
+  // 回退：沒有對應同義詞群組時，直接對素材庫做安全延伸比對
+  return state.pantryFlat.some(p => safeExtension(name, p));
 }
 
 // 「同一家族但品種/形態不確定」的軟比對（例：食譜寫「花椒」，庫存有「紅花椒粒」「青花椒粉」，
