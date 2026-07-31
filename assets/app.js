@@ -337,8 +337,7 @@ function renderPantryView() {
   const token = getGhToken();
 
   const tokenPanel = token
-    ? `<div class="token-panel token-panel-active">
-        <span>✅ 已設定 GitHub Token，可以新增/刪除食材庫項目</span>
+    ? `<div class="pantry-token-controls">
         <button class="btn-secondary" id="gh-token-clear">清除 Token</button>
       </div>`
     : `<div class="token-panel">
@@ -386,9 +385,9 @@ function renderPantryView() {
 
   el.innerHTML = `
     ${tokenPanel}
+    ${addForm}
     <div id="pantry-status"></div>
     <div class="pantry-categories">${categoriesHtml}</div>
-    ${addForm}
   `;
 
   const statusEl = document.getElementById("pantry-status");

@@ -130,7 +130,7 @@ ol.steps li { margin-bottom: 8px; }
   background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
   padding: 16px; margin-bottom: 20px; font-size: 0.9rem;
 }
-.token-panel-active { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pantry-token-controls { display: flex; justify-content: flex-end; margin-bottom: 12px; }
 .token-steps { margin: 8px 0; padding-left: 20px; }
 .token-steps li { margin-bottom: 4px; }
 .token-input-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
@@ -161,22 +161,28 @@ ol.steps li { margin-bottom: 8px; }
 .pantry-category h3 { margin: 0 0 10px; font-size: 0.95rem; border-left: 4px solid var(--accent); padding-left: 8px; }
 .pantry-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .pantry-chip {
-  display: inline-flex; align-items: center; gap: 4px;
+  display: inline-flex; align-items: center; gap: 6px;
   background: var(--pantry-yes); color: var(--pantry-yes-text);
-  padding: 4px 8px; border-radius: 999px; font-size: 0.85rem;
+  padding: 4px 4px 4px 10px; border-radius: 999px; font-size: 0.85rem;
 }
 .chip-remove {
-  background: none; border: none; color: inherit; cursor: pointer; font-size: 0.9rem;
-  line-height: 1; padding: 0 2px;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(0, 0, 0, 0.12); color: var(--pantry-yes-text);
+  border: none; cursor: pointer; font-size: 0.85rem; line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.chip-remove:hover, .chip-remove:focus-visible {
+  background: #c0392b; color: #fff;
 }
 
 .pantry-add-form {
   background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px;
+  margin-bottom: 20px;
 }
 .pantry-add-form h3 { margin: 0 0 8px; font-size: 0.95rem; }
 
 @media (max-width: 720px) {
   #list-view { flex-direction: column; }
   .filters { width: 100%; position: static; }
-  .token-panel-active { flex-direction: column; align-items: flex-start; }
 }
