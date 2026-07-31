@@ -41,6 +41,7 @@ index.html / assets/          網站前端（vanilla JS，無框架）
 data/taxonomy.json            分類詞彙表（菜系/烹調方式/主食材類型/餐點角色/辣度/食材庫分類）
 data/pantry.json              個人素材庫（依分類分組的物件，單項新增/刪除可由網站直接寫入）
 data/synonyms.json            食材同義詞庫（AI 離線輔助生成，人工 review）
+data/ingredient_families.json 食材家族關係（同一食材的不同品種/形態，例如花椒粒/花椒粉，不算同義詞但值得提醒使用者確認）
 data/recipes/index.json       食譜檔案清單（前端靠這份才知道要抓哪些檔案）
 data/recipes/{id}.json        單筆食譜資料
 ```

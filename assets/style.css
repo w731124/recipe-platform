@@ -7,6 +7,8 @@
   --accent: #c9622a;
   --pantry-yes: #dcefdc;
   --pantry-yes-text: #2e6b32;
+  --pantry-maybe: #fdecc8;
+  --pantry-maybe-text: #8a5b13;
   font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
 }
 
@@ -128,7 +130,15 @@ ul.ingredient-list li {
 }
 ul.ingredient-list li.have { background: var(--pantry-yes); border-color: var(--pantry-yes-text); }
 ul.ingredient-list li.have .ing-name { color: var(--pantry-yes-text); font-weight: 600; }
+ul.ingredient-list li.maybe { background: var(--pantry-maybe); border-color: var(--pantry-maybe-text); }
+ul.ingredient-list li.maybe .ing-name { color: var(--pantry-maybe-text); font-weight: 600; }
 .ing-amount { color: var(--muted); }
+.ing-hint {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 15px; height: 15px; border-radius: 50%; margin-left: 4px;
+  background: var(--pantry-maybe-text); color: #fff; font-size: 0.7rem; font-weight: 700;
+  cursor: help; vertical-align: middle;
+}
 
 ol.steps { padding-left: 20px; margin: 0; }
 ol.steps li { margin-bottom: 8px; }
@@ -146,7 +156,9 @@ ol.steps li { margin-bottom: 8px; }
   padding: 12px 16px; margin-bottom: 16px;
 }
 .shopping-list h4 { margin: 0 0 8px; font-size: 0.95rem; }
+.shopping-list h4 + h4 { margin-top: 12px; }
 .tag.missing { background: #f9e2d0; color: #a1481a; }
+.tag.maybe { background: var(--pantry-maybe); color: var(--pantry-maybe-text); }
 
 /* ---- 食材庫 ---- */
 .token-panel {

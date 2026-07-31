@@ -8,6 +8,7 @@ const state = {
   pantryFlat: [],
   pantryCategories: [],
   synonyms: {},
+  ingredientFamilies: {},
   taxonomy: {},
   activeFilters: {
     cuisine: null,
@@ -27,10 +28,11 @@ const FACETS = [
 ];
 
 async function loadData() {
-  const [taxonomy, pantry, synonyms, index] = await Promise.all([
+  const [taxonomy, pantry, synonyms, families, index] = await Promise.all([
     fetch("data/taxonomy.json").then(r => r.json()),
     fetch("data/pantry.json").then(r => r.json()),
     fetch("data/synonyms.json").then(r => r.json()),
+    fetch("data/ingredient_families.json").then(r => r.json()),
     fetch("data/recipes/index.json").then(r => r.json()),
   ]);
   const recipes = await Promise.all(
@@ -41,6 +43,7 @@ async function loadData() {
   state.pantry = pantry;
   state.pantryFlat = flattenPantry(pantry);
   state.synonyms = synonyms;
+  state.ingredientFamilies = families;
   state.recipes = recipes;
 }
 
@@ -48,20 +51,52 @@ function flattenPantry(pantry) {
   return Object.values(pantry).flat();
 }
 
+// 食材名稱是否跟某個已知的「家族代表詞」有關（例：「青花椒」跟家族代表詞「花椒」有關）。
+// 有關的話，比對時不能用寬鬆的雙向 substring 比對，否則會因為「青花椒粉」這種複合詞字面上
+// 包含「青花椒」而被誤判成同義詞命中（實際上形態不同，不該直接判定已有）。
+function relatesToFamily(name) {
+  return Object.keys(state.ingredientFamilies).some(root => name.includes(root) || root.includes(name));
+}
+
 // ---- 素材庫比對（同義詞庫查表，見規格 5 節）----
 function isInPantry(ingredientName) {
   const name = ingredientName.trim();
+  const ambiguous = relatesToFamily(name);
   let matchedGroup = false;
   for (const [canonical, aliases] of Object.entries(state.synonyms)) {
-    const hit = aliases.some(alias => name.includes(alias) || alias.includes(name));
+    const hit = aliases.some(alias => {
+      if (name.includes(alias)) return true;
+      if (alias.includes(name)) return !ambiguous;
+      return false;
+    });
     if (hit) {
       matchedGroup = true;
       if (state.pantryFlat.includes(canonical)) return true;
     }
   }
   if (matchedGroup) return false; // 同義詞群組存在，但素材庫沒有該項目
+  if (ambiguous) return false; // 跟家族有關的籠統詞交給 familyStatus 處理，這裡不用寬鬆比對誤判成已有
   // 回退：沒有對應同義詞群組時，直接對素材庫做包含比對
   return state.pantryFlat.some(p => name.includes(p) || p.includes(name));
+}
+
+// 「同一家族但品種/形態不確定」的軟比對（例：食譜寫「花椒」，庫存有「紅花椒粒」「青花椒粉」，
+// 兩者都不是嚴格同義詞，但值得提醒使用者自己確認，而不是直接判定「還需要買」）
+function familyStatus(ingredientName) {
+  const name = ingredientName.trim();
+  for (const [family, members] of Object.entries(state.ingredientFamilies)) {
+    if (name.includes(family) || family.includes(name)) {
+      if (members.some(m => state.pantryFlat.includes(m))) return true;
+    }
+  }
+  return false;
+}
+
+// 三態判斷：have（已有）／maybe（同家族但品種或形態不確定，需自行確認）／missing（還需要買）
+function pantryStatus(ingredientName) {
+  if (isInPantry(ingredientName)) return "have";
+  if (familyStatus(ingredientName)) return "maybe";
+  return "missing";
 }
 
 // ---- 篩選 ----
@@ -158,9 +193,10 @@ function renderList() {
 function renderIngredientList(items) {
   if (!items || items.length === 0) return "<p class=\"legend\">（無）</p>";
   return `<ul class="ingredient-list">${items.map(item => {
-    const have = isInPantry(item.name);
-    return `<li class="${have ? "have" : ""}">
-      <span class="ing-name">${escapeHtml(item.name)}</span>
+    const status = pantryStatus(item.name);
+    const hint = status === "maybe" ? `<span class="ing-hint" title="家族相近，品種或形態可能不同，請自行確認">？</span>` : "";
+    return `<li class="${status}">
+      <span class="ing-name">${escapeHtml(item.name)}${hint}</span>
       <span class="ing-amount">${escapeHtml([item.amount, item.unit].filter(Boolean).join(" "))}</span>
     </li>`;
   }).join("")}</ul>`;
@@ -195,16 +231,22 @@ function stripNotes(name) {
 
 function renderShoppingList(recipe) {
   const items = recipe.ingredients || [];
-  const missingNames = [...new Set(
-    items.filter(item => !isInPantry(item.name)).map(item => stripNotes(item.name))
-  )];
-  if (missingNames.length === 0) {
+  const statused = items.map(item => ({ name: stripNotes(item.name), status: pantryStatus(item.name) }));
+  const missingNames = [...new Set(statused.filter(i => i.status === "missing").map(i => i.name))];
+  const maybeNames = [...new Set(statused.filter(i => i.status === "maybe").map(i => i.name))];
+
+  if (missingNames.length === 0 && maybeNames.length === 0) {
     return `<div class="shopping-list"><p class="legend">✅ 素材庫都有，不用額外採購！</p></div>`;
   }
-  return `<div class="shopping-list">
-    <h4>🛒 還需要買</h4>
-    <div class="tag-row">${missingNames.map(n => `<span class="tag missing">${escapeHtml(n)}</span>`).join("")}</div>
-  </div>`;
+  const missingBlock = missingNames.length
+    ? `<h4>🛒 還需要買</h4>
+       <div class="tag-row">${missingNames.map(n => `<span class="tag missing">${escapeHtml(n)}</span>`).join("")}</div>`
+    : "";
+  const maybeBlock = maybeNames.length
+    ? `<h4>🤔 可能已有，請確認品種/形態</h4>
+       <div class="tag-row">${maybeNames.map(n => `<span class="tag maybe">${escapeHtml(n)}</span>`).join("")}</div>`
+    : "";
+  return `<div class="shopping-list">${missingBlock}${maybeBlock}</div>`;
 }
 
 function showDetail(id) {
