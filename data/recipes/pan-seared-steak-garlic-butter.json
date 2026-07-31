@@ -1,0 +1,30 @@
+{
+  "id": "pan-seared-steak-garlic-butter",
+  "title": "煎牛排",
+  "source": "",
+  "ingredients": [
+    { "name": "牛排", "category": "生鮮食材" },
+    { "name": "大蒜（切片）", "amount": "6~8", "unit": "瓣", "category": "辛香蔬菜" },
+    { "name": "鹽巴", "amount": "少許", "category": "調味料" },
+    { "name": "奶油", "amount": "20", "unit": "g", "category": "調味料" },
+    { "name": "迷迭香", "amount": "4", "unit": "支", "category": "香草" }
+  ],
+  "steps": [
+    { "order": 1, "text": "牛排退冰至室溫，用紙巾擦乾表面水分。" },
+    { "order": 2, "text": "大蒜切片，洗掉黏液。" },
+    { "order": 3, "text": "小火加油，放入蒜片炸香。" },
+    { "order": 4, "text": "蒜片一轉金黃色就取出，油留著。" },
+    { "order": 5, "text": "牛排下鍋前撒上鹽巴，按摩均勻。" },
+    { "order": 6, "text": "開大火熱鍋，熱到冒煙。" },
+    { "order": 7, "text": "轉中火，一面煎1.5分鐘。" },
+    { "order": 8, "text": "各面煎完後，下奶油、迷迭香。" },
+    { "order": 9, "text": "傾斜鍋面，用湯匙撈奶油淋在牛排上。" },
+    { "order": 10, "text": "起鍋後靜置5分鐘，再回去加熱1分鐘。" }
+  ],
+  "cuisine": "西式",
+  "cooking_methods": ["煎"],
+  "main_ingredient_types": ["肉類"],
+  "course": "主菜",
+  "created_at": "2026-07-31",
+  "raw_input": "煎牛排\t\n材料\t作法\n牛排\t牛排退冰退到室溫　用紙巾擦乾\n大蒜6-8瓣\t蒜片黏液洗乾淨\n鹽巴少許\t小火加油炸蒜片\n奶油20g\t蒜片一轉金黃色就取出，油留著\n迷迭香4支\t牛排下鍋前撒上鹽巴後按摩\n\t開大火熱鍋熱到冒煙\n\t轉中火一面煎1.5分鐘\n\t各面煎完後，下奶油、迷迭香\n\t傾斜鍋面用湯匙撈奶油淋在牛排上\n\t起鍋後靜置5分鐘，再回去加熱1分鐘"
+}
