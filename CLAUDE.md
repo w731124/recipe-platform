@@ -5,7 +5,11 @@
 ## 這是什麼專案
 純靜態網站（vanilla HTML/CSS/JS，無框架、無建置流程），部署在 GitHub Pages。網站本身不解析、不呼叫任何 AI API。所有「智慧」工作（食譜解析、同義詞生成、分類詞彙表維護）都在 Claude Code 對話中離線完成，結果以 JSON 檔案寫入 `/data`，git commit + push 後由 GitHub Pages 自動重新部署。
 
-**唯一例外**：食材庫（`data/pantry.json`）的新增/刪除可以直接在網站的「食材庫」分頁操作，網站會用使用者自己貼上、存在瀏覽器 localStorage 的 GitHub token 直接呼叫 GitHub API 寫回 repo（見下方「食材庫網站直接寫入」一節）。除此之外的所有資料（食譜、分類詞彙表、同義詞庫）仍然只能透過 Claude Code 對話離線寫入。
+**例外**：以下兩種操作可以直接在網站上做，網站會用使用者自己貼上、存在瀏覽器 localStorage 的同一組 GitHub token 直接呼叫 GitHub API 寫回 repo（見下方「網站直接寫入 GitHub」一節）：
+- 食材庫（`data/pantry.json`）的新增/刪除。
+- 食譜的刪除（同時刪除 `data/recipes/{id}.json` 並更新 `data/recipes/index.json`）。
+
+除此之外的所有寫入（新增/編輯食譜、分類詞彙表、同義詞庫）仍然只能透過 Claude Code 對話離線寫入。
 
 ## Git commit / push 規則（覆蓋預設行為）
 
@@ -21,11 +25,11 @@
 
 ## 新增一則食譜時，請依序做這些事
 
-1. 使用者會貼上食譜原文（純文字，可能是從網頁複製、AI 回答、手寫筆記等任何格式）。
+1. 使用者會貼上食譜原文（純文字，可能是從網頁複製、AI 回答、手寫筆記、Excel 表格等任何格式）。**Excel/表格貼上的文字常常會因為並排的兩個表格被序列化成一行行 tab 分隔文字而順序錯亂**（例如「食材表」跟「作法表」原本並排，貼上後變成一行一行交錯），解析前要先判斷這種情況、重組回正確的表格結構，不要照字面順序死板地解析。
 2. 依照下方 schema 解析成 JSON，`id` 用有意義的 kebab-case slug（例如 `shrimp-stirfry-scallion`），避免與 `data/recipes/index.json` 中既有 id 重複。
-3. `cuisine` / `cooking_methods` / `main_ingredient_types` / `course` / `spice_level` 這五個欄位的值**必須**從 `data/taxonomy.json` 既有詞彙表裡選，不可自創新詞。如果現有詞彙表都不合適，先跟使用者確認要不要擴充詞彙表，再動手改 `taxonomy.json`，不要偷偷塞一個表裡沒有的值進食譜。
-4. `raw_input` 欄位保留使用者貼上的原文，不要省略、不要摘要。
-5. 把解析結果拿給使用者 review 一次再寫檔——尤其是份量欄位（`適量`、`少許`這類非數值）、食材別名判斷，AI 解析這些常出錯，不要跳過確認直接寫檔。
+3. `cuisine` / `cooking_methods` / `main_ingredient_types` / `course` / `spice_level` 這幾個欄位的值**必須**從 `data/taxonomy.json` 既有詞彙表裡選，不可自創新詞；`ingredients[].category` 則固定從 `pantry_categories` 詞彙表裡選（見下方「食材分類」）。如果現有詞彙表都不合適，先跟使用者確認要不要擴充詞彙表，再動手改 `taxonomy.json`，不要偷偷塞一個表裡沒有的值進食譜。
+4. `raw_input` 欄位保留使用者貼上的原文，不要省略、不要摘要（保留原始貼上的文字，不是「重組後」的版本——重組是解析步驟的中間產物，`raw_input` 是給人事後對照原文用的）。
+5. **份量欄位（`amount`/`unit`）、`servings`、`time_minutes` 這些「原文有寫就照抄，原文沒寫就整個欄位省略」，不要因為缺份量或缺人份就停下來問使用者，也不要自己亂猜一個數字湊上去。** 真正需要拿給使用者 review 的，是解析過程中有實質判斷風險的地方：食材別名/身份判斷有疑慮（例如原文縮寫看不出指的是哪個食材）、表格重組的結果（尤其是 Excel 貼上這種容易錯位的來源）、`spice_level` 的自動判斷結果（見下方規則，判斷完仍要在回覆裡附上依據，讓使用者一眼能看出來合不合理）。
 6. 寫入 `data/recipes/{id}.json`，並把 `{id}` 加進 `data/recipes/index.json` 陣列（別忘記這一步，前端靠這份 index 才知道要 fetch 哪些檔案）。
 7. `git add`, `git commit`（訊息可用「新增食譜：{title}」）——照上方「Git commit / push 規則」，commit 不用再問，但 push 前要先問使用者。
 
@@ -36,23 +40,64 @@
   "id": "string，kebab-case",
   "title": "string",
   "source": "string，可留空字串",
-  "servings": "string，例如 2人份",
-  "time_minutes": "number，可省略",
-  "ingredients": [{ "name": "string", "amount": "string", "unit": "string", "category": "string，可選" }],
-  "seasonings": [{ "name": "string", "amount": "string", "unit": "string" }],
-  "spices": [{ "name": "string", "amount": "string" }],
+  "servings": "string，例如 2人份，原文沒提到就省略整個欄位",
+  "time_minutes": "number，原文沒提到就省略整個欄位",
+  "ingredients": [
+    {
+      "name": "string",
+      "amount": "string，原文沒寫份量就省略這個欄位（不要填空字串或亂猜數字）",
+      "unit": "string，同上，沒有就省略",
+      "category": "取自 taxonomy.pantry_categories（見下方「食材分類」）"
+    }
+  ],
   "steps": [{ "order": "number，從1開始", "text": "string" }],
   "cuisine": "取自 taxonomy.cuisine",
   "cooking_methods": ["取自 taxonomy.cooking_methods，可複選"],
   "main_ingredient_types": ["取自 taxonomy.main_ingredient_types，可複選"],
   "course": "取自 taxonomy.course",
-  "spice_level": "取自 taxonomy.spice_level，可省略",
+  "spice_level": "取自 taxonomy.spice_level，依下方規則自動判斷，可省略（完全沒有辣度相關食材時）",
   "created_at": "ISO date，today",
   "raw_input": "使用者貼上的原文，完整保留"
 }
 ```
 
-`amount` 一律存字串，不要轉成數字型別（「適量」「少許」這類值會讓數字型別直接壞掉）。
+`amount` 一律存字串，不要轉成數字型別（「適量」「少許」這類值會讓數字型別直接壞掉）。**舊版 schema 曾經把食材拆成 `ingredients` / `seasonings` / `spices` 三個陣列，v0.3 起統一成單一 `ingredients` 陣列，用 `category` 欄位分類（見下）——新食譜一律用新格式，不要再用三陣列的舊格式。**
+
+### 食材分類（`ingredients[].category`，沿用食材庫的 9 大分類）
+
+食譜裡每個食材都要歸類到 `data/taxonomy.json` 的 `pantry_categories` 詞彙表（跟食材庫分頁用的是同一份，這樣食譜詳細頁才能用跟食材庫一致的分類呈現，也讓使用者一眼看出「這個食材屬於食材庫哪一類、平常會不會囤貨」）：
+
+| 分類 | 判斷原則 | 範例 |
+|---|---|---|
+| 香料 | 乾燥的整粒/碎狀辛香料 | 花椒、孜然、丁香、乾辣椒 |
+| 香草 | 新鮮或乾燥的葉菜類香草 | 羅勒、巴西里、迷迭香、九層塔 |
+| 調味粉 | 複方或單方的粉狀調味 | 咖哩粉、五香粉、黑胡椒粉、白胡椒粉 |
+| 調味料 | 液態基礎調味料、料酒類 | 醬油、香油、白醋、烏醋、味醂、**米酒**、白酒、橄欖油、奶油、鮮奶油 |
+| 醬 | 醬狀調味品 | 番茄醬、豆瓣醬、芥末醬、美乃滋 |
+| 辛香蔬菜 | 新鮮辛香類蔬菜 | 薑、蒜、蔥、洋蔥、新鮮辣椒 |
+| 起司 | 起司類 | 帕瑪森、切達、mozzarella |
+| 罐頭/醃漬 | 罐頭或醃漬加工食材 | 酸豆、橄欖、鯷魚、番茄罐頭 |
+| 生鮮食材 | 前 8 類都套不上的主食材/配菜（肉類、海鮮、澱粉主食、一般蔬菜等） | 絞肉、蝦仁、芹菜、蘑菇、義大利麵、龍蝦濃湯 |
+
+「生鮮食材」是刻意設計成最後的接底分類，不是字面上限定「新鮮」的意思——只要不屬於前 8 類（不是辛香料/香草/粉狀調味/液態調味/醬/辛香蔬菜/起司/罐頭醃漬），就歸這一類，涵蓋主要蛋白質、澱粉主食、一般蔬菜等。
+
+遇到表裡沒有的新分類需求時，先跟使用者確認要不要擴充 `pantry_categories`，不要自己偷加——沿用既有的分類詞彙表治理原則。
+
+### 辣度（`spice_level`）自動判斷規則（v2，依實際案例校正過）
+
+辣度判斷很主觀，用下面這套規則自動評估，**不需要每次都先問使用者**，但判斷完要在回覆裡附上依據（用了哪些辣度來源、各自的份量級距），方便使用者一眼檢查合不合理、要不要調整：
+
+1. 掃描所有食材名稱（含備註），找出「辣度來源」關鍵字：辣椒、乾辣椒、辣椒粉、辣椒碎、辣椒醬、辣椒油、朝天椒、小米椒、剁椒、花椒、青花椒、藤椒、郫縣豆瓣醬、辣豆瓣醬、韓式辣醬（gochujang）等。
+2. 每個辣度來源依份量描述分四級（**種類多但每種份量都很少時，不能直接因為種類多就跳到大辣**——這是實測椒麻芹菜肉末這道菜後校正過的重點，v1 規則曾經因為「4 種來源」就誤判成大辣，實際吃起來是中辣）：
+   - Tier 1（微量）：少許、少量、可選、≤ 1/2 小匙
+   - Tier 2（小量明確）：約 1 小匙、1~2 根/顆
+   - Tier 3（中量）：1 大匙 ~ 2 大匙，或 3~5 根/顆
+   - Tier 4（大量）：> 2 大匙、整把、大量
+3. 完全沒有辣度來源 → `不辣`（或省略 `spice_level` 欄位）。
+4. 只有 Tier 1 的來源，且種類 ≤ 2 種 → `微辣`。
+5. 符合以下任一條件 → `中辣`：至少一個辣度來源達到 Tier 2 或 Tier 3；或有 3 種以上不同辣度來源疊加，但沒有任何一個到達 Tier 3 以上（即使種類多、個別都只是少量點綴，也不直接跳大辣）。
+6. 符合以下任一條件 → `大辣`：食譜名稱或原文出現「麻辣／爆辣／重辣／死辣」等明確強辣描述；或任一辣度來源達到 Tier 4；或 4 種以上不同辣度來源疊加，且至少一種達到 Tier 3 以上。
+7. 這是輔助判斷，不是絕對規則——花椒帶來的「麻」跟辣椒的「辣」不完全是同一種感受，但這裡先都算進辣度來源，判斷有明顯不合理時（例如花椒只是裝飾、根本不會吃下去），可以在回覆裡註明「規則判斷為 X，但實際可能偏 Y」，讓使用者視情況調整，不需要為此中斷流程先問；使用者確認判斷不準時，直接照使用者的判斷寫入，並視情況把規則本身也一併校正（像這次一樣），不用來回爭論規則該不該改。
 
 ## 素材庫維護（新增/刪除庫存項目時）
 
@@ -75,15 +120,18 @@
 3. 如果某個素材庫項目目前想不到有意義的別名，`synonyms.json` 裡至少要有一筆 `"正式名稱": ["正式名稱"]`，讓查表邏輯能命中自己。
 4. 刪除素材庫項目時，同步詢問是否要一併移除 `synonyms.json` 裡對應的群組（不移除也不會壞，只是留著沒作用的資料）。
 
-## 食材庫網站直接寫入（GitHub API，架構例外）
+## 網站直接寫入 GitHub（架構例外）
 
-這是專案裡唯一允許網站執行期寫入資料的地方，設計如下（改動前務必先跟使用者確認，不要自作主張擴大範圍）：
+這是專案裡允許網站執行期寫入資料的地方，設計如下（改動前務必先跟使用者確認，不要自作主張擴大範圍）：
 
-- 使用者在「食材庫」分頁貼上一組 **fine-grained GitHub token**，只給 `w731124/recipe-platform` 這個 repo 的 Contents 讀寫權限，其餘權限一律不給。
+- 使用者在「食材庫」分頁貼上一組 **fine-grained GitHub token**，只給 `w731124/recipe-platform` 這個 repo 的 Contents 讀寫權限，其餘權限一律不給。這組 token 是共用的：食材庫的新增/刪除、食譜的刪除都用同一組。
 - Token 只存在瀏覽器的 `localStorage`（key: `recipe_platform_gh_token`），**絕對不可以**出現在原始碼、commit 記錄或 repo 裡的任何檔案。
-- 網站透過 GitHub Contents API（`GET`/`PUT /repos/w731124/recipe-platform/contents/data/pantry.json`）直接讀取、寫入 `pantry.json`，並建立 commit，直接推上 `main`（沒有 PR 審核這層，跟現在 Claude Code 的直接 push 流程一致）。
-- 這個機制**只**用於 `data/pantry.json` 的新增/刪除。不要把這個模式複製到其他資料檔案（食譜、taxonomy、synonyms）——那些仍然要走 Claude Code 離線流程，理由見 PROJECT_SPEC.md 第 2 節（避免網站執行期出現不可控的寫入邏輯、保留人工 review 環節）。
-- 沒有設定 token 的訪客仍然可以正常瀏覽食材庫內容（唯讀），只是看不到新增/刪除的按鈕，符合「單一維護者上傳、其他人唯讀瀏覽」的定位。
+- 共用的 GitHub 讀寫邏輯在 `assets/app.js` 的 `readJsonFileFromGitHub` / `updateJsonFileOnGitHub` / `deleteFileOnGitHub`，都是「先用 `cache: no-store` 抓 GitHub 上真正最新的內容跟 sha，套用變更，再寫回去；遇到 409 衝突自動重試最多 3 次」的模式，新增其他直接寫入操作時應該重用這幾個函式，不要另外寫一套。
+- 目前允許的操作範圍**只有**：
+  - `data/pantry.json` 的新增/刪除單一項目。
+  - 刪除食譜：先更新 `data/recipes/index.json` 移除該 id，再刪除 `data/recipes/{id}.json`（順序不能反過來，否則中途失敗會讓 index.json 留著指向不存在檔案的 id，前端一次 fetch 全部食譜時會整批失敗）。
+- 不要把這個模式擴大到食譜的新增/編輯、`taxonomy.json`、`synonyms.json`——那些仍然要走 Claude Code 離線流程，理由見 PROJECT_SPEC.md 第 2 節（避免網站執行期出現不可控的寫入邏輯、保留人工 review 環節）。
+- 沒有設定 token 的訪客仍然可以正常瀏覽食材庫內容、食譜內容（唯讀），只是看不到新增/刪除/刪除食譜的按鈕，符合「單一維護者上傳、其他人唯讀瀏覽」的定位。
 
 ## 分類詞彙表（`data/taxonomy.json`）維護原則
 - `cuisine` 刻意只停在「中式／西式／其他」這一層，不要往下細分國家（例如不要自作主張加「日式」「泰式」），因為很多菜色本來就跨國別，硬分反而製造分類困難。跨菜系的差異改用 `cooking_methods` / `main_ingredient_types` 這些不受國別限制的維度來區分。
@@ -93,10 +141,11 @@
 - 素材庫比對邏輯（`isInPantry`）：先查 `synonyms.json` 找出食材所屬的同義詞群組，群組的正式名稱若在 `pantry.json`（攤平後的 `state.pantryFlat`）裡就標記已有；如果食材完全沒有對應的同義詞群組，才退回直接對素材庫做字面包含比對。這是刻意設計，修改前先看 `PROJECT_SPEC.md` 第 5 節的理由。
 - 篩選是多維度並列（facet），不是巢狀樹狀選單；同一維度內單選或複選依 `FACETS` 設定裡的 `multi` 決定。
 - 食譜詳細頁的「還需要買」清單（`renderShoppingList`）跟既有的逐項綠色高亮是同一份 `isInPantry` 判斷邏輯算出來的，兩者要維持一致，不要各自維護一套比對規則。
+- 食譜詳細頁的食材區塊依 `ingredients[].category` 動態分組、依 `taxonomy.pantry_categories` 的順序顯示，該食譜沒用到的分類不顯示（不像食材庫分頁會列出全部 9 類含空分類）——這是刻意設計，讓食譜詳細頁的分類跟食材庫分頁用同一套詞彙表但呈現邏輯不同，修改前留意這個差異。
 - 「食譜」「食材庫」是分頁切換（`showRecipesTab` / `showPantryTab`），不是路由，重新整理頁面會回到食譜分頁，這是刻意的簡化，不需要加 URL hash 之類的路由邏輯。
 
 ## 不要做的事
 - 不要在前端程式碼裡加入任何 **LLM API key** 或呼叫任何 LLM API——所有解析與同義詞生成都應該發生在 Claude Code 對話裡，不是網站執行期。（食材庫的 GitHub token 是唯一經過確認的例外，見上一節，不要把這個例外泛化成「前端可以放憑證」。）
 - 不要用 `fetch` 去抓外部食譜網址；食譜內容一律由使用者貼上文字。
 - 不要把 `data/recipes/index.json` 漏更新——這是唯一列出「有哪些食譜檔案」的清單，前端沒有目錄列表能力。
-- 不要把食材庫的 GitHub 直接寫入模式擴大到其他資料檔案，也不要把 token 硬編碼進原始碼或以任何方式提交進 repo。
+- 不要把網站直接寫入 GitHub 的模式擴大到「食材庫新增/刪除」「食譜刪除」以外的操作（尤其是食譜的新增/編輯），也不要把 token 硬編碼進原始碼或以任何方式提交進 repo。

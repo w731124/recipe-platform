@@ -166,14 +166,37 @@ function renderIngredientList(items) {
   }).join("")}</ul>`;
 }
 
+// 食材區塊依 taxonomy.pantry_categories 的順序分組顯示，該食譜沒用到的分類不顯示
+// （跟食材庫分頁會列出全部 9 類含空分類不同，這裡只顯示食譜實際用到的分類）
+function renderIngredientsByCategory(recipe) {
+  const items = recipe.ingredients || [];
+  const known = new Set(state.pantryCategories);
+  const blocks = state.pantryCategories
+    .filter(cat => items.some(i => i.category === cat))
+    .map(cat => `<div class="section-block">
+      <h4>${escapeHtml(cat)}</h4>
+      ${renderIngredientList(items.filter(i => i.category === cat))}
+    </div>`);
+
+  const uncategorized = items.filter(i => !known.has(i.category));
+  if (uncategorized.length) {
+    blocks.push(`<div class="section-block">
+      <h4>其他</h4>
+      ${renderIngredientList(uncategorized)}
+    </div>`);
+  }
+  return `<div class="ingredients-grid">${blocks.join("")}</div>`;
+}
+
+// 購物清單只顯示食材本名，「（切絲）」「（可選，推薦加入…）」這類備註留給下面完整的食材清單顯示
+function stripNotes(name) {
+  return name.replace(/[（(][^）)]*[）)]/g, "").trim();
+}
+
 function renderShoppingList(recipe) {
-  const all = [
-    ...(recipe.ingredients || []),
-    ...(recipe.seasonings || []),
-    ...(recipe.spices || []),
-  ];
+  const items = recipe.ingredients || [];
   const missingNames = [...new Set(
-    all.filter(item => !isInPantry(item.name)).map(item => item.name)
+    items.filter(item => !isInPantry(item.name)).map(item => stripNotes(item.name))
   )];
   if (missingNames.length === 0) {
     return `<div class="shopping-list"><p class="legend">✅ 素材庫都有，不用額外採購！</p></div>`;
@@ -193,7 +216,10 @@ function showDetail(id) {
   detail.classList.remove("hidden");
 
   detail.innerHTML = `
-    <button class="back-btn" id="back-btn">← 回列表</button>
+    <div class="detail-top-bar">
+      <button class="back-btn" id="back-btn">← 回列表</button>
+      <button class="delete-recipe-btn" id="delete-recipe-btn">🗑 刪除食譜</button>
+    </div>
     <h2 class="detail-title">${escapeHtml(recipe.title)}</h2>
     <div class="detail-meta">
       ${escapeHtml(recipe.servings || "")}
@@ -203,18 +229,7 @@ function showDetail(id) {
     ${renderShoppingList(recipe)}
     <p class="legend"><span class="dot"></span>綠色底色代表素材庫已有此項目</p>
 
-    <div class="section-block">
-      <h4>食材</h4>
-      ${renderIngredientList(recipe.ingredients)}
-    </div>
-    <div class="section-block">
-      <h4>調味料</h4>
-      ${renderIngredientList(recipe.seasonings)}
-    </div>
-    <div class="section-block">
-      <h4>香辛料</h4>
-      ${renderIngredientList(recipe.spices)}
-    </div>
+    ${renderIngredientsByCategory(recipe)}
     <div class="section-block">
       <h4>做法</h4>
       <ol class="steps">
@@ -227,16 +242,38 @@ function showDetail(id) {
     detail.classList.add("hidden");
     document.getElementById("list-view").classList.remove("hidden");
   };
+  document.getElementById("delete-recipe-btn").onclick = async () => {
+    if (!getGhToken()) {
+      alert("尚未設定 GitHub token，請先到食材庫分頁貼上 token（刪除食譜共用同一組 token）。");
+      return;
+    }
+    if (!confirm(`確定要刪除「${recipe.title}」嗎？此動作無法從網站復原（但 git 歷史紀錄還找得回來）。`)) return;
+
+    const btn = document.getElementById("delete-recipe-btn");
+    btn.disabled = true;
+    btn.textContent = "刪除中…";
+    try {
+      await deleteRecipe(recipe.id);
+      detail.classList.add("hidden");
+      document.getElementById("list-view").classList.remove("hidden");
+      renderList();
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = "🗑 刪除食譜";
+      alert(err.message);
+    }
+  };
   window.scrollTo(0, 0);
 }
 
-// ---- 食材庫：GitHub 直接寫入 ----
-// 只有食材庫的新增/刪除會呼叫 GitHub API；其餘資料（食譜、分類詞彙表等）
+// ---- GitHub 直接寫入 ----
+// 只有食材庫的新增/刪除、食譜的刪除會呼叫 GitHub API；其餘資料（食譜新增/編輯、分類詞彙表等）
 // 仍照 CLAUDE.md 既定流程，由 Claude Code 離線寫入 + git push。
 const GH_OWNER = "w731124";
 const GH_REPO = "recipe-platform";
 const GH_BRANCH = "main";
 const GH_PANTRY_PATH = "data/pantry.json";
+const GH_RECIPES_INDEX_PATH = "data/recipes/index.json";
 const GH_TOKEN_KEY = "recipe_platform_gh_token";
 
 function getGhToken() {
@@ -262,56 +299,91 @@ function base64ToUtf8(b64) {
   return new TextDecoder().decode(bytes);
 }
 
-// mutateFn(currentPantry) -> newPantry，永遠是「先抓 GitHub 上真正最新的內容，套用變更，再寫回去」，
-// 不依賴頁面載入時的 state.pantry（那份可能是 GitHub Pages 部署延遲下的舊版），避免連續操作互相覆蓋。
-async function updatePantryOnGitHub(mutateFn, message, attempt = 0) {
+function ghHeaders(token) {
+  return { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" };
+}
+
+async function readJsonFileFromGitHub(path) {
+  const token = getGhToken();
+  if (!token) throw new Error("尚未設定 GitHub token");
+  const res = await fetch(
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}&_=${Date.now()}`,
+    { headers: ghHeaders(token), cache: "no-store" }
+  );
+  if (!res.ok) throw new Error(`讀取 ${path} 失敗（HTTP ${res.status}）`);
+  const data = await res.json();
+  return { sha: data.sha, json: JSON.parse(base64ToUtf8(data.content)) };
+}
+
+// mutateFn(currentJson) -> newJson，永遠是「先抓 GitHub 上真正最新的內容，套用變更，再寫回去」，
+// 不依賴頁面載入時的 state（那份可能是 GitHub Pages 部署延遲下的舊版），避免連續操作互相覆蓋。
+async function updateJsonFileOnGitHub(path, mutateFn, message, attempt = 0) {
   const token = getGhToken();
   if (!token) throw new Error("尚未設定 GitHub token");
 
-  const getRes = await fetch(
-    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PANTRY_PATH}?ref=${GH_BRANCH}&_=${Date.now()}`,
-    {
-      headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
-      cache: "no-store",
-    }
-  );
-  if (!getRes.ok) throw new Error(`讀取目前 GitHub 上的檔案失敗（HTTP ${getRes.status}）`);
-  const getData = await getRes.json();
-  const currentPantry = JSON.parse(base64ToUtf8(getData.content));
-  const newPantry = mutateFn(currentPantry);
+  const { sha, json: current } = await readJsonFileFromGitHub(path);
+  const newJson = mutateFn(current);
 
-  const content = utf8ToBase64(JSON.stringify(newPantry, null, 2) + "\n");
+  const content = utf8ToBase64(JSON.stringify(newJson, null, 2) + "\n");
   const putRes = await fetch(
-    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PANTRY_PATH}`,
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
     {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message, content, sha: getData.sha, branch: GH_BRANCH }),
+      headers: { ...ghHeaders(token), "Content-Type": "application/json" },
+      body: JSON.stringify({ message, content, sha, branch: GH_BRANCH }),
     }
   );
   if (!putRes.ok) {
     if (putRes.status === 409 && attempt < 3) {
       // sha 剛好在這瞬間被別的變更超前，重抓最新內容再套用一次變更
       await new Promise(resolve => setTimeout(resolve, 700 * (attempt + 1)));
-      return updatePantryOnGitHub(mutateFn, message, attempt + 1);
+      return updateJsonFileOnGitHub(path, mutateFn, message, attempt + 1);
     }
     if (putRes.status === 409) {
       throw new Error("有其他變更同時發生（衝突），已自動重試多次仍失敗，請重新整理頁面後再試一次。");
     }
     const err = await putRes.json().catch(() => ({}));
-    throw new Error(`寫入 GitHub 失敗（HTTP ${putRes.status}）：${err.message || "未知錯誤"}`);
+    throw new Error(`寫入 ${path} 失敗（HTTP ${putRes.status}）：${err.message || "未知錯誤"}`);
   }
-  return newPantry;
+  return newJson;
+}
+
+async function deleteFileOnGitHub(path, message, attempt = 0) {
+  const token = getGhToken();
+  if (!token) throw new Error("尚未設定 GitHub token");
+
+  const getRes = await fetch(
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}&_=${Date.now()}`,
+    { headers: ghHeaders(token), cache: "no-store" }
+  );
+  if (!getRes.ok) throw new Error(`讀取 ${path} 失敗（HTTP ${getRes.status}）`);
+  const getData = await getRes.json();
+
+  const delRes = await fetch(
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,
+    {
+      method: "DELETE",
+      headers: { ...ghHeaders(token), "Content-Type": "application/json" },
+      body: JSON.stringify({ message, sha: getData.sha, branch: GH_BRANCH }),
+    }
+  );
+  if (!delRes.ok) {
+    if (delRes.status === 409 && attempt < 3) {
+      await new Promise(resolve => setTimeout(resolve, 700 * (attempt + 1)));
+      return deleteFileOnGitHub(path, message, attempt + 1);
+    }
+    if (delRes.status === 409) {
+      throw new Error("有其他變更同時發生（衝突），已自動重試多次仍失敗，請重新整理頁面後再試一次。");
+    }
+    const err = await delRes.json().catch(() => ({}));
+    throw new Error(`刪除 ${path} 失敗（HTTP ${delRes.status}）：${err.message || "未知錯誤"}`);
+  }
 }
 
 async function addPantryItem(category, name) {
   const trimmed = name.trim();
   if (!trimmed) return;
-  const newPantry = await updatePantryOnGitHub(current => {
+  const newPantry = await updateJsonFileOnGitHub(GH_PANTRY_PATH, current => {
     const updated = JSON.parse(JSON.stringify(current));
     if (!updated[category]) updated[category] = [];
     if (updated[category].includes(trimmed)) throw new Error("這個項目已經在食材庫裡了");
@@ -323,13 +395,25 @@ async function addPantryItem(category, name) {
 }
 
 async function removePantryItem(category, name) {
-  const newPantry = await updatePantryOnGitHub(current => {
+  const newPantry = await updateJsonFileOnGitHub(GH_PANTRY_PATH, current => {
     const updated = JSON.parse(JSON.stringify(current));
     updated[category] = (updated[category] || []).filter(n => n !== name);
     return updated;
   }, `素材庫：移除「${name}」`);
   state.pantry = newPantry;
   state.pantryFlat = flattenPantry(newPantry);
+}
+
+// 先更新 index.json 移除該 id，再刪除食譜檔案本身——順序反過來的話，
+// 萬一中途失敗，index.json 會留著一個指向已刪除檔案的 id，讀取食譜清單時整批 fetch 會失敗。
+async function deleteRecipe(id) {
+  await updateJsonFileOnGitHub(
+    GH_RECIPES_INDEX_PATH,
+    current => current.filter(x => x !== id),
+    `更新食譜清單：移除 ${id}`
+  );
+  await deleteFileOnGitHub(`data/recipes/${id}.json`, `刪除食譜：${id}`);
+  state.recipes = state.recipes.filter(r => r.id !== id);
 }
 
 function renderPantryView() {
