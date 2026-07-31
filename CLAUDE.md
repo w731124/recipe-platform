@@ -7,6 +7,12 @@
 
 **唯一例外**：食材庫（`data/pantry.json`）的新增/刪除可以直接在網站的「食材庫」分頁操作，網站會用使用者自己貼上、存在瀏覽器 localStorage 的 GitHub token 直接呼叫 GitHub API 寫回 repo（見下方「食材庫網站直接寫入」一節）。除此之外的所有資料（食譜、分類詞彙表、同義詞庫）仍然只能透過 Claude Code 對話離線寫入。
 
+## Git commit / push 規則（覆蓋預設行為）
+
+這個專案裡，Claude Code 完成一個階段性任務（例如：解析完一則食譜、做完一次功能變更）、且使用者已經確認結果沒問題之後：
+- **直接執行 `git commit`，不用再另外詢問一次「要不要 commit」。**
+- **`git push` 前一定要先問使用者要不要 push**，不要自動推上去——因為 push 會觸發 GitHub Pages 重新部署、影響其他裝置 pull 到的內容，這一步保留讓使用者決定時機。
+
 ## 新增一則食譜時，請依序做這些事
 
 1. 使用者會貼上食譜原文（純文字，可能是從網頁複製、AI 回答、手寫筆記等任何格式）。
@@ -15,7 +21,7 @@
 4. `raw_input` 欄位保留使用者貼上的原文，不要省略、不要摘要。
 5. 把解析結果拿給使用者 review 一次再寫檔——尤其是份量欄位（`適量`、`少許`這類非數值）、食材別名判斷，AI 解析這些常出錯，不要跳過確認直接寫檔。
 6. 寫入 `data/recipes/{id}.json`，並把 `{id}` 加進 `data/recipes/index.json` 陣列（別忘記這一步，前端靠這份 index 才知道要 fetch 哪些檔案）。
-7. `git add`, `git commit`（訊息可用「新增食譜：{title}」），`git push`。
+7. `git add`, `git commit`（訊息可用「新增食譜：{title}」）——照上方「Git commit / push 規則」，commit 不用再問，但 push 前要先問使用者。
 
 ### 食譜 JSON schema
 
