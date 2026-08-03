@@ -1,6 +1,6 @@
 # 食譜筆記本網站 — Codebase Snapshot
 - 產生時間：2026-08-03
-- Git commit：7736a256e7c248086360004c72be5f94c66bea0a
+- Git commit：fc3cde870bf8eb129c1af3ae52d918f742614194
 - 所在分支：main
 
 ## 目錄樹
@@ -14,12 +14,17 @@
 ./assets/style.css
 ./data/ingredient_families.json
 ./data/pantry.json
+./data/prep_forms.json
 ./data/recipes/braised-pork-belly-taiwanese.json
+./data/recipes/chicken-soup-with-scallop-and-ham.json
+./data/recipes/dried-tofu-pork-celery-stirfry.json
 ./data/recipes/index.json
 ./data/recipes/lobster-bisque-shrimp-pasta.json
 ./data/recipes/mala-celery-minced-pork.json
 ./data/recipes/pan-seared-steak-garlic-butter.json
+./data/recipes/savory-tangyuan-soup.json
 ./data/recipes/shrimp-stirfry-scallion.json
+./data/recipes/stir-fried-instant-noodles.json
 ./data/synonyms.json
 ./data/taxonomy.json
 ./index.html
@@ -42,11 +47,12 @@ Thumbs.db
 ## 這是什麼專案
 純靜態網站（vanilla HTML/CSS/JS，無框架、無建置流程），部署在 GitHub Pages。網站本身不解析、不呼叫任何 AI API。所有「智慧」工作（食譜解析、同義詞生成、分類詞彙表維護）都在 Claude Code 對話中離線完成，結果以 JSON 檔案寫入 `/data`，git commit + push 後由 GitHub Pages 自動重新部署。
 
-**例外**：以下兩種操作可以直接在網站上做，網站會用使用者自己貼上、存在瀏覽器 localStorage 的同一組 GitHub token 直接呼叫 GitHub API 寫回 repo（見下方「網站直接寫入 GitHub」一節）：
+**例外**：以下三種操作可以直接在網站上做，網站會用使用者自己貼上、存在瀏覽器 localStorage 的同一組 GitHub token 直接呼叫 GitHub API 寫回 repo（見下方「網站直接寫入 GitHub」一節）：
 - 食材庫（`data/pantry.json`）的新增/刪除。
 - 食譜的刪除（同時刪除 `data/recipes/{id}.json` 並更新 `data/recipes/index.json`）。
+- 食譜標題、做法步驟文字的直接編輯（純文字內容，不包含新增/刪除/搬動步驟，也不包含食材、分類、菜系等任何需要判斷的欄位）。
 
-除此之外的所有寫入（新增/編輯食譜、分類詞彙表、同義詞庫）仍然只能透過 Claude Code 對話離線寫入。
+除此之外的所有寫入（新增食譜、食譜的其他欄位、分類詞彙表、同義詞庫）仍然只能透過 Claude Code 對話離線寫入。
 
 ## Git commit / push 規則（覆蓋預設行為）
 
@@ -82,10 +88,16 @@ Thumbs.db
       "name": "string",
       "amount": "string，原文沒寫份量就省略這個欄位（不要填空字串或亂猜數字）",
       "unit": "string，同上，沒有就省略",
-      "category": "取自 taxonomy.pantry_categories（見下方「食材分類」）"
+      "category": "取自 taxonomy.pantry_categories（見下方「食材分類」）",
+      "component": "string，可選。食譜自訂的組件分組（例如「湯頭材料」「雞湯配料」），跟 category 是兩件不同的事，見下方「多階段／多組件食譜」"
     }
   ],
-  "steps": [{ "order": "number，從1開始", "text": "string" }],
+  "steps": [{
+    "order": "number，同一個 stage 底下從1開始重新編號（見下方「多階段／多組件食譜」）",
+    "text": "string",
+    "stage": "string，可選。食譜自訂的階段名稱（例如「熬湯頭」）",
+    "stage_note": "string，可選。階段補充說明（例如「與熬湯頭同時進行」）"
+  }],
   "cuisine": "取自 taxonomy.cuisine",
   "cooking_methods": ["取自 taxonomy.cooking_methods，可複選"],
   "main_ingredient_types": ["取自 taxonomy.main_ingredient_types，可複選"],
@@ -98,7 +110,19 @@ Thumbs.db
 
 `amount` 一律存字串，不要轉成數字型別（「適量」「少許」這類值會讓數字型別直接壞掉）。**舊版 schema 曾經把食材拆成 `ingredients` / `seasonings` / `spices` 三個陣列，v0.3 起統一成單一 `ingredients` 陣列，用 `category` 欄位分類（見下）——新食譜一律用新格式，不要再用三陣列的舊格式。**
 
-### 食材分類（`ingredients[].category`，沿用食材庫的 9 大分類）
+### 多階段／多組件食譜（`steps[].stage`／`ingredients[].component`）
+
+大部分食譜是單一線性流程，維持原本攤平寫法即可，`stage`／`component`／`stage_note` 這三個欄位全部省略。但少數食譜有多條獨立進行的流程（例如：湯底另外熬 3 小時 + 配料另外前處理 + 最後才組合），硬塞進單一編號清單會看不出真正的並行結構，這種情況才用這組欄位：
+
+- `steps[].stage`：這一步驟屬於哪個階段（自由文字，食譜自己命名，例如「熬湯頭」「雞湯配料與雞腿前處理」），不是固定詞彙表，不需要跟其他食譜的階段名稱一致，也不需要維護共用詞彙表。同一個 stage 底下的 `order` 各自從 1 開始重新編號，不要沿用全域編號。
+- `steps[].stage_note`：可選，補充說明這個階段跟其他階段的關係（例如「與熬湯頭同時進行」），畫面上會用小字附加在階段標題旁邊。
+- `ingredients[].component`：這個食材屬於食譜的哪個組件分組（自由文字，例如「湯頭材料」「雞湯配料」），跟 `category` 是兩件不同的事——`category` 是食材庫比對用的固定 12 大分類，`component` 純粹是這份食譜自己的組件分組，兩者互不影響、都要填。
+
+**只在食譜真的有多條獨立流程或多個組件時才用這組欄位**（湯底/配料/組合分開熬煮、醬汁/主料/配菜分開製作這類情況）。單一流程的家常炒菜、燉菜這類簡單食譜不要為了用這個功能而刻意拆分 stage/component，維持原本攤平寫法，避免簡單食譜也被過度切碎。
+
+前端渲染邏輯（`assets/app.js` 的 `renderSteps`／`renderIngredientsByCategory`）：只要 `recipe.steps` 裡有任一項帶 `stage`，做法區塊就依 stage 第一次出現的順序分組顯示；`recipe.ingredients` 裡有任一項帶 `component`，食材區塊就依 component 分組（不再疊加 category 二次分組）。沒有任何一項帶這些欄位的食譜，畫面呈現完全不受影響。
+
+### 食材分類（`ingredients[].category`，沿用食材庫的 12 大分類）
 
 食譜裡每個食材都要歸類到 `data/taxonomy.json` 的 `pantry_categories` 詞彙表（跟食材庫分頁用的是同一份，這樣食譜詳細頁才能用跟食材庫一致的分類呈現，也讓使用者一眼看出「這個食材屬於食材庫哪一類、平常會不會囤貨」）：
 
@@ -111,13 +135,15 @@ Thumbs.db
 | 醬 | 醬狀調味品 | 番茄醬、豆瓣醬、芥末醬、美乃滋、五味醬 |
 | 辛香蔬菜 | 新鮮辛香類蔬菜 | 薑、蒜、蔥、洋蔥、新鮮辣椒 |
 | 起司 | 起司類 | 帕瑪森、切達、mozzarella |
-| 罐頭/醃漬 | 罐頭或醃漬加工食材 | 酸豆、橄欖、鯷魚、番茄罐頭 |
+| 罐頭/醃漬 | **罐裝或醃漬加工食材**（不分是配角還是這道菜的主要湯底/基底，只看保存方式是不是罐裝/醃漬） | 酸豆、橄欖、鯷魚、番茄罐頭、高湯罐、市售濃湯罐 |
 | 主食 | **耐放的乾貨澱粉類**，你有可能囤在家裡的 | 米、乾燥麵條、烏龍麵、義大利麵、冬粉 |
-| 生鮮食材 | 前 9 類都套不上、**容易壞、幾乎每次都要現買**的主食材/配菜 | 絞肉、蝦仁、芹菜、蘑菇、龍蝦濃湯、**麵包/吐司/法國麵包** |
+| 澱粉 | **勾芡/上漿用的澱粉類**，不是拿來吃、也不是拿來調味，跟「主食」分開（主食是吃的澱粉，這裡是純技術性的烹調輔助） | 太白粉、玉米粉、地瓜粉、樹薯粉 |
+| 乾貨 | **耐放的乾燥海鮮/菇類/蔬菜等非澱粉乾貨**，跟「主食」的乾貨陣營分開（主食專指澱粉類） | 蝦米、蝦皮、小魚乾、乾干貝、乾香菇、乾木耳、扁尖筍 |
+| 生鮮食材 | 前 11 類都套不上、**容易壞、幾乎每次都要現買**的主食材/配菜 | 絞肉、蝦仁、芹菜、蘑菇、**麵包/吐司/法國麵包** |
 
-「主食」跟「生鮮食材」的分界不是「是不是澱粉/碳水」，是**耐不耐放、值不值得放進食材庫追蹤**：米、乾燥麵條這類放櫃子裡可以放很久，適合追蹤「家裡還有沒有」；麵包、吐司雖然也是澱粉，但容易壞、幾乎不會囤貨，跟肉類/海鮮/新鮮蔬菜一樣歸「生鮮食材」。
+「主食」「澱粉」「乾貨」跟「生鮮食材」的分界不是「是不是加工過/乾燥」，是**耐不耐放、值不值得放進食材庫追蹤**：米、乾燥麵條、蝦米、乾香菇這類放櫃子裡可以放很久，適合追蹤「家裡還有沒有」；麵包、吐司雖然也是澱粉，但容易壞、幾乎不會囤貨，跟肉類/海鮮/新鮮蔬菜一樣歸「生鮮食材」。「主食」跟「澱粉」都是耐放澱粉類，差別在用途：「主食」是直接吃的澱粉（飯、麵），「澱粉」是勾芡/上漿用的技術性輔料（太白粉、玉米粉），兩者不會拿來吃。「罐頭/醃漬」則是照保存方式（罐裝/醃漬）分類，不論這個食材在菜色裡是配角還是主要基底（例如高湯罐、濃湯罐都算，不用另外糾結它是不是這道菜的「主角」）。
 
-「生鮮食材」是刻意設計成最後的接底分類，不是字面上限定「新鮮」的意思——只要不屬於前 9 類，就歸這一類。
+「生鮮食材」是刻意設計成最後的接底分類，不是字面上限定「新鮮」的意思——只要不屬於前 11 類，就歸這一類。
 
 遇到表裡沒有的新分類需求時，先跟使用者確認要不要擴充 `pantry_categories`，不要自己偷加——沿用既有的分類詞彙表治理原則。
 
@@ -146,7 +172,7 @@ Thumbs.db
 { "分類名稱": ["正式名稱1", "正式名稱2"] }
 ```
 
-分類名稱固定從 `data/taxonomy.json` 的 `pantry_categories` 詞彙表裡選（目前是：香料、香草、調味粉、調味料、醬、辛香蔬菜、起司、罐頭/醃漬、主食、生鮮食材）。跟其他分類詞彙表一樣，除非使用者明確要求，不要新增表裡沒有的分類值。
+分類名稱固定從 `data/taxonomy.json` 的 `pantry_categories` 詞彙表裡選（目前是：香料、香草、調味粉、調味料、醬、辛香蔬菜、起司、罐頭/醃漬、主食、澱粉、乾貨、生鮮食材）。跟其他分類詞彙表一樣，除非使用者明確要求，不要新增表裡沒有的分類值。
 
 **單一項目的日常新增/刪除，使用者可以直接在網站「食材庫」分頁操作**（會直接寫回 GitHub，見下一節），不一定要透過 Claude Code 對話。但下列情況仍然要在 Claude Code 對話裡處理：
 
@@ -184,6 +210,26 @@ Thumbs.db
 
 最終修法是 `assets/app.js` 的 `safeExtension(longer, shorter)`：只有兩種情況把「較長字串包含較短字串」當作同一食材的延伸寫法直接判定已有——(a) 較短字串在開頭、後面接的是括號備註（例：「辣椒（切末）」延伸自「辣椒」），或 (b) 較短字串在結尾、前面是「新鮮/乾燥/生/熟」這類不影響食材本身的敘述性前綴。其餘所有「較長字串包含較短字串」的狀況（例如字直接黏在一起形成新品項）一律不算安全延伸。這是通用的演算法防呆，不是逐一資料修正——之後如果又出現類似的誤判，先檢查是不是新的「字黏在一起變成不同食材」案例，理論上已經被 `safeExtension` 擋掉了，但如果發現新的漏網案例要在這裡補充說明，也可以視情況擴充 `SAFE_DESCRIPTIVE_PREFIXES` 這個安全前綴清單。
 
+## 切法／處理方式參考詞彙表（`data/prep_forms.json`）
+
+```json
+{
+  "cutting_forms": ["末", "泥", "蓉", "片", "絲", "丁", "塊", "段", "碎", "汁"],
+  "whole_forms": ["整顆", "整粒", "整支", "整球", "對切", "對半", "去皮", "去膜", "去籽"]
+}
+```
+
+這份詞彙表處理的是跟上一節「不可合併」原則**方向相反**的情況，兩者不要混為一談：
+
+- **切法／處理方式**（末、泥、片、絲、丁、整顆、對切…）是使用者買回同一樣食材後，自己在家用刀處理出來的結果，**不改變買到的是同一個商品**，理論上永遠可以合併進同一個同義詞群組。例如「薑」「薑末」「薑片」買的都是同一塊薑，只是切法不同，庫存裡有薑就該算已有。
+- **包裝／加工形態**（粒 vs 粉、新鮮 vs 乾燥、青花椒 vs 紅花椒 這類品種差異）是架上就長成不同商品，買的時候就要選其中一種，這種差異**不能**用這份詞彙表合併，要照上一節的原則走 `data/ingredient_families.json` 的「maybe」軟提示機制，不受這份新詞彙表影響。
+
+用法與限制：
+
+- `data/prep_forms.json` 只是**離線生成同義詞時給人（或 Claude）核對用的參考清單**，不是自動套用的規則，也**不會**修改 `assets/app.js` 的比對邏輯——`safeExtension`／`looseMatch` 等既有防呆機制維持原樣不動，這份詞彙表不參與任何執行期運算。
+- 新增食譜或維護素材庫時，遇到「辛香蔬菜」「生鮮食材」這類會被實際切/處理的食材，新增或檢查同義詞群組時可以對照這份詞彙表，確認有沒有漏掉台灣食譜常見的講法。**不用窮舉所有排列組合**，只收實際常見的用法（例如「蒜末」「蒜泥」常見就收，「蒜絲」不常見就不用硬湊）。
+- **套用前一律要先判斷「食材本名＋這個字」是不是真的還是同一樣東西，不能盲目套用**——這份清單只是常見切法的字根，不代表任何字根接在任何食材後面都合理。例如「豆」加「腐」字面上像是接了詞彙表裡的字，但「豆腐」是完全不同的食材，不是「豆」的切法，這種明顯不合理的組合要靠語意判斷擋掉。這份詞彙表是輔助檢查清單，不能取代逐一判斷。
+
 ### 解析食譜時，判斷食材是「粒」還是「粉」
 
 食譜原文如果只寫籠統的名稱（例如單純「胡椒」「黑胡椒」，沒說粒還是粉），**先看烹調情境判斷**，不要每次都停下來問使用者：
@@ -197,13 +243,14 @@ Thumbs.db
 
 這是專案裡允許網站執行期寫入資料的地方，設計如下（改動前務必先跟使用者確認，不要自作主張擴大範圍）：
 
-- 使用者在「食材庫」分頁貼上一組 **fine-grained GitHub token**，只給 `w731124/recipe-platform` 這個 repo 的 Contents 讀寫權限，其餘權限一律不給。這組 token 是共用的：食材庫的新增/刪除、食譜的刪除都用同一組。
+- 使用者在「食材庫」分頁貼上一組 **fine-grained GitHub token**，只給 `w731124/recipe-platform` 這個 repo 的 Contents 讀寫權限，其餘權限一律不給。這組 token 是共用的：食材庫的新增/刪除、食譜的刪除、食譜標題/步驟文字的編輯都用同一組。
 - Token 只存在瀏覽器的 `localStorage`（key: `recipe_platform_gh_token`），**絕對不可以**出現在原始碼、commit 記錄或 repo 裡的任何檔案。
 - 共用的 GitHub 讀寫邏輯在 `assets/app.js` 的 `readJsonFileFromGitHub` / `updateJsonFileOnGitHub` / `deleteFileOnGitHub`，都是「先用 `cache: no-store` 抓 GitHub 上真正最新的內容跟 sha，套用變更，再寫回去；遇到 409 衝突自動重試最多 3 次」的模式，新增其他直接寫入操作時應該重用這幾個函式，不要另外寫一套。
 - 目前允許的操作範圍**只有**：
   - `data/pantry.json` 的新增/刪除單一項目。
   - 刪除食譜：先更新 `data/recipes/index.json` 移除該 id，再刪除 `data/recipes/{id}.json`（順序不能反過來，否則中途失敗會讓 index.json 留著指向不存在檔案的 id，前端一次 fetch 全部食譜時會整批失敗）。
-- 不要把這個模式擴大到食譜的新增/編輯、`taxonomy.json`、`synonyms.json`——那些仍然要走 Claude Code 離線流程，理由見 PROJECT_SPEC.md 第 2 節（避免網站執行期出現不可控的寫入邏輯、保留人工 review 環節）。
+  - **食譜標題、做法步驟文字的直接編輯**（`assets/app.js` 的 `updateRecipeField`，只有單一檔案要改，不用擔心順序問題）。**範圍嚴格限定在純文字內容**：只能改 `title` 欄位、只能改單一步驟的 `text` 欄位。**不包含**新增/刪除/搬動步驟、也**不包含**食材、`category`、`component`、`cuisine`、`cooking_methods`、`spice_level` 等任何需要判斷的欄位——這些仍然只能透過 Claude Code 離線流程處理。步驟的定位用 `stage` + `order` 一起比對（不是用文字內容比對），避免文字重複的步驟被改錯行。**不要把這個例外誤解成「食譜什麼都能在網站上改」**，之後如果要擴充其他欄位的線上編輯，先跟使用者確認範圍再動手。
+- 不要把這個模式擴大到食譜的新增、`taxonomy.json`、`synonyms.json`——那些仍然要走 Claude Code 離線流程，理由見 PROJECT_SPEC.md 第 2 節（避免網站執行期出現不可控的寫入邏輯、保留人工 review 環節）。
 - 沒有設定 token 的訪客仍然可以正常瀏覽食材庫內容、食譜內容（唯讀），只是看不到新增/刪除/刪除食譜的按鈕，符合「單一維護者上傳、其他人唯讀瀏覽」的定位。
 
 ## 分類詞彙表（`data/taxonomy.json`）維護原則
@@ -214,14 +261,15 @@ Thumbs.db
 - 素材庫比對邏輯（`isInPantry`）：先查 `synonyms.json` 找出食材所屬的同義詞群組，群組的正式名稱若在 `pantry.json`（攤平後的 `state.pantryFlat`）裡就標記已有；如果食材完全沒有對應的同義詞群組，才退回直接對素材庫做字面包含比對。這是刻意設計，修改前先看 `PROJECT_SPEC.md` 第 5 節的理由。
 - 比對結果是三態（`pantryStatus`）：`have`（嚴格同義詞比對命中，綠色）／`maybe`（同義詞比對不到，但命中 `ingredient_families.json` 的家族關係，琥珀色，提示使用者自行確認品種/形態）／`missing`（都比對不到，還需要買）。詳細頁的逐項高亮跟購物清單（`renderShoppingList`）都要用這同一份三態邏輯，不要各自維護一套比對規則。
 - 篩選是多維度並列（facet），不是巢狀樹狀選單；同一維度內單選或複選依 `FACETS` 設定裡的 `multi` 決定。
-- 食譜詳細頁的食材區塊依 `ingredients[].category` 動態分組、依 `taxonomy.pantry_categories` 的順序顯示，該食譜沒用到的分類不顯示（不像食材庫分頁會列出全部 9 類含空分類）——這是刻意設計，讓食譜詳細頁的分類跟食材庫分頁用同一套詞彙表但呈現邏輯不同，修改前留意這個差異。
+- 食譜詳細頁的食材區塊預設依 `ingredients[].category` 動態分組、依 `taxonomy.pantry_categories` 的順序顯示，該食譜沒用到的分類不顯示（不像食材庫分頁會列出全部 9 類含空分類）——這是刻意設計，讓食譜詳細頁的分類跟食材庫分頁用同一套詞彙表但呈現邏輯不同，修改前留意這個差異。如果食材有填 `component`，改成依 component 分組，見上方「多階段／多組件食譜」。
+- 做法區塊預設是單一攤平的 `<ol>`；如果步驟有填 `stage`，改成依 stage 分組各自顯示，見上方「多階段／多組件食譜」。
 - 「食譜」「食材庫」是分頁切換（`showRecipesTab` / `showPantryTab`），不是路由，重新整理頁面會回到食譜分頁，這是刻意的簡化，不需要加 URL hash 之類的路由邏輯。
 
 ## 不要做的事
 - 不要在前端程式碼裡加入任何 **LLM API key** 或呼叫任何 LLM API——所有解析與同義詞生成都應該發生在 Claude Code 對話裡，不是網站執行期。（食材庫的 GitHub token 是唯一經過確認的例外，見上一節，不要把這個例外泛化成「前端可以放憑證」。）
 - 不要用 `fetch` 去抓外部食譜網址；食譜內容一律由使用者貼上文字。
 - 不要把 `data/recipes/index.json` 漏更新——這是唯一列出「有哪些食譜檔案」的清單，前端沒有目錄列表能力。
-- 不要把網站直接寫入 GitHub 的模式擴大到「食材庫新增/刪除」「食譜刪除」以外的操作（尤其是食譜的新增/編輯），也不要把 token 硬編碼進原始碼或以任何方式提交進 repo。
+- 不要把網站直接寫入 GitHub 的模式擴大到「食材庫新增/刪除」「食譜刪除」「食譜標題/步驟文字編輯」以外的操作（尤其是食譜的新增、食材/分類/菜系等需要判斷的欄位），也不要把 token 硬編碼進原始碼或以任何方式提交進 repo。
 ```
 
 ### ./CODEBASE_SNAPSHOT.md
@@ -270,7 +318,7 @@ Thumbs.db
   ```
 - 選擇「一食譜一檔」而非單一大 JSON：多次上傳時 git diff 清楚、不容易因單一大檔案損毀而全部遺失。
 
-## 4. 食譜資料結構（v0.3：食材改成單一陣列 + 沿用食材庫 9 大分類）
+## 4. 食譜資料結構（v0.3：食材改成單一陣列 + 沿用食材庫分類）
 
 ```json
 {
@@ -298,7 +346,7 @@ Thumbs.db
 - `amount` 一律存成字串，因為「適量」「少許」這類非數值必然存在，若存成數字型別會在解析時炸掉。原文沒提供份量時，`amount`/`unit` 整個欄位省略，不強迫填值、也不要求你每次補——上傳量一大，逐筆確認份量會讓這個工具失去「快速整理」的意義。網站不顯示、也不管理「幾人份」「烹調時間」，schema 沒有 `servings`、`time_minutes` 欄位。
 - 保留 `raw_input`：AI 解析錯誤時，你需要對照原文手動修正，這個欄位不能省略，否則校正介面沒有依據。
 - 分類欄位拆成多個獨立維度（見第 7 節），而非單一 `tags` 陣列或巢狀分類樹，理由見第 7 節第 1 點。
-- `ingredients[].category` 沿用素材庫的 9 大分類（`taxonomy.pantry_categories`），不再另外維護一套食譜專用的食材分類——食譜詳細頁跟食材庫分頁用同一套詞彙表分組顯示，兩邊看到的分類概念一致，也省去維護兩份分類邏輯。
+- `ingredients[].category` 沿用素材庫的分類詞彙表（`taxonomy.pantry_categories`），不再另外維護一套食譜專用的食材分類——食譜詳細頁跟食材庫分頁用同一套詞彙表分組顯示，兩邊看到的分類概念一致，也省去維護兩份分類邏輯。
 - `spice_level` 由 Claude Code 依關鍵字＋份量規則自動判斷（見 `CLAUDE.md`），不再每則食譜都詢問你——辣度本來就主觀，但用一套一致的規則估算，比每次臨場判斷更穩定，你事後覺得不準再個別調整即可。
 
 ## 5. 個人素材庫比對邏輯（v2：同義詞庫查表，AI 只在離線維護時輔助）
@@ -408,6 +456,7 @@ const state = {
   ingredientFamilies: {},
   taxonomy: {},
   selectedPantryCategory: null,
+  currentDetailId: null,
   activeFilters: {
     cuisine: null,
     cooking_methods: new Set(),
@@ -468,11 +517,20 @@ function looseMatch(a, b) {
 // （米→米酒、醬油→醬油膏、花→花椒，都是「較長字串包含較短字串」但其實是不同東西）。
 // 只有兩種情況可以放心把「較長字串包含較短字串」當作同一食材的延伸寫法：
 //   1. 較短字串出現在開頭，後面接的是括號備註（例：「辣椒（切末）」延伸自「辣椒」）。
+//      括號本身就是明確的分界，不管較短字串是不是單一漢字（例如「鹽（醃肉用）」延伸自
+//      「鹽」）都不會跟「字黏在一起變成不同食材」搞混，所以這個情況不受長度門檻限制。
 //   2. 較短字串出現在結尾，前面是「新鮮/乾燥/生/熟」這類不影響食材本身的敘述性前綴。
+//      這個情況沒有括號這種明確分界，所以還是要滿足長度門檻，避免單一漢字字根誤判。
 // 其餘一律視為不同食材，不可放心比對，避免「醬油膏」被誤判成「醬油」已有。
 const SAFE_DESCRIPTIVE_PREFIXES = ["新鮮", "乾燥", "生", "熟", "冷凍", "有機", "去皮", "帶皮"];
 function safeExtension(longer, shorter) {
   if (longer === shorter) return true;
+  // 情況 1：括號備註，有明確分界，不受長度門檻限制
+  if (longer.startsWith(shorter)) {
+    const afterPrefix = longer.slice(shorter.length);
+    if (afterPrefix.startsWith("（") || afterPrefix.startsWith("(")) return true;
+  }
+  // 情況 2：敘述性前綴 + 食材本名，沒有分界符號，單一漢字太容易跟其他複合詞混淆
   if (shorter.length < MIN_LOOSE_MATCH_LEN) return false;
   const idx = longer.indexOf(shorter);
   if (idx === -1) return false;
@@ -633,20 +691,40 @@ function renderIngredientList(items) {
     const noteHtml = note
       ? `<div class="ing-note${isOptionalNote ? " ing-note-optional" : ""}">${escapeHtml(note)}</div>`
       : "";
+    // have 的項目食材庫已經有了，不需要再顯示「加入」按鈕
+    const addBtnHtml = status !== "have"
+      ? `<button class="ing-add-btn" type="button" data-category="${escapeHtml(item.category || "")}" data-name="${escapeHtml(base)}">+ 加入</button>`
+      : "";
     return `<li class="${status}">
       <div class="ing-main">
         <span class="ing-name">${escapeHtml(base)}${hint}</span>
-        <span class="ing-amount">${escapeHtml([item.amount, item.unit].filter(Boolean).join(" "))}</span>
+        <div class="ing-right">
+          <span class="ing-amount">${escapeHtml([item.amount, item.unit].filter(Boolean).join(" "))}</span>
+          ${addBtnHtml}
+        </div>
       </div>
       ${noteHtml}
     </li>`;
   }).join("")}</ul>`;
 }
 
-// 食材區塊依 taxonomy.pantry_categories 的順序分組顯示，該食譜沒用到的分類不顯示
-// （跟食材庫分頁會列出全部 9 類含空分類不同，這裡只顯示食譜實際用到的分類）
+// 食材區塊預設依 taxonomy.pantry_categories 的順序分組顯示，該食譜沒用到的分類不顯示
+// （跟食材庫分頁會列出全部 9 類含空分類不同，這裡只顯示食譜實際用到的分類）。
+// 如果食譜的食材有填 component（多組件食譜自訂的組件分組，跟 category 是兩件事），
+// 改成依 component 第一次出現的順序分組，不再疊加 category 二次分組。
 function renderIngredientsByCategory(recipe) {
   const items = recipe.ingredients || [];
+  const hasComponent = items.some(i => i.component);
+
+  if (hasComponent) {
+    const componentOrder = [...new Set(items.map(i => i.component || ""))];
+    const blocks = componentOrder.map(comp => `<div class="section-block">
+      <h4>${escapeHtml(comp || "其他")}</h4>
+      ${renderIngredientList(items.filter(i => (i.component || "") === comp))}
+    </div>`);
+    return `<div class="ingredients-grid">${blocks.join("")}</div>`;
+  }
+
   const known = new Set(state.pantryCategories);
   const blocks = state.pantryCategories
     .filter(cat => items.some(i => i.category === cat))
@@ -690,9 +768,190 @@ function renderShoppingList(recipe) {
   return `<div class="shopping-list">${missingBlock}${maybeBlock}</div>`;
 }
 
+// 做法區塊預設是單一攤平的 <ol>。如果食譜的步驟有填 stage（多階段食譜自訂的階段名稱，
+// 例如「熬湯頭」「雞湯配料前處理」），改成依 stage 第一次出現的順序分組，各自渲染成
+// 一個帶標題的區塊、步驟各自從 1 開始編號；stage_note（例如「與熬湯頭同時進行」）
+// 有填的話用小字附加在標題旁邊。
+// 每個 <li> 用 data-stage + data-order 標記這個步驟在 JSON 裡的正確位置（不是用文字內容比對，
+// 避免文字重複的步驟被編輯功能改錯行）。編輯圖示只在有設定 GitHub token 時顯示。
+function renderStepLi(s) {
+  const canEdit = !!getGhToken();
+  return `<li data-stage="${escapeHtml(s.stage || "")}" data-order="${s.order}">
+    <div class="step-row">
+      <span class="step-text">${escapeHtml(s.text)}</span>
+      ${canEdit ? `<button class="edit-icon-btn step-edit-btn" type="button" title="編輯這個步驟">✏️</button>` : ""}
+    </div>
+  </li>`;
+}
+
+function renderSteps(recipe) {
+  const steps = recipe.steps || [];
+  const hasStage = steps.some(s => s.stage);
+
+  if (!hasStage) {
+    const sorted = steps.slice().sort((a, b) => a.order - b.order);
+    return `<div class="section-block">
+      <h4>做法</h4>
+      <ol class="steps">
+        ${sorted.map(renderStepLi).join("")}
+      </ol>
+    </div>`;
+  }
+
+  const stageOrder = [...new Set(steps.map(s => s.stage || ""))];
+  return stageOrder.map(stage => {
+    const stageSteps = steps.filter(s => (s.stage || "") === stage).slice().sort((a, b) => a.order - b.order);
+    const note = stageSteps.map(s => s.stage_note).find(Boolean) || "";
+    return `<div class="section-block">
+      <h4>${escapeHtml(stage || "做法")}${note ? ` <span class="stage-note">${escapeHtml(note)}</span>` : ""}</h4>
+      <ol class="steps">
+        ${stageSteps.map(renderStepLi).join("")}
+      </ol>
+    </div>`;
+  }).join("");
+}
+
+// 標題／步驟文字的直接編輯（見 CLAUDE.md「網站直接寫入 GitHub」一節）：只有純文字內容，
+// 不包含新增/刪除/搬動步驟，也不包含食材、分類、菜系這類需要判斷的欄位。
+function wireTitleEdit(recipe) {
+  const btn = document.getElementById("edit-title-btn");
+  if (!btn) return;
+  btn.onclick = () => {
+    const row = btn.closest(".detail-title-row");
+    const oldTitle = recipe.title;
+    row.innerHTML = `
+      <input type="text" class="title-edit-input" id="title-edit-input" value="${escapeHtml(oldTitle)}">
+      <button class="btn-primary" id="title-save-btn" type="button">儲存</button>
+      <button class="btn-secondary" id="title-cancel-btn" type="button">取消</button>
+    `;
+    const input = document.getElementById("title-edit-input");
+    input.focus();
+    input.select();
+    document.getElementById("title-cancel-btn").onclick = () => showDetail(recipe.id);
+    const save = async () => {
+      const newTitle = input.value.trim();
+      if (!newTitle) { alert("標題不能空白"); return; }
+      if (newTitle === oldTitle) { showDetail(recipe.id); return; }
+      const saveBtn = document.getElementById("title-save-btn");
+      const cancelBtn = document.getElementById("title-cancel-btn");
+      saveBtn.disabled = true;
+      cancelBtn.disabled = true;
+      input.disabled = true;
+      saveBtn.textContent = "儲存中…";
+      try {
+        await updateRecipeField(
+          recipe.id,
+          current => ({ ...current, title: newTitle }),
+          `編輯食譜標題：${oldTitle} → ${newTitle}`
+        );
+        showToast("已更新標題", async () => {
+          try {
+            await updateRecipeField(
+              recipe.id,
+              current => ({ ...current, title: oldTitle }),
+              `復原標題編輯：${newTitle} → ${oldTitle}`
+            );
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      } catch (err) {
+        saveBtn.disabled = false;
+        cancelBtn.disabled = false;
+        input.disabled = false;
+        saveBtn.textContent = "儲存";
+        alert(err.message);
+      }
+    };
+    document.getElementById("title-save-btn").onclick = save;
+    input.onkeydown = (e) => {
+      if (e.key === "Enter") save();
+      if (e.key === "Escape") showDetail(recipe.id);
+    };
+  };
+}
+
+function wireStepEdit(recipe) {
+  if (!getGhToken()) return;
+  document.querySelectorAll(".step-edit-btn").forEach(btn => {
+    btn.onclick = () => {
+      const li = btn.closest("li");
+      const stage = li.dataset.stage || "";
+      const order = Number(li.dataset.order);
+      const step = (recipe.steps || []).find(s => (s.stage || "") === stage && s.order === order);
+      if (!step) return;
+      const oldText = step.text;
+      li.innerHTML = `
+        <textarea class="step-edit-textarea">${escapeHtml(oldText)}</textarea>
+        <div class="step-edit-actions">
+          <button class="btn-primary" type="button" data-action="save">儲存</button>
+          <button class="btn-secondary" type="button" data-action="cancel">取消</button>
+        </div>
+      `;
+      const textarea = li.querySelector("textarea");
+      textarea.focus();
+      const saveBtn = li.querySelector('[data-action="save"]');
+      const cancelBtn = li.querySelector('[data-action="cancel"]');
+      cancelBtn.onclick = () => showDetail(recipe.id);
+      saveBtn.onclick = async () => {
+        const newText = textarea.value.trim();
+        if (!newText) { alert("步驟內容不能空白"); return; }
+        if (newText === oldText) { showDetail(recipe.id); return; }
+        saveBtn.disabled = true;
+        cancelBtn.disabled = true;
+        textarea.disabled = true;
+        saveBtn.textContent = "儲存中…";
+        const applyText = text => current => {
+          const steps = current.steps.map(s =>
+            (s.stage || "") === stage && s.order === order ? { ...s, text } : s
+          );
+          return { ...current, steps };
+        };
+        try {
+          await updateRecipeField(recipe.id, applyText(newText), `編輯食譜步驟：${recipe.title}`);
+          showToast("已更新步驟", async () => {
+            try {
+              await updateRecipeField(recipe.id, applyText(oldText), `復原步驟編輯：${recipe.title}`);
+            } catch (err) {
+              alert(err.message);
+            }
+          });
+        } catch (err) {
+          saveBtn.disabled = false;
+          cancelBtn.disabled = false;
+          textarea.disabled = false;
+          saveBtn.textContent = "儲存";
+          alert(err.message);
+        }
+      };
+    };
+  });
+}
+
+// 3~5 秒後自動消失的小提示條，附一個「復原」文字按鈕。一次只保留一個提示，
+// 避免連續加好幾個食材時疊出一堆提示條。
+function showToast(message, onUndo) {
+  document.querySelectorAll(".toast").forEach(t => t.remove());
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = `
+    <span>${escapeHtml(message)}</span>
+    <button class="toast-undo" type="button">復原</button>
+  `;
+  document.body.appendChild(toast);
+  const timer = setTimeout(() => toast.remove(), 4000);
+  toast.querySelector(".toast-undo").onclick = () => {
+    clearTimeout(timer);
+    toast.remove();
+    onUndo();
+  };
+}
+
 function showDetail(id) {
   const recipe = state.recipes.find(r => r.id === id);
   if (!recipe) return;
+  state.currentDetailId = id;
+  const canEdit = !!getGhToken();
 
   document.getElementById("list-view").classList.add("hidden");
   const detail = document.getElementById("detail-view");
@@ -703,21 +962,19 @@ function showDetail(id) {
       <button class="back-btn" id="back-btn">← 回列表</button>
       <button class="delete-recipe-btn" id="delete-recipe-btn">🗑 刪除食譜</button>
     </div>
-    <h2 class="detail-title">${escapeHtml(recipe.title)}</h2>
+    <div class="detail-title-row">
+      <h2 class="detail-title">${escapeHtml(recipe.title)}</h2>
+      ${canEdit ? `<button class="edit-icon-btn" id="edit-title-btn" type="button" title="編輯標題">✏️</button>` : ""}
+    </div>
     ${recipe.source ? `<div class="detail-meta">來源：${escapeHtml(recipe.source)}</div>` : ""}
     ${renderShoppingList(recipe)}
     <p class="legend"><span class="dot"></span>綠色底色代表素材庫已有此項目</p>
 
     ${renderIngredientsByCategory(recipe)}
-    <div class="section-block">
-      <h4>做法</h4>
-      <ol class="steps">
-        ${(recipe.steps || []).sort((a, b) => a.order - b.order)
-          .map(s => `<li>${escapeHtml(s.text)}</li>`).join("")}
-      </ol>
-    </div>
+    ${renderSteps(recipe)}
   `;
   document.getElementById("back-btn").onclick = () => {
+    state.currentDetailId = null;
     detail.classList.add("hidden");
     document.getElementById("list-view").classList.remove("hidden");
   };
@@ -733,6 +990,7 @@ function showDetail(id) {
     btn.textContent = "刪除中…";
     try {
       await deleteRecipe(recipe.id);
+      state.currentDetailId = null;
       detail.classList.add("hidden");
       document.getElementById("list-view").classList.remove("hidden");
       renderList();
@@ -742,6 +1000,35 @@ function showDetail(id) {
       alert(err.message);
     }
   };
+  detail.querySelectorAll(".ing-add-btn").forEach(addBtn => {
+    addBtn.onclick = async () => {
+      if (!getGhToken()) {
+        alert("尚未設定 GitHub token，請先到食材庫分頁貼上 token（新增食材共用同一組 token）。");
+        return;
+      }
+      const { category, name } = addBtn.dataset;
+      addBtn.disabled = true;
+      addBtn.textContent = "加入中…";
+      try {
+        await addPantryItem(category, name);
+        showDetail(recipe.id);
+        showToast(`已加入食材庫：${name}`, async () => {
+          try {
+            await removePantryItem(category, name);
+            showDetail(recipe.id);
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      } catch (err) {
+        addBtn.disabled = false;
+        addBtn.textContent = "+ 加入";
+        alert(err.message);
+      }
+    };
+  });
+  wireTitleEdit(recipe);
+  wireStepEdit(recipe);
   window.scrollTo(0, 0);
 }
 
@@ -895,6 +1182,17 @@ async function deleteRecipe(id) {
   state.recipes = state.recipes.filter(r => r.id !== id);
 }
 
+// 食譜只有單一檔案要改（不像刪除食譜要同時動 index.json 跟食譜檔案兩個檔案），
+// 寫入成功後同步更新 state.recipes 快取、重新渲染詳細頁。
+async function updateRecipeField(id, mutateFn, message) {
+  const newRecipe = await updateJsonFileOnGitHub(`data/recipes/${id}.json`, mutateFn, message);
+  const idx = state.recipes.findIndex(r => r.id === id);
+  if (idx !== -1) state.recipes[idx] = newRecipe;
+  showDetail(id);
+  renderList(); // 列表頁（如標題）跟著更新，比照 deleteRecipe 寫入成功後的既有作法
+  return newRecipe;
+}
+
 function renderPantryView() {
   const el = document.getElementById("pantry-view");
   const token = getGhToken();
@@ -1027,6 +1325,13 @@ function showRecipesTab() {
   document.getElementById("tab-pantry").classList.remove("active");
   document.getElementById("app").classList.remove("hidden");
   document.getElementById("pantry-app").classList.add("hidden");
+  // 切分頁只是切換顯示/隱藏，DOM 不會自動重算：如果離開時食譜詳細頁還開著，
+  // 這段期間食材庫可能被改動過（在食材庫分頁新增/刪除），回來時要強制重新渲染，
+  // 不然還是顯示切分頁之前那份舊的 have/missing 狀態。
+  const detailView = document.getElementById("detail-view");
+  if (state.currentDetailId && !detailView.classList.contains("hidden")) {
+    showDetail(state.currentDetailId);
+  }
 }
 function showPantryTab() {
   document.getElementById("tab-pantry").classList.add("active");
@@ -1164,8 +1469,23 @@ body {
 }
 .delete-recipe-btn:hover { background: #c0392b; color: #fff; }
 .delete-recipe-btn:disabled { opacity: 0.6; cursor: default; }
-.detail-title { margin: 0 0 4px; font-size: 1.5rem; }
+.detail-title { margin: 0; font-size: 1.5rem; }
+.detail-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .detail-meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+
+.edit-icon-btn {
+  background: none; border: none; cursor: pointer; font-size: 0.9rem;
+  padding: 2px 6px; border-radius: 4px; line-height: 1; flex-shrink: 0;
+}
+.edit-icon-btn:hover { background: var(--card-bg); }
+.title-edit-input {
+  flex: 1; font-size: 1.5rem; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px;
+}
+.step-edit-textarea {
+  width: 100%; min-height: 60px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px;
+  font-family: inherit; font-size: 0.9rem; resize: vertical; box-sizing: border-box;
+}
+.step-edit-actions { display: flex; gap: 8px; margin-top: 6px; }
 
 .section-block {
   margin-bottom: 24px;
@@ -1175,6 +1495,7 @@ body {
   padding: 16px;
 }
 .section-block h4 { font-size: 1rem; margin: 0 0 10px; border-left: 4px solid var(--accent); padding-left: 8px; }
+.stage-note { font-size: 0.8rem; font-weight: normal; color: var(--muted); }
 
 .ingredients-grid {
   display: grid;
@@ -1192,6 +1513,7 @@ ul.ingredient-list li {
   box-shadow: 0 1px 2px rgba(43, 38, 32, 0.07);
 }
 .ing-main { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.ing-right { display: flex; align-items: baseline; gap: 8px; flex-shrink: 0; }
 ul.ingredient-list li.have { background: var(--pantry-yes); border-color: var(--pantry-yes-text); }
 ul.ingredient-list li.have .ing-name { color: var(--pantry-yes-text); font-weight: 600; }
 ul.ingredient-list li.maybe { background: var(--pantry-maybe); border-color: var(--pantry-maybe-text); }
@@ -1205,9 +1527,33 @@ ul.ingredient-list li.maybe .ing-name { color: var(--pantry-maybe-text); font-we
   background: var(--pantry-maybe-text); color: #fff; font-size: 0.7rem; font-weight: 700;
   cursor: help; vertical-align: middle;
 }
+.ing-add-btn {
+  background: none; border: 1px solid var(--accent); color: var(--accent);
+  border-radius: 999px; padding: 2px 10px; font-size: 0.75rem; cursor: pointer;
+  flex-shrink: 0; white-space: nowrap;
+}
+.ing-add-btn:hover { background: var(--accent); color: #fff; }
+.ing-add-btn:disabled { opacity: 0.6; cursor: default; }
 
 ol.steps { padding-left: 20px; margin: 0; }
 ol.steps li { margin-bottom: 8px; }
+.step-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.step-row .step-text { flex: 1; }
+
+/* ---- 一鍵加入食材庫的提示條 ---- */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 16px;
+  background: var(--pantry-yes); color: var(--pantry-yes-text);
+  border: 1px solid var(--pantry-yes-text);
+  padding: 10px 18px; border-radius: 8px; font-size: 0.9rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+.toast-undo {
+  background: none; border: none; color: var(--accent); font-weight: 600;
+  cursor: pointer; font-size: 0.9rem; padding: 0; text-decoration: underline;
+}
 
 .legend { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
 .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--pantry-yes-text); margin-right: 4px; }
@@ -1343,7 +1689,9 @@ ol.steps li { margin-bottom: 8px; }
     "魚露",
     "鹽巴",
     "白糖",
-    "醬油膏"
+    "醬油膏",
+    "橄欖油",
+    "蠔油"
   ],
   "醬": [
     "番茄醬",
@@ -1357,13 +1705,11 @@ ol.steps li { margin-bottom: 8px; }
     "薑",
     "蒜頭",
     "洋蔥",
-    "蔥",
     "辣椒"
   ],
   "起司": [
     "帕瑪森",
-    "切達",
-    "Brie"
+    "切達"
   ],
   "罐頭/醃漬": [
     "酸豆",
@@ -1376,10 +1722,25 @@ ol.steps li { margin-bottom: 8px; }
     "米",
     "義大利麵"
   ],
+  "乾貨": [
+    "蝦米",
+    "香菇"
+  ],
   "生鮮食材": [
     "蝦仁",
     "牛排"
+  ],
+  "澱粉": [
+    "太白粉"
   ]
+}
+```
+
+### ./data/prep_forms.json
+```json
+{
+  "cutting_forms": ["末", "泥", "蓉", "片", "絲", "丁", "塊", "段", "碎", "汁"],
+  "whole_forms": ["整顆", "整粒", "整支", "整球", "對切", "對半", "去皮", "去膜", "去籽"]
 }
 ```
 
@@ -1396,7 +1757,7 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "油豆腐", "amount": "2", "unit": "塊", "category": "生鮮食材" },
     { "name": "麵輪", "amount": "少許", "category": "生鮮食材" },
     { "name": "豆干", "amount": "3", "unit": "塊", "category": "生鮮食材" },
-    { "name": "乾香菇", "amount": "3", "unit": "朵", "category": "生鮮食材" },
+    { "name": "乾香菇", "amount": "3", "unit": "朵", "category": "乾貨" },
     { "name": "白蘿蔔", "category": "生鮮食材" },
     { "name": "蔥（切段）", "amount": "2", "unit": "根", "category": "辛香蔬菜" },
     { "name": "薑片", "amount": "6", "unit": "片", "category": "辛香蔬菜" },
@@ -1431,6 +1792,231 @@ ol.steps li { margin-bottom: 8px; }
 }
 ```
 
+### ./data/recipes/chicken-soup-with-scallop-and-ham.json
+```json
+{
+  "id": "chicken-soup-with-scallop-and-ham",
+  "title": "高級雞湯",
+  "source": "",
+  "ingredients": [
+    {
+      "name": "雞架子",
+      "amount": "3",
+      "unit": "副",
+      "category": "生鮮食材",
+      "component": "湯頭材料"
+    },
+    {
+      "name": "雞爪",
+      "amount": "2",
+      "unit": "支",
+      "category": "生鮮食材",
+      "component": "湯頭材料"
+    },
+    {
+      "name": "雞翅",
+      "amount": "看多少錢",
+      "category": "生鮮食材",
+      "component": "湯頭材料"
+    },
+    {
+      "name": "龍骨",
+      "amount": "半斤",
+      "category": "生鮮食材",
+      "component": "湯頭材料"
+    },
+    {
+      "name": "腳蹄",
+      "amount": "1",
+      "unit": "段",
+      "category": "生鮮食材",
+      "component": "湯頭材料"
+    },
+    {
+      "name": "里肌（瘦肉）",
+      "amount": "4",
+      "unit": "兩",
+      "category": "生鮮食材",
+      "component": "湯頭材料"
+    },
+    {
+      "name": "薑",
+      "amount": "10",
+      "unit": "g",
+      "category": "辛香蔬菜",
+      "component": "湯頭配料"
+    },
+    {
+      "name": "蔥",
+      "amount": "3",
+      "unit": "支",
+      "category": "辛香蔬菜",
+      "component": "湯頭配料"
+    },
+    {
+      "name": "米酒",
+      "amount": "150",
+      "unit": "cc",
+      "category": "調味料",
+      "component": "湯頭配料"
+    },
+    {
+      "name": "乾干貝",
+      "amount": "5",
+      "unit": "顆",
+      "category": "乾貨",
+      "component": "雞湯配料"
+    },
+    {
+      "name": "扁尖筍",
+      "amount": "1",
+      "unit": "個",
+      "category": "乾貨",
+      "component": "雞湯配料"
+    },
+    {
+      "name": "金華火腿",
+      "amount": "100",
+      "unit": "g",
+      "category": "罐頭/醃漬",
+      "component": "雞湯配料"
+    },
+    {
+      "name": "雞腿",
+      "amount": "1",
+      "unit": "支",
+      "category": "生鮮食材",
+      "component": "雞湯材料"
+    },
+    {
+      "name": "白菜（or 娃娃菜）",
+      "amount": "半",
+      "unit": "顆",
+      "category": "生鮮食材",
+      "component": "雞湯材料"
+    }
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "所有湯頭材料全部刷洗乾淨",
+      "stage": "熬湯頭"
+    },
+    {
+      "order": 2,
+      "text": "冷水開始煮，煮滾2分鐘後關火。",
+      "stage": "熬湯頭"
+    },
+    {
+      "order": 3,
+      "text": "取出湯頭材料，沖乾淨，鍋子也要洗乾淨。",
+      "stage": "熬湯頭"
+    },
+    {
+      "order": 4,
+      "text": "湯頭材料＆湯頭配料放進鍋中，冷水開始滾（水可以多加一點）。",
+      "stage": "熬湯頭"
+    },
+    {
+      "order": 5,
+      "text": "中火不停滾3個小時，過程中要撈浮泡、攪動、視情況加水。",
+      "stage": "熬湯頭"
+    },
+    {
+      "order": 1,
+      "text": "乾干貝泡水約2小時，加點米酒，電鍋蒸20分鐘。",
+      "stage": "雞湯配料與雞腿前處理",
+      "stage_note": "與熬湯頭同時進行"
+    },
+    {
+      "order": 2,
+      "text": "扁尖筍泡水約2小時，刷洗後切條，電鍋蒸20分鐘。",
+      "stage": "雞湯配料與雞腿前處理"
+    },
+    {
+      "order": 3,
+      "text": "金華火腿切塊、熱水汆燙10分鐘，刷洗過後加米酒抓一抓，電鍋蒸20分鐘。",
+      "stage": "雞湯配料與雞腿前處理"
+    },
+    {
+      "order": 4,
+      "text": "雞腿下滾水，滾3分鐘後取出。",
+      "stage": "雞湯配料與雞腿前處理"
+    },
+    {
+      "order": 1,
+      "text": "湯頭完成後濾乾淨，加入雞湯配料、雞腿。",
+      "stage": "組合與最終熬煮"
+    },
+    {
+      "order": 2,
+      "text": "文火慢熬2小時，視情況加入白菜。",
+      "stage": "組合與最終熬煮"
+    }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": [
+    "湯",
+    "燉",
+    "燙/汆燙"
+  ],
+  "main_ingredient_types": [
+    "肉類",
+    "海鮮",
+    "蔬食",
+    "加工品"
+  ],
+  "course": "湯品",
+  "created_at": "2026-08-03",
+  "raw_input": "雞湯（含湯頭）\n\n湯頭材料（熬湯底用）：\n雞架子 3副\n雞爪 2支\n雞翅 2支（原文寫「看多少錢」，是口語化的不確定份量描述，不是我打錯，照原文\n   保留即可，不要自己換算成數字）\n龍骨 半斤\n腳蹄 1段\n里肌（瘦肉） 4兩\n\n湯頭配料（熬湯時加入的辛香料）：\n薑 10g\n蔥 3支\n米酒 150cc\n\n雞湯配料（需要另外分別前處理、熬煮中途加入）：\n乾干貝 5顆（前處理：泡水約2小時 → 加點米酒 → 電鍋蒸20分鐘）\n扁尖筍 1個（前處理：泡水約2小時 → 刷洗後切條 → 電鍋蒸20分鐘）\n金華火腿 100g（前處理：切塊、熱水汆燙10分鐘 → 刷洗過，加米酒抓一抓 → 電鍋蒸20分鐘）\n\n雞湯材料（起鍋前加入）：\n雞腿 1支\n白菜（or 娃娃菜） 半顆\n\n做法：\n1. 所有湯頭材料全部刷洗乾淨。\n2. 冷水開始煮，煮滾2分鐘後關火。\n3. 取出湯頭材料，沖乾淨，鍋子也要洗乾淨。\n4. 湯頭材料＆湯頭配料放進鍋中，冷水開始滾（水可以多加一點）。\n5. 中火不停滾3個小時，過程中要撈浮泡、攪動、視情況加水。\n6. 同時處理雞湯配料（乾干貝、扁尖筍、金華火腿，依各自的前處理流程分別準備）。\n7. 雞腿下滾水，滾3分鐘後取出。\n8. 湯頭完成後濾乾淨，加入雞湯配料、雞腿。\n9. 文火慢熬2小時，視情況加入白菜。"
+}
+```
+
+### ./data/recipes/dried-tofu-pork-celery-stirfry.json
+```json
+{
+  "id": "dried-tofu-pork-celery-stirfry",
+  "title": "豆干肉絲炒芹菜",
+  "source": "",
+  "ingredients": [
+    { "name": "豆干（切片）", "category": "生鮮食材" },
+    { "name": "豬肉絲", "category": "生鮮食材" },
+    { "name": "鹽", "amount": "1/4", "unit": "小匙", "category": "調味料" },
+    { "name": "醬油", "amount": "1/2", "unit": "小匙", "category": "調味料" },
+    { "name": "太白粉", "amount": "1/2", "unit": "小匙", "category": "澱粉" },
+    { "name": "米酒", "amount": "1", "unit": "小匙", "category": "調味料" },
+    { "name": "油", "amount": "1", "unit": "小匙", "category": "調味料" },
+    { "name": "醬油", "amount": "2", "unit": "大匙", "category": "調味料" },
+    { "name": "蠔油", "amount": "1", "unit": "大匙", "category": "調味料" },
+    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料" },
+    { "name": "鹽", "amount": "1/4", "unit": "小匙", "category": "調味料" },
+    { "name": "糖", "amount": "1", "unit": "小匙", "category": "調味料" },
+    { "name": "蔥段", "amount": "2", "unit": "根", "category": "辛香蔬菜" },
+    { "name": "辣椒", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
+    { "name": "蒜頭", "amount": "3", "unit": "粒", "category": "辛香蔬菜" },
+    { "name": "芹菜", "amount": "適量", "category": "生鮮食材" }
+  ],
+  "steps": [
+    { "order": 1, "text": "用醃肉料醃豬肉絲。" },
+    { "order": 2, "text": "豆干冷水下鍋燙煮。" },
+    { "order": 3, "text": "豆干切片後煸香。" },
+    { "order": 4, "text": "取出豆干，換炒醃好的肉絲。" },
+    { "order": 5, "text": "肉絲炒至8分熟後取出。" },
+    { "order": 6, "text": "鍋中加油，爆香料頭（蔥段、辣椒、蒜頭）。" },
+    { "order": 7, "text": "豆干、肉絲回鍋。" },
+    { "order": 8, "text": "淋入綜合調料。" },
+    { "order": 9, "text": "加入芹菜、蔥綠，炒至斷生即可。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["炒", "燙/汆燙"],
+  "main_ingredient_types": ["肉類", "蛋豆製品", "蔬食"],
+  "course": "主菜",
+  "spice_level": "中辣",
+  "created_at": "2026-08-03",
+  "raw_input": "豆干肉絲炒芹菜\n\n主料（原文未寫份量）：\n豆干\n豬肉絲\n\n醃肉料（醃10分鐘）：\n鹽 1/4小匙\n醬油 1/2小匙\n太白粉 1/2小匙\n米酒 1小匙\n油 1小匙\n\n綜合調料：\n醬油 2大匙\n蠔油 1大匙\n米酒 2大匙\n鹽 1/4小匙\n糖 1小匙\n\n料頭：\n蔥段 2根\n辣椒 1根\n蒜頭 3粒\n芹菜 適量\n\n作法：\n1. 用醃肉料醃豬肉絲。\n2. 豆干冷水下鍋燙煮。\n3. 豆干切片後煸香。\n4. 取出豆干，換炒醃好的肉絲。\n5. 肉絲炒至8分熟後取出。\n6. 鍋中加油，爆香料頭（蔥段、辣椒、蒜頭）。\n7. 豆干、肉絲回鍋。\n8. 淋入綜合調料。\n9. 加入芹菜、蔥綠，炒至斷生即可。"
+}
+```
+
 ### ./data/recipes/index.json
 ```json
 [
@@ -1438,7 +2024,11 @@ ol.steps li { margin-bottom: 8px; }
   "lobster-bisque-shrimp-pasta",
   "mala-celery-minced-pork",
   "pan-seared-steak-garlic-butter",
-  "braised-pork-belly-taiwanese"
+  "braised-pork-belly-taiwanese",
+  "savory-tangyuan-soup",
+  "stir-fried-instant-noodles",
+  "dried-tofu-pork-celery-stirfry",
+  "chicken-soup-with-scallop-and-ham"
 ]
 ```
 
@@ -1446,47 +2036,184 @@ ol.steps li { margin-bottom: 8px; }
 ```json
 {
   "id": "lobster-bisque-shrimp-pasta",
-  "title": "龍蝦濃湯蝦仁蘑菇奶油義大利麵",
+  "title": "龍蝦濃湯蝦仁蘑菇義大利麵",
   "source": "",
   "ingredients": [
-    { "name": "義大利麵", "amount": "180～200", "unit": "g", "category": "主食" },
-    { "name": "好市多龍蝦濃湯", "amount": "250～300", "unit": "ml", "category": "生鮮食材" },
-    { "name": "蝦仁", "amount": "200", "unit": "g", "category": "生鮮食材" },
-    { "name": "洋蔥（切絲）", "amount": "半", "unit": "顆", "category": "辛香蔬菜" },
-    { "name": "蘑菇（切片）", "amount": "150", "unit": "g", "category": "生鮮食材" },
-    { "name": "蒜頭（切末）", "amount": "2～3", "unit": "瓣", "category": "辛香蔬菜" },
-    { "name": "小番茄（切半，可選）", "amount": "6～8", "unit": "顆", "category": "生鮮食材" },
-    { "name": "菠菜（可選，與蘆筍擇一）", "amount": "約50（1小把）", "unit": "g", "category": "生鮮食材" },
-    { "name": "蘆筍（可選，與菠菜擇一）", "amount": "5～6", "unit": "根", "category": "生鮮食材" },
-    { "name": "奶油", "amount": "15", "unit": "g", "category": "調味料" },
-    { "name": "橄欖油", "amount": "1", "unit": "大匙", "category": "調味料" },
-    { "name": "鮮奶油（推薦加入，可讓醬汁更滑順）", "amount": "50", "unit": "ml", "category": "調味料" },
-    { "name": "帕瑪森起司", "amount": "適量", "category": "起司" },
-    { "name": "麵水（煮麵時保留）", "amount": "約200", "unit": "ml", "category": "調味料" },
-    { "name": "乾白酒（如 Sauvignon Blanc、Pinot Grigio、Chardonnay 等不甜白酒，推薦加入）", "amount": "50", "unit": "ml", "category": "調味料" },
-    { "name": "檸檬汁（起鍋前加入，可提鮮）", "amount": "1", "unit": "茶匙", "category": "調味料" },
-    { "name": "黑胡椒粉", "amount": "適量", "category": "調味粉" },
-    { "name": "巴西里（乾燥或新鮮）", "amount": "適量", "category": "香草" },
-    { "name": "辣椒碎（可選）", "amount": "1/4～1/2茶匙", "category": "香料" }
+    {
+      "name": "義大利麵",
+      "amount": "180～200",
+      "unit": "g",
+      "category": "主食"
+    },
+    {
+      "name": "好市多龍蝦濃湯",
+      "amount": "250～300",
+      "unit": "ml",
+      "category": "罐頭/醃漬"
+    },
+    {
+      "name": "蝦仁",
+      "amount": "200",
+      "unit": "g",
+      "category": "生鮮食材"
+    },
+    {
+      "name": "洋蔥（切絲）",
+      "amount": "半",
+      "unit": "顆",
+      "category": "辛香蔬菜"
+    },
+    {
+      "name": "蘑菇（切片）",
+      "amount": "150",
+      "unit": "g",
+      "category": "生鮮食材"
+    },
+    {
+      "name": "蒜頭（切末）",
+      "amount": "2～3",
+      "unit": "瓣",
+      "category": "辛香蔬菜"
+    },
+    {
+      "name": "小番茄（切半，可選）",
+      "amount": "6～8",
+      "unit": "顆",
+      "category": "生鮮食材"
+    },
+    {
+      "name": "菠菜（可選，與蘆筍擇一）",
+      "amount": "約50（1小把）",
+      "unit": "g",
+      "category": "生鮮食材"
+    },
+    {
+      "name": "蘆筍（可選，與菠菜擇一）",
+      "amount": "5～6",
+      "unit": "根",
+      "category": "生鮮食材"
+    },
+    {
+      "name": "奶油",
+      "amount": "15",
+      "unit": "g",
+      "category": "調味料"
+    },
+    {
+      "name": "橄欖油",
+      "amount": "1",
+      "unit": "大匙",
+      "category": "調味料"
+    },
+    {
+      "name": "鮮奶油（推薦加入，可讓醬汁更滑順）",
+      "amount": "50",
+      "unit": "ml",
+      "category": "調味料"
+    },
+    {
+      "name": "帕瑪森起司",
+      "amount": "適量",
+      "category": "起司"
+    },
+    {
+      "name": "麵水（煮麵時保留）",
+      "amount": "約200",
+      "unit": "ml",
+      "category": "調味料"
+    },
+    {
+      "name": "乾白酒（如 Sauvignon Blanc、Pinot Grigio、Chardonnay 等不甜白酒，推薦加入）",
+      "amount": "50",
+      "unit": "ml",
+      "category": "調味料"
+    },
+    {
+      "name": "檸檬汁（起鍋前加入，可提鮮）",
+      "amount": "1",
+      "unit": "茶匙",
+      "category": "調味料"
+    },
+    {
+      "name": "黑胡椒粉",
+      "amount": "適量",
+      "category": "調味粉"
+    },
+    {
+      "name": "巴西里（乾燥或新鮮）",
+      "amount": "適量",
+      "category": "香草"
+    },
+    {
+      "name": "辣椒碎（可選）",
+      "amount": "1/4～1/2茶匙",
+      "category": "香料"
+    }
   ],
   "steps": [
-    { "order": 1, "text": "義大利麵下鍋煮至九分熟，撈起前保留約200ml麵水備用。" },
-    { "order": 2, "text": "另起鍋，橄欖油熱鍋，將蝦仁煎至兩面上色後取出備用。" },
-    { "order": 3, "text": "鍋中加入奶油，放入洋蔥絲、蒜末、蘑菇片拌炒至軟化上色。" },
-    { "order": 4, "text": "倒入白酒，煮至收乾約1分鐘。" },
-    { "order": 5, "text": "加入小番茄，續炒約1分鐘。" },
-    { "order": 6, "text": "倒入龍蝦濃湯與鮮奶油，煮滾後轉小火。" },
-    { "order": 7, "text": "視醬汁濃稠度，慢慢加入保留的麵水調整稠度。" },
-    { "order": 8, "text": "放入煮好的義大利麵，與醬汁拌炒均勻。" },
-    { "order": 9, "text": "若使用菠菜，起鍋前30秒加入拌炒；若使用蘆筍，先汆燙後與麵一起拌入。" },
-    { "order": 10, "text": "蝦仁回鍋，續煮約30秒。" },
-    { "order": 11, "text": "起鍋前拌入帕瑪森起司、黑胡椒，辣椒碎可依喜好加入。" },
-    { "order": 12, "text": "熄火後加入檸檬汁拌勻提鮮。" },
-    { "order": 13, "text": "盛盤後撒上巴西里即可。" }
+    {
+      "order": 1,
+      "text": "義大利麵下鍋煮至九分熟，撈起前保留約200ml麵水備用。"
+    },
+    {
+      "order": 2,
+      "text": "另起鍋，橄欖油熱鍋，將蝦仁煎至兩面上色後取出備用。"
+    },
+    {
+      "order": 3,
+      "text": "鍋中加入奶油，放入洋蔥絲、蒜末、蘑菇片拌炒至軟化上色。"
+    },
+    {
+      "order": 4,
+      "text": "倒入白酒，煮至收乾約1分鐘。"
+    },
+    {
+      "order": 5,
+      "text": "加入小番茄，續炒約1分鐘。"
+    },
+    {
+      "order": 6,
+      "text": "倒入龍蝦濃湯與鮮奶油，煮滾後轉小火。"
+    },
+    {
+      "order": 7,
+      "text": "視醬汁濃稠度，慢慢加入保留的麵水調整稠度。"
+    },
+    {
+      "order": 8,
+      "text": "放入煮好的義大利麵，與醬汁拌炒均勻。"
+    },
+    {
+      "order": 9,
+      "text": "若使用菠菜，起鍋前30秒加入拌炒；若使用蘆筍，先汆燙後與麵一起拌入。"
+    },
+    {
+      "order": 10,
+      "text": "蝦仁回鍋，續煮約30秒。"
+    },
+    {
+      "order": 11,
+      "text": "起鍋前拌入帕瑪森起司、黑胡椒，辣椒碎可依喜好加入。"
+    },
+    {
+      "order": 12,
+      "text": "熄火後加入檸檬汁拌勻提鮮。"
+    },
+    {
+      "order": 13,
+      "text": "盛盤後撒上巴西里即可。"
+    }
   ],
   "cuisine": "西式",
-  "cooking_methods": ["炒", "燙/汆燙"],
-  "main_ingredient_types": ["海鮮", "澱粉/主食", "蔬食"],
+  "cooking_methods": [
+    "炒",
+    "燙/汆燙"
+  ],
+  "main_ingredient_types": [
+    "海鮮",
+    "澱粉/主食",
+    "蔬食"
+  ],
   "course": "主菜",
   "spice_level": "不辣",
   "created_at": "2026-07-31",
@@ -1566,6 +2293,41 @@ ol.steps li { margin-bottom: 8px; }
 }
 ```
 
+### ./data/recipes/savory-tangyuan-soup.json
+```json
+{
+  "id": "savory-tangyuan-soup",
+  "title": "鹹湯圓",
+  "source": "",
+  "ingredients": [
+    { "name": "鹹湯圓", "category": "生鮮食材" },
+    { "name": "福州丸", "category": "生鮮食材" },
+    { "name": "大餛飩", "category": "生鮮食材" },
+    { "name": "蝦米", "category": "乾貨" },
+    { "name": "香菇（切片）", "category": "乾貨" },
+    { "name": "蒜苗（切片）", "category": "辛香蔬菜" },
+    { "name": "茼蒿", "category": "生鮮食材" },
+    { "name": "高湯罐", "category": "罐頭/醃漬" },
+    { "name": "紅蔥頭油", "category": "調味料" },
+    { "name": "鹽巴", "category": "調味料" }
+  ],
+  "steps": [
+    { "order": 1, "text": "香菇、蝦米先泡水放著。" },
+    { "order": 2, "text": "香菇切片、蒜苗斜刀切片（蒜白、蒜綠分開）。" },
+    { "order": 3, "text": "蝦米、香菇、蒜白下鍋一起炒。" },
+    { "order": 4, "text": "炒香後加入高湯（罐頭高湯）、水、紅蔥頭油。" },
+    { "order": 5, "text": "加入湯圓（鹹湯圓、福州丸、大餛飩）煮熟。" },
+    { "order": 6, "text": "起鍋前加鹽巴，加入蒜綠、茼蒿。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["炒", "湯"],
+  "main_ingredient_types": ["海鮮", "加工品", "蔬食"],
+  "course": "湯品",
+  "created_at": "2026-08-03",
+  "raw_input": "鹹湯圓\n材料：\n鹹湯圓\n福州丸\n大餛飩\n蝦米\n香菇\n蒜仔\n茼蒿\n高湯罐\n紅蔥頭油\n\n作法：\n1. 香菇、蝦米先泡水放著。\n2. 香菇切片、蒜仔斜刀切片（蒜白、蒜綠分開）。\n3. 蝦米、香菇、蒜白下鍋一起炒。\n4. 炒香後加入高湯（罐頭高湯）、水、紅蔥頭油。\n5. 加入湯圓（鹹湯圓、福州丸、大餛飩）煮熟。\n6. 起鍋前加鹽巴，加入蒜綠、茼蒿。"
+}
+```
+
 ### ./data/recipes/shrimp-stirfry-scallion.json
 ```json
 {
@@ -1596,12 +2358,51 @@ ol.steps li { margin-bottom: 8px; }
 }
 ```
 
+### ./data/recipes/stir-fried-instant-noodles.json
+```json
+{
+  "id": "stir-fried-instant-noodles",
+  "title": "炒泡麵",
+  "source": "",
+  "ingredients": [
+    { "name": "泡麵", "amount": "2", "unit": "包", "category": "主食" },
+    { "name": "豬肉片", "category": "生鮮食材" },
+    { "name": "竹輪", "category": "生鮮食材" },
+    { "name": "高麗菜", "category": "生鮮食材" },
+    { "name": "紅蘿蔔", "category": "生鮮食材" },
+    { "name": "生香菇", "category": "生鮮食材" },
+    { "name": "木耳", "category": "生鮮食材" },
+    { "name": "辣椒", "category": "辛香蔬菜" },
+    { "name": "大蒜", "category": "辛香蔬菜" },
+    { "name": "香菜", "category": "香草" }
+  ],
+  "steps": [
+    { "order": 1, "text": "煮泡麵至半熟。" },
+    { "order": 2, "text": "熱鍋，加入泡麵油包。" },
+    { "order": 3, "text": "爆香料頭。" },
+    { "order": 4, "text": "炒豬肉片至3/4熟後取出。" },
+    { "order": 5, "text": "下全部的蔬菜跟材料。" },
+    { "order": 6, "text": "加入豬肉片 & 泡麵。" },
+    { "order": 7, "text": "加入煮麵水 & 泡麵粉包。" },
+    { "order": 8, "text": "水分大致收乾，下香菜，起鍋。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["炒"],
+  "main_ingredient_types": ["肉類", "蔬食", "澱粉/主食", "加工品"],
+  "course": "主菜",
+  "spice_level": "微辣",
+  "created_at": "2026-08-03",
+  "raw_input": "炒泡麵\n\n材料：\n泡麵（兩包）\n豬肉片\n竹輪\n高麗菜\n紅蘿蔔\n生香菇\n木耳\n辣椒\n大蒜\n香菜\n\n作法：\n1. 煮泡麵至半熟。\n2. 熱鍋，加入泡麵油包。\n3. 爆香料頭。\n4. 炒豬肉片至3/4熟後取出。\n5. 下全部的蔬菜跟材料。\n6. 加入豬肉片 & 泡麵。\n7. 加入煮麵水 & 泡麵粉包。\n8. 水分大致收乾，下香菜，起鍋。"
+}
+```
+
 ### ./data/synonyms.json
 ```json
 {
   "蝦仁": ["蝦仁"],
-  "蔥": ["蔥", "青蔥", "珠蔥", "大蔥"],
-  "蒜頭": ["蒜頭", "蒜仁", "蒜末", "蒜"],
+  "牛排": ["牛排"],
+  "蔥": ["蔥", "青蔥", "珠蔥", "大蔥", "蔥花", "蔥段", "蔥絲"],
+  "蒜頭": ["蒜頭", "蒜仁", "蒜末", "蒜", "大蒜", "蒜片", "蒜泥", "蒜蓉"],
   "醬油": ["醬油"],
   "醬油膏": ["醬油膏"],
   "孜然": ["孜然", "孜然粉"],
@@ -1631,7 +2432,7 @@ ol.steps li { margin-bottom: 8px; }
   "米酒": ["米酒", "料理米酒"],
   "米": ["米", "白米"],
   "鹽巴": ["鹽巴", "鹽"],
-  "白糖": ["白糖", "砂糖", "細砂糖"],
+  "白糖": ["白糖", "砂糖", "細砂糖", "糖"],
   "清酒": ["清酒", "日本酒", "sake"],
   "魚露": ["魚露", "fish sauce"],
   "五味醬": ["五味醬"],
@@ -1639,9 +2440,9 @@ ol.steps li { margin-bottom: 8px; }
   "芥末籽醬": ["芥末籽醬", "顆粒芥末醬"],
   "黃芥末醬": ["黃芥末醬", "黃芥末", "美式芥末醬"],
   "美乃滋": ["美乃滋", "美奶滋", "mayo"],
-  "薑": ["薑", "生薑", "老薑", "嫩薑"],
-  "洋蔥": ["洋蔥"],
-  "辣椒": ["辣椒", "紅辣椒", "青辣椒", "小辣椒"],
+  "薑": ["薑", "生薑", "老薑", "嫩薑", "薑末", "薑片", "薑絲", "薑泥", "薑塊"],
+  "洋蔥": ["洋蔥", "洋蔥丁", "洋蔥絲", "洋蔥圈"],
+  "辣椒": ["辣椒", "紅辣椒", "青辣椒", "小辣椒", "辣椒末", "辣椒片", "辣椒絲"],
   "帕瑪森": ["帕瑪森", "帕瑪森起司", "Parmesan"],
   "切達": ["切達", "切達起司", "cheddar"],
   "Brie": ["Brie", "brie", "布里起司"],
@@ -1661,7 +2462,7 @@ ol.steps li { margin-bottom: 8px; }
   "main_ingredient_types": ["肉類", "海鮮", "蛋豆製品", "蔬食", "澱粉/主食", "加工品"],
   "course": ["主菜", "配菜", "湯品", "甜點", "醬料/沾醬", "早餐"],
   "spice_level": ["不辣", "微辣", "中辣", "大辣"],
-  "pantry_categories": ["香料", "香草", "調味粉", "調味料", "醬", "辛香蔬菜", "起司", "罐頭/醃漬", "主食", "生鮮食材"]
+  "pantry_categories": ["香料", "香草", "調味粉", "調味料", "醬", "辛香蔬菜", "起司", "罐頭/醃漬", "主食", "澱粉", "乾貨", "生鮮食材"]
 }
 ```
 
