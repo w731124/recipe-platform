@@ -236,10 +236,17 @@ function renderIngredientList(items) {
     const noteHtml = note
       ? `<div class="ing-note${isOptionalNote ? " ing-note-optional" : ""}">${escapeHtml(note)}</div>`
       : "";
+    // have 的項目食材庫已經有了，不需要再顯示「加入」按鈕
+    const addBtnHtml = status !== "have"
+      ? `<button class="ing-add-btn" type="button" data-category="${escapeHtml(item.category || "")}" data-name="${escapeHtml(base)}">+ 加入</button>`
+      : "";
     return `<li class="${status}">
       <div class="ing-main">
         <span class="ing-name">${escapeHtml(base)}${hint}</span>
-        <span class="ing-amount">${escapeHtml([item.amount, item.unit].filter(Boolean).join(" "))}</span>
+        <div class="ing-right">
+          <span class="ing-amount">${escapeHtml([item.amount, item.unit].filter(Boolean).join(" "))}</span>
+          ${addBtnHtml}
+        </div>
       </div>
       ${noteHtml}
     </li>`;
@@ -291,6 +298,25 @@ function renderShoppingList(recipe) {
        <div class="tag-row">${maybeNames.map(n => `<span class="tag maybe">${escapeHtml(n)}</span>`).join("")}</div>`
     : "";
   return `<div class="shopping-list">${missingBlock}${maybeBlock}</div>`;
+}
+
+// 3~5 秒後自動消失的小提示條，附一個「復原」文字按鈕。一次只保留一個提示，
+// 避免連續加好幾個食材時疊出一堆提示條。
+function showToast(message, onUndo) {
+  document.querySelectorAll(".toast").forEach(t => t.remove());
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = `
+    <span>${escapeHtml(message)}</span>
+    <button class="toast-undo" type="button">復原</button>
+  `;
+  document.body.appendChild(toast);
+  const timer = setTimeout(() => toast.remove(), 4000);
+  toast.querySelector(".toast-undo").onclick = () => {
+    clearTimeout(timer);
+    toast.remove();
+    onUndo();
+  };
 }
 
 function showDetail(id) {
@@ -345,6 +371,33 @@ function showDetail(id) {
       alert(err.message);
     }
   };
+  detail.querySelectorAll(".ing-add-btn").forEach(addBtn => {
+    addBtn.onclick = async () => {
+      if (!getGhToken()) {
+        alert("尚未設定 GitHub token，請先到食材庫分頁貼上 token（新增食材共用同一組 token）。");
+        return;
+      }
+      const { category, name } = addBtn.dataset;
+      addBtn.disabled = true;
+      addBtn.textContent = "加入中…";
+      try {
+        await addPantryItem(category, name);
+        showDetail(recipe.id);
+        showToast(`已加入食材庫：${name}`, async () => {
+          try {
+            await removePantryItem(category, name);
+            showDetail(recipe.id);
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      } catch (err) {
+        addBtn.disabled = false;
+        addBtn.textContent = "+ 加入";
+        alert(err.message);
+      }
+    };
+  });
   window.scrollTo(0, 0);
 }
 

@@ -129,6 +129,7 @@ ul.ingredient-list li {
   box-shadow: 0 1px 2px rgba(43, 38, 32, 0.07);
 }
 .ing-main { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.ing-right { display: flex; align-items: baseline; gap: 8px; flex-shrink: 0; }
 ul.ingredient-list li.have { background: var(--pantry-yes); border-color: var(--pantry-yes-text); }
 ul.ingredient-list li.have .ing-name { color: var(--pantry-yes-text); font-weight: 600; }
 ul.ingredient-list li.maybe { background: var(--pantry-maybe); border-color: var(--pantry-maybe-text); }
@@ -142,9 +143,31 @@ ul.ingredient-list li.maybe .ing-name { color: var(--pantry-maybe-text); font-we
   background: var(--pantry-maybe-text); color: #fff; font-size: 0.7rem; font-weight: 700;
   cursor: help; vertical-align: middle;
 }
+.ing-add-btn {
+  background: none; border: 1px solid var(--accent); color: var(--accent);
+  border-radius: 999px; padding: 2px 10px; font-size: 0.75rem; cursor: pointer;
+  flex-shrink: 0; white-space: nowrap;
+}
+.ing-add-btn:hover { background: var(--accent); color: #fff; }
+.ing-add-btn:disabled { opacity: 0.6; cursor: default; }
 
 ol.steps { padding-left: 20px; margin: 0; }
 ol.steps li { margin-bottom: 8px; }
+
+/* ---- 一鍵加入食材庫的提示條 ---- */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 16px;
+  background: var(--pantry-yes); color: var(--pantry-yes-text);
+  border: 1px solid var(--pantry-yes-text);
+  padding: 10px 18px; border-radius: 8px; font-size: 0.9rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+.toast-undo {
+  background: none; border: none; color: var(--accent); font-weight: 600;
+  cursor: pointer; font-size: 0.9rem; padding: 0; text-decoration: underline;
+}
 
 .legend { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
 .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--pantry-yes-text); margin-right: 4px; }
