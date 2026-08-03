@@ -1,0 +1,34 @@
+{
+  "id": "braised-tofu-with-mushroom",
+  "title": "香菇燴豆腐",
+  "source": "",
+  "ingredients": [
+    { "name": "板豆腐", "amount": "1", "unit": "盒", "category": "生鮮食材" },
+    { "name": "香菇", "amount": "4", "unit": "朵", "category": "乾貨" },
+    { "name": "紅蘿蔔", "amount": "半", "unit": "根", "category": "生鮮食材" },
+    { "name": "蒜頭", "amount": "2", "unit": "顆", "category": "辛香蔬菜" },
+    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
+    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
+    { "name": "白胡椒粉", "amount": "少許", "category": "調味粉" },
+    { "name": "素蠔油", "amount": "1.5", "unit": "茶匙", "category": "調味料" },
+    { "name": "太白粉水", "amount": "一些", "category": "澱粉" },
+    { "name": "香油", "amount": "少許", "category": "調味料" }
+  ],
+  "steps": [
+    { "order": 1, "text": "香菇泡發。" },
+    { "order": 2, "text": "豆腐切塊，下水汆燙。" },
+    { "order": 3, "text": "兩面煎成金黃色。" },
+    { "order": 4, "text": "依序下大蒜、紅蘿蔔、香菇。" },
+    { "order": 5, "text": "加入糖、鹽、白胡椒。" },
+    { "order": 6, "text": "加入素蠔油。" },
+    { "order": 7, "text": "加入水，悶煮。" },
+    { "order": 8, "text": "加入太白粉水。" },
+    { "order": 9, "text": "淋香油。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["煎", "燉"],
+  "main_ingredient_types": ["蛋豆製品", "蔬食"],
+  "course": "主菜",
+  "created_at": "2026-08-03",
+  "raw_input": "香菇燴豆腐\n\n材料：\n板豆腐 1盒\n香菇 4朵\n紅蘿蔔 半根\n蒜頭 2顆\n\n調味料：\n糖 1/4茶匙\n鹽 1/4茶匙\n白胡椒粉 少許\n素蠔油 1.5茶匙\n太白粉水 一些\n香油 少許\n\n做法：\n1. 香菇泡發。\n2. 豆腐切塊，下水汆燙。\n3. 兩面煎成金黃色。\n4. 依序下大蒜、紅蘿蔔、香菇。\n5. 加入糖、鹽、白胡椒。\n6. 加入素蠔油。\n7. 加入水，悶煮。\n8. 加入太白粉水。\n9. 淋香油。"
+}
