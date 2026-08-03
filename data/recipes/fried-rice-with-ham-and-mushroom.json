@@ -1,31 +1,103 @@
 {
   "id": "fried-rice-with-ham-and-mushroom",
-  "title": "蛋炒飯",
+  "title": "火腿蛋炒飯",
   "source": "",
   "ingredients": [
-    { "name": "白飯", "amount": "兩", "unit": "杯", "category": "主食" },
-    { "name": "蛋", "amount": "3", "unit": "顆", "category": "生鮮食材" },
-    { "name": "火腿（切丁）", "amount": "3", "unit": "片", "category": "生鮮食材" },
-    { "name": "乾香菇", "amount": "2", "unit": "顆", "category": "乾貨" },
-    { "name": "青蔥", "amount": "2", "unit": "支", "category": "辛香蔬菜" },
-    { "name": "香油", "amount": "少許", "category": "調味料" },
-    { "name": "鹽", "amount": "少許", "category": "調味料" },
-    { "name": "醬油", "amount": "少許", "category": "調味料" },
-    { "name": "豬油", "amount": "少許", "category": "調味料" }
+    {
+      "name": "白飯",
+      "amount": "兩",
+      "unit": "杯",
+      "category": "主食"
+    },
+    {
+      "name": "蛋",
+      "amount": "3",
+      "unit": "顆",
+      "category": "生鮮食材"
+    },
+    {
+      "name": "火腿（切丁）",
+      "amount": "3",
+      "unit": "片",
+      "category": "生鮮食材"
+    },
+    {
+      "name": "乾香菇",
+      "amount": "2",
+      "unit": "顆",
+      "category": "乾貨"
+    },
+    {
+      "name": "青蔥",
+      "amount": "2",
+      "unit": "支",
+      "category": "辛香蔬菜"
+    },
+    {
+      "name": "香油",
+      "amount": "少許",
+      "category": "調味料"
+    },
+    {
+      "name": "鹽",
+      "amount": "少許",
+      "category": "調味料"
+    },
+    {
+      "name": "醬油",
+      "amount": "少許",
+      "category": "調味料"
+    },
+    {
+      "name": "豬油",
+      "amount": "少許",
+      "category": "調味料"
+    }
   ],
   "steps": [
-    { "order": 1, "text": "隔夜飯可加一點點油抓鬆。" },
-    { "order": 2, "text": "香菇泡開，切丁。" },
-    { "order": 3, "text": "蔥綠切花、蔥白切粒。" },
-    { "order": 4, "text": "蔥白先下鍋慢炸，加香油少許，煉蔥油。" },
-    { "order": 5, "text": "取起蔥油，蛋打散加鹽，鍋內餘油炒蛋，炒好取出。" },
-    { "order": 6, "text": "加少許蔥油，大火快炒火腿丁，爆出火腿香。" },
-    { "order": 7, "text": "蔥油、白飯、火腿、蛋、香菇、豬油少許，大火快炒。" },
-    { "order": 8, "text": "從鍋邊加入醬油熗香，起鍋前撒蔥綠翻炒兩下。" }
+    {
+      "order": 1,
+      "text": "隔夜飯可加一點點油抓鬆。"
+    },
+    {
+      "order": 2,
+      "text": "香菇泡開，切丁。"
+    },
+    {
+      "order": 3,
+      "text": "蔥綠切花、蔥白切粒。"
+    },
+    {
+      "order": 4,
+      "text": "蔥白先下鍋慢炸，加香油少許，煉蔥油。"
+    },
+    {
+      "order": 5,
+      "text": "取起蔥油，蛋打散加鹽，鍋內餘油炒蛋，炒好取出。"
+    },
+    {
+      "order": 6,
+      "text": "加少許蔥油，大火快炒火腿丁，爆出火腿香。"
+    },
+    {
+      "order": 7,
+      "text": "蔥油、白飯、火腿、蛋、香菇、豬油少許，大火快炒。"
+    },
+    {
+      "order": 8,
+      "text": "從鍋邊加入醬油熗香，起鍋前撒蔥綠翻炒兩下。"
+    }
   ],
   "cuisine": "中式",
-  "cooking_methods": ["炒"],
-  "main_ingredient_types": ["澱粉/主食", "蛋豆製品", "加工品", "蔬食"],
+  "cooking_methods": [
+    "炒"
+  ],
+  "main_ingredient_types": [
+    "澱粉/主食",
+    "蛋豆製品",
+    "加工品",
+    "蔬食"
+  ],
   "course": "主菜",
   "created_at": "2026-08-03",
   "raw_input": "蛋炒飯\n\n材料：\n白飯 兩杯（已煮熟）\n蛋 3顆\n火腿 3片（切丁）\n乾香菇 2顆\n青蔥 2支\n香油 少許\n鹽 少許\n醬油 少許\n豬油 少許\n\n做法：\n1. 隔夜飯可加一點點油抓鬆。\n2. 香菇泡開，切丁。\n3. 蔥綠切花、蔥白切粒。\n4. 蔥白先下鍋慢炸，加香油少許，煉蔥油。\n5. 取起蔥油，蛋打散加鹽，鍋內餘油炒蛋，炒好取出。\n6. 加少許蔥油，大火快炒火腿丁，爆出火腿香。\n7. 蔥油、白飯、火腿、蛋、香菇、豬油少許，大火快炒。\n8. 從鍋邊加入醬油熗香，起鍋前撒蔥綠翻炒兩下。"
