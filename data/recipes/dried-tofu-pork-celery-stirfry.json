@@ -1,0 +1,41 @@
+{
+  "id": "dried-tofu-pork-celery-stirfry",
+  "title": "豆干肉絲炒芹菜",
+  "source": "",
+  "ingredients": [
+    { "name": "豆干（切片）", "category": "生鮮食材" },
+    { "name": "豬肉絲", "category": "生鮮食材" },
+    { "name": "鹽", "amount": "1/4", "unit": "小匙", "category": "調味料" },
+    { "name": "醬油", "amount": "1/2", "unit": "小匙", "category": "調味料" },
+    { "name": "太白粉", "amount": "1/2", "unit": "小匙", "category": "澱粉" },
+    { "name": "米酒", "amount": "1", "unit": "小匙", "category": "調味料" },
+    { "name": "油", "amount": "1", "unit": "小匙", "category": "調味料" },
+    { "name": "醬油", "amount": "2", "unit": "大匙", "category": "調味料" },
+    { "name": "蠔油", "amount": "1", "unit": "大匙", "category": "調味料" },
+    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料" },
+    { "name": "鹽", "amount": "1/4", "unit": "小匙", "category": "調味料" },
+    { "name": "糖", "amount": "1", "unit": "小匙", "category": "調味料" },
+    { "name": "蔥段", "amount": "2", "unit": "根", "category": "辛香蔬菜" },
+    { "name": "辣椒", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
+    { "name": "蒜頭", "amount": "3", "unit": "粒", "category": "辛香蔬菜" },
+    { "name": "芹菜", "amount": "適量", "category": "生鮮食材" }
+  ],
+  "steps": [
+    { "order": 1, "text": "用醃肉料醃豬肉絲。" },
+    { "order": 2, "text": "豆干冷水下鍋燙煮。" },
+    { "order": 3, "text": "豆干切片後煸香。" },
+    { "order": 4, "text": "取出豆干，換炒醃好的肉絲。" },
+    { "order": 5, "text": "肉絲炒至8分熟後取出。" },
+    { "order": 6, "text": "鍋中加油，爆香料頭（蔥段、辣椒、蒜頭）。" },
+    { "order": 7, "text": "豆干、肉絲回鍋。" },
+    { "order": 8, "text": "淋入綜合調料。" },
+    { "order": 9, "text": "加入芹菜、蔥綠，炒至斷生即可。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["炒", "燙/汆燙"],
+  "main_ingredient_types": ["肉類", "蛋豆製品", "蔬食"],
+  "course": "主菜",
+  "spice_level": "中辣",
+  "created_at": "2026-08-03",
+  "raw_input": "豆干肉絲炒芹菜\n\n主料（原文未寫份量）：\n豆干\n豬肉絲\n\n醃肉料（醃10分鐘）：\n鹽 1/4小匙\n醬油 1/2小匙\n太白粉 1/2小匙\n米酒 1小匙\n油 1小匙\n\n綜合調料：\n醬油 2大匙\n蠔油 1大匙\n米酒 2大匙\n鹽 1/4小匙\n糖 1小匙\n\n料頭：\n蔥段 2根\n辣椒 1根\n蒜頭 3粒\n芹菜 適量\n\n作法：\n1. 用醃肉料醃豬肉絲。\n2. 豆干冷水下鍋燙煮。\n3. 豆干切片後煸香。\n4. 取出豆干，換炒醃好的肉絲。\n5. 肉絲炒至8分熟後取出。\n6. 鍋中加油，爆香料頭（蔥段、辣椒、蒜頭）。\n7. 豆干、肉絲回鍋。\n8. 淋入綜合調料。\n9. 加入芹菜、蔥綠，炒至斷生即可。"
+}

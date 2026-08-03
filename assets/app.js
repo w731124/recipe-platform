@@ -72,11 +72,20 @@ function looseMatch(a, b) {
 // （米→米酒、醬油→醬油膏、花→花椒，都是「較長字串包含較短字串」但其實是不同東西）。
 // 只有兩種情況可以放心把「較長字串包含較短字串」當作同一食材的延伸寫法：
 //   1. 較短字串出現在開頭，後面接的是括號備註（例：「辣椒（切末）」延伸自「辣椒」）。
+//      括號本身就是明確的分界，不管較短字串是不是單一漢字（例如「鹽（醃肉用）」延伸自
+//      「鹽」）都不會跟「字黏在一起變成不同食材」搞混，所以這個情況不受長度門檻限制。
 //   2. 較短字串出現在結尾，前面是「新鮮/乾燥/生/熟」這類不影響食材本身的敘述性前綴。
+//      這個情況沒有括號這種明確分界，所以還是要滿足長度門檻，避免單一漢字字根誤判。
 // 其餘一律視為不同食材，不可放心比對，避免「醬油膏」被誤判成「醬油」已有。
 const SAFE_DESCRIPTIVE_PREFIXES = ["新鮮", "乾燥", "生", "熟", "冷凍", "有機", "去皮", "帶皮"];
 function safeExtension(longer, shorter) {
   if (longer === shorter) return true;
+  // 情況 1：括號備註，有明確分界，不受長度門檻限制
+  if (longer.startsWith(shorter)) {
+    const afterPrefix = longer.slice(shorter.length);
+    if (afterPrefix.startsWith("（") || afterPrefix.startsWith("(")) return true;
+  }
+  // 情況 2：敘述性前綴 + 食材本名，沒有分界符號，單一漢字太容易跟其他複合詞混淆
   if (shorter.length < MIN_LOOSE_MATCH_LEN) return false;
   const idx = longer.indexOf(shorter);
   if (idx === -1) return false;
