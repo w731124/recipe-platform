@@ -47,7 +47,8 @@
       "amount": "string，原文沒寫份量就省略這個欄位（不要填空字串或亂猜數字）",
       "unit": "string，同上，沒有就省略",
       "category": "取自 taxonomy.pantry_categories（見下方「食材分類」）",
-      "component": "string，可選。食譜自訂的組件分組（例如「湯頭材料」「雞湯配料」），跟 category 是兩件不同的事，見下方「多階段／多組件食譜」"
+      "component": "string，可選。食譜自訂的組件分組（例如「湯頭材料」「雞湯配料」），跟 category 是兩件不同的事，見下方「多階段／多組件食譜」",
+      "always_available": "boolean，可選，預設不存在等同 false。見下方「always_available：不需要追蹤庫存的食材」"
     }
   ],
   "steps": [{
@@ -79,6 +80,19 @@
 **只在食譜真的有多條獨立流程或多個組件時才用這組欄位**（湯底/配料/組合分開熬煮、醬汁/主料/配菜分開製作這類情況）。單一流程的家常炒菜、燉菜這類簡單食譜不要為了用這個功能而刻意拆分 stage/component，維持原本攤平寫法，避免簡單食譜也被過度切碎。
 
 前端渲染邏輯（`assets/app.js` 的 `renderSteps`／`renderIngredientsByCategory`）：只要 `recipe.steps` 裡有任一項帶 `stage`，做法區塊就依 stage 第一次出現的順序分組顯示；`recipe.ingredients` 裡有任一項帶 `component`，食材區塊就依 component 分組（不再疊加 category 二次分組）。沒有任何一項帶這些欄位的食譜，畫面呈現完全不受影響。
+
+### `always_available`：不需要追蹤庫存的食材
+
+`ingredients[].always_available` 處理的是「這個食材根本不該進入食材庫比對邏輯」的情況（例如「水」）——這裡要解決的不是「歸類到哪一類」，是這個食材客觀上不存在採購/庫存這件事，硬塞進某個 `category` 沒有意義。
+
+**判準是「客觀上不存在採購/庫存這件事」，不是「主觀上覺得很常見」**：
+
+- 可以標 `always_available: true` 的只有像「水」這種**不可能是採購行為對象**的東西——不會有人把水列進購物清單，也不會有人「檢查家裡還有沒有水」。
+- **不要**濫用在「我剛好家裡通常有」的食材上，即使是鹽、米酒這類幾乎每次都會用到的常備品，還是要走正常的 `category` + `synonyms.json` 比對，不能因為主觀覺得「通常都有」就標成 `always_available`——那種情況本來就該讓食材庫比對邏輯（`have`/`missing`/`maybe`）判斷，而不是繞過它。
+- `category` 欄位不受這個欄位影響，還是要照常填（純粹給食材清單分組顯示用）。
+- 遇到「水」這個食材時可以直接標 `always_available: true`，不用每次都詢問；其他候選食材如果拿不準是否符合「客觀上不存在採購/庫存」這條判準，先跟使用者確認，不要自己擴大範圍。
+
+前端行為（`assets/app.js` 的 `renderIngredientList`／`renderShoppingList`）：`always_available: true` 的食材不呼叫 `pantryStatus`，不套用 have/missing/maybe 顏色、不顯示「+ 加入」按鈕，純粹列出名稱和份量；購物清單（`renderShoppingList`）計算前也會先排除這些項目，不會出現在任何一個購物清單分類裡。
 
 ### 食材分類（`ingredients[].category`，沿用食材庫的 12 大分類）
 
@@ -221,6 +235,7 @@
 - 篩選是多維度並列（facet），不是巢狀樹狀選單；同一維度內單選或複選依 `FACETS` 設定裡的 `multi` 決定。
 - 食譜詳細頁的食材區塊預設依 `ingredients[].category` 動態分組、依 `taxonomy.pantry_categories` 的順序顯示，該食譜沒用到的分類不顯示（不像食材庫分頁會列出全部 9 類含空分類）——這是刻意設計，讓食譜詳細頁的分類跟食材庫分頁用同一套詞彙表但呈現邏輯不同，修改前留意這個差異。如果食材有填 `component`，改成依 component 分組，見上方「多階段／多組件食譜」。
 - 做法區塊預設是單一攤平的 `<ol>`；如果步驟有填 `stage`，改成依 stage 分組各自顯示，見上方「多階段／多組件食譜」。
+- `ingredients[].always_available` 為 `true` 的項目不參與 `pantryStatus` 比對、不進購物清單，見上方「`always_available`：不需要追蹤庫存的食材」。
 - 「食譜」「食材庫」是分頁切換（`showRecipesTab` / `showPantryTab`），不是路由，重新整理頁面會回到食譜分頁，這是刻意的簡化，不需要加 URL hash 之類的路由邏輯。
 
 ## 不要做的事

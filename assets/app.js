@@ -239,18 +239,20 @@ function splitIngredientNote(name) {
 function renderIngredientList(items) {
   if (!items || items.length === 0) return "<p class=\"legend\">（無）</p>";
   return `<ul class="ingredient-list">${items.map(item => {
-    const status = pantryStatus(item.name);
+    // always_available（例如「水」）不算食材庫比對的對象，跳過 pantryStatus，
+    // 不套用 have/missing/maybe 顏色、也不顯示「+ 加入」按鈕。
+    const status = item.always_available ? null : pantryStatus(item.name);
     const hint = status === "maybe" ? `<span class="ing-hint" title="家族相近，品種或形態可能不同，請自行確認">？</span>` : "";
     const { base, note } = splitIngredientNote(item.name);
     const isOptionalNote = /可選|推薦/.test(note);
     const noteHtml = note
       ? `<div class="ing-note${isOptionalNote ? " ing-note-optional" : ""}">${escapeHtml(note)}</div>`
       : "";
-    // have 的項目食材庫已經有了，不需要再顯示「加入」按鈕
-    const addBtnHtml = status !== "have"
+    // have 的項目食材庫已經有了、always_available 的項目不需要追蹤，都不用顯示「加入」按鈕
+    const addBtnHtml = status && status !== "have"
       ? `<button class="ing-add-btn" type="button" data-category="${escapeHtml(item.category || "")}" data-name="${escapeHtml(base)}">+ 加入</button>`
       : "";
-    return `<li class="${status}">
+    return `<li class="${status || ""}">
       <div class="ing-main">
         <span class="ing-name">${escapeHtml(base)}${hint}</span>
         <div class="ing-right">
@@ -304,7 +306,8 @@ function stripNotes(name) {
 }
 
 function renderShoppingList(recipe) {
-  const items = recipe.ingredients || [];
+  // always_available（例如「水」）根本不是採購行為的對象，不列入購物清單任何分類。
+  const items = (recipe.ingredients || []).filter(item => !item.always_available);
   const statused = items.map(item => ({ name: stripNotes(item.name), status: pantryStatus(item.name) }));
   const missingNames = [...new Set(statused.filter(i => i.status === "missing").map(i => i.name))];
   const maybeNames = [...new Set(statused.filter(i => i.status === "maybe").map(i => i.name))];
