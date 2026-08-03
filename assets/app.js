@@ -744,6 +744,7 @@ async function updateRecipeField(id, mutateFn, message) {
   const idx = state.recipes.findIndex(r => r.id === id);
   if (idx !== -1) state.recipes[idx] = newRecipe;
   showDetail(id);
+  renderList(); // 列表頁（如標題）跟著更新，比照 deleteRecipe 寫入成功後的既有作法
   return newRecipe;
 }
 
