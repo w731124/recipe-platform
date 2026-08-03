@@ -1,6 +1,6 @@
 # 食譜筆記本網站 — Codebase Snapshot
 - 產生時間：2026-08-03
-- Git commit：fc3cde870bf8eb129c1af3ae52d918f742614194
+- Git commit：85331a787229d62e7f6975e97bc1dc8aeaf51adb
 - 所在分支：main
 
 ## 目錄樹
@@ -16,14 +16,18 @@
 ./data/pantry.json
 ./data/prep_forms.json
 ./data/recipes/braised-pork-belly-taiwanese.json
+./data/recipes/braised-tofu-with-mushroom.json
 ./data/recipes/chicken-soup-with-scallop-and-ham.json
 ./data/recipes/dried-tofu-pork-celery-stirfry.json
+./data/recipes/fried-rice-with-ham-and-mushroom.json
 ./data/recipes/index.json
 ./data/recipes/lobster-bisque-shrimp-pasta.json
 ./data/recipes/mala-celery-minced-pork.json
 ./data/recipes/pan-seared-steak-garlic-butter.json
 ./data/recipes/savory-tangyuan-soup.json
+./data/recipes/sesame-oil-chicken.json
 ./data/recipes/shrimp-stirfry-scallion.json
+./data/recipes/spicy-diced-chicken.json
 ./data/recipes/stir-fried-instant-noodles.json
 ./data/synonyms.json
 ./data/taxonomy.json
@@ -89,7 +93,8 @@ Thumbs.db
       "amount": "string，原文沒寫份量就省略這個欄位（不要填空字串或亂猜數字）",
       "unit": "string，同上，沒有就省略",
       "category": "取自 taxonomy.pantry_categories（見下方「食材分類」）",
-      "component": "string，可選。食譜自訂的組件分組（例如「湯頭材料」「雞湯配料」），跟 category 是兩件不同的事，見下方「多階段／多組件食譜」"
+      "component": "string，可選。食譜自訂的組件分組（例如「湯頭材料」「雞湯配料」），跟 category 是兩件不同的事，見下方「多階段／多組件食譜」",
+      "always_available": "boolean，可選，預設不存在等同 false。見下方「always_available：不需要追蹤庫存的食材」"
     }
   ],
   "steps": [{
@@ -122,6 +127,19 @@ Thumbs.db
 
 前端渲染邏輯（`assets/app.js` 的 `renderSteps`／`renderIngredientsByCategory`）：只要 `recipe.steps` 裡有任一項帶 `stage`，做法區塊就依 stage 第一次出現的順序分組顯示；`recipe.ingredients` 裡有任一項帶 `component`，食材區塊就依 component 分組（不再疊加 category 二次分組）。沒有任何一項帶這些欄位的食譜，畫面呈現完全不受影響。
 
+### `always_available`：不需要追蹤庫存的食材
+
+`ingredients[].always_available` 處理的是「這個食材根本不該進入食材庫比對邏輯」的情況（例如「水」）——這裡要解決的不是「歸類到哪一類」，是這個食材客觀上不存在採購/庫存這件事，硬塞進某個 `category` 沒有意義。
+
+**判準是「客觀上不存在採購/庫存這件事」，不是「主觀上覺得很常見」**：
+
+- 可以標 `always_available: true` 的只有像「水」這種**不可能是採購行為對象**的東西——不會有人把水列進購物清單，也不會有人「檢查家裡還有沒有水」。
+- **不要**濫用在「我剛好家裡通常有」的食材上，即使是鹽、米酒這類幾乎每次都會用到的常備品，還是要走正常的 `category` + `synonyms.json` 比對，不能因為主觀覺得「通常都有」就標成 `always_available`——那種情況本來就該讓食材庫比對邏輯（`have`/`missing`/`maybe`）判斷，而不是繞過它。
+- `category` 欄位不受這個欄位影響，還是要照常填（純粹給食材清單分組顯示用）。
+- 遇到「水」這個食材時可以直接標 `always_available: true`，不用每次都詢問；其他候選食材如果拿不準是否符合「客觀上不存在採購/庫存」這條判準，先跟使用者確認，不要自己擴大範圍。
+
+前端行為（`assets/app.js` 的 `renderIngredientList`／`renderShoppingList`）：`always_available: true` 的食材不呼叫 `pantryStatus`，不套用 have/missing/maybe 顏色、不顯示「+ 加入」按鈕，純粹列出名稱和份量；購物清單（`renderShoppingList`）計算前也會先排除這些項目，不會出現在任何一個購物清單分類裡。
+
 ### 食材分類（`ingredients[].category`，沿用食材庫的 12 大分類）
 
 食譜裡每個食材都要歸類到 `data/taxonomy.json` 的 `pantry_categories` 詞彙表（跟食材庫分頁用的是同一份，這樣食譜詳細頁才能用跟食材庫一致的分類呈現，也讓使用者一眼看出「這個食材屬於食材庫哪一類、平常會不會囤貨」）：
@@ -138,6 +156,8 @@ Thumbs.db
 | 罐頭/醃漬 | **罐裝或醃漬加工食材**（不分是配角還是這道菜的主要湯底/基底，只看保存方式是不是罐裝/醃漬） | 酸豆、橄欖、鯷魚、番茄罐頭、高湯罐、市售濃湯罐 |
 | 主食 | **耐放的乾貨澱粉類**，你有可能囤在家裡的 | 米、乾燥麵條、烏龍麵、義大利麵、冬粉 |
 | 澱粉 | **勾芡/上漿用的澱粉類**，不是拿來吃、也不是拿來調味，跟「主食」分開（主食是吃的澱粉，這裡是純技術性的烹調輔助） | 太白粉、玉米粉、地瓜粉、樹薯粉 |
+
+**澱粉類的「X水」講法**：食譜常把「太白粉」寫成「太白粉水」（下鍋前先加水調開），這只是烹調前自己動手稀釋，買的還是同一包太白粉，不是不同商品——`synonyms.json` 已經把「太白粉水」併入「太白粉」群組。**以後遇到同樣邏輯的其他澱粉類「X水」講法（例如「地瓜粉水」「玉米粉水」）可以直接比照辦理併入對應的澀粉同義詞群組，不用每次停下來問**；但這個放行範圍限定在「澀粉分類 + 水稀釋」這個組合，不要套用到其他食材類型的「X水」講法（例如「鹽水」「糖水」通常是指用鹽/糖調味過的水，跟鹽/糖本身是不同東西，不能套用同一邏輯合併）。
 | 乾貨 | **耐放的乾燥海鮮/菇類/蔬菜等非澱粉乾貨**，跟「主食」的乾貨陣營分開（主食專指澱粉類） | 蝦米、蝦皮、小魚乾、乾干貝、乾香菇、乾木耳、扁尖筍 |
 | 生鮮食材 | 前 11 類都套不上、**容易壞、幾乎每次都要現買**的主食材/配菜 | 絞肉、蝦仁、芹菜、蘑菇、**麵包/吐司/法國麵包** |
 
@@ -200,7 +220,7 @@ Thumbs.db
 - key 是一個籠統的字（例如「花椒」），value 是這個家族底下、各自是獨立同義詞群組正式名稱的陣列。
 - 比對邏輯（`assets/app.js` 的 `pantryStatus`）：先照 `isInPantry` 做嚴格比對，比對到才算「已有」（have）；比對不到時，才看食材名稱是否包含/被包含於某個家族代表詞，且該家族裡有任一成員在庫存中，是的話算「可能已有，請確認品種/形態」（maybe，畫面上是琥珀色，還需要買清單裡會分開列出來）；兩者都沒有才算「還需要買」（missing）。
 - 新增家族關係時，跟同義詞一樣要讓使用者 review 確認：這個籠統詞底下真的有哪些品種/形態、使用者庫存裡實際有哪些，不要自己亂猜著寫。
-- 什麼時候該新增家族關係：發現某個食材有明顯的品種/形態分支、而且使用者庫存剛好有其中特定一種時（像花椒、白胡椒粒/白胡椒粉、黑胡椒粉的案例）。不是每個食材都需要，多數食材維持單純的同義詞比對就夠了。
+- 什麼時候該新增家族關係：發現某個食材有明顯的品種/形態分支、而且使用者庫存剛好有其中特定一種時（像花椒、白胡椒粒/白胡椒粉、黑胡椒粉的案例；起司也是同一類——庫存習慣直接記具體品種名稱如「帕瑪森」「切達」「Brie」，但食譜常常只籠統寫「起司」，所以 `ingredient_families.json` 有 `"起司": ["帕瑪森", "切達", "Brie"]`，之後新增其他起司品種到食材庫時記得同步把它加進這個家族清單，不然新品種的起司不會被籠統的「起司」帶到）。不是每個食材都需要，多數食材維持單純的同義詞比對就夠了。
 - **這個「不可合併」原則不是只有花椒才要注意**——只要一個食材同時有「粒/粉」「新鮮/乾燥」「品種」這類會影響用法的分支，新增同義詞或補資料時都要先檢查會不會犯同樣的錯（例如這次補「白胡椒粉」的同義詞時，一度手滑把籠統的「白胡椒」也合併進去，就是同一種錯誤，事後才發現修正）。
 
 **另外兩個真實案例（演算法層級的 bug，不是資料層級，修過兩輪才穩定）**：
@@ -208,7 +228,19 @@ Thumbs.db
 1. 新增 `"米": ["米", "白米"]` 後，食譜寫「米酒」被誤判成已有——因為「米酒」「味醂」的別名「米霖」字面上都包含「米」這個字根。第一輪修法：加了 `looseMatch()`，要求寬鬆子字串比對時「比較短的那一邊至少 2 個字」，單一漢字只接受完全相等。
 2. 但這樣還不夠：「醬油膏」被誤判成跟「醬油」已有，因為「醬油」（2 字）跟「醬油膏」（3 字）都 ≥ 2 字，通過了 `looseMatch()` 的長度門檻，卻仍然是完全不同的食材。中文很多食材名是「字＋字」直接黏在一起組成不同東西（米→米酒、醬油→醬油膏、花→花椒），不是只有單一漢字才會這樣，字數門檻擋不住這種情況。
 
-最終修法是 `assets/app.js` 的 `safeExtension(longer, shorter)`：只有兩種情況把「較長字串包含較短字串」當作同一食材的延伸寫法直接判定已有——(a) 較短字串在開頭、後面接的是括號備註（例：「辣椒（切末）」延伸自「辣椒」），或 (b) 較短字串在結尾、前面是「新鮮/乾燥/生/熟」這類不影響食材本身的敘述性前綴。其餘所有「較長字串包含較短字串」的狀況（例如字直接黏在一起形成新品項）一律不算安全延伸。這是通用的演算法防呆，不是逐一資料修正——之後如果又出現類似的誤判，先檢查是不是新的「字黏在一起變成不同食材」案例，理論上已經被 `safeExtension` 擋掉了，但如果發現新的漏網案例要在這裡補充說明，也可以視情況擴充 `SAFE_DESCRIPTIVE_PREFIXES` 這個安全前綴清單。
+最終修法是 `assets/app.js` 的 `safeExtension(longer, shorter)`：只有兩種情況把「較長字串包含較短字串」當作同一食材的延伸寫法直接判定已有——(a) 較短字串在開頭、後面接的是括號備註（例：「辣椒（切末）」延伸自「辣椒」），或 (b) 較短字串在結尾、前面是「熟/冷凍/有機/去皮/帶皮」這類不影響食材本身的敘述性前綴（**不包含「新鮮/乾燥/生」，理由見下方第四個真實案例**）。其餘所有「較長字串包含較短字串」的狀況（例如字直接黏在一起形成新品項）一律不算安全延伸。這是通用的演算法防呆，不是逐一資料修正——之後如果又出現類似的誤判，先檢查是不是新的「字黏在一起變成不同食材」案例，理論上已經被 `safeExtension` 擋掉了，但如果發現新的漏網案例要在這裡補充說明，也可以視情況擴充 `SAFE_DESCRIPTIVE_PREFIXES` 這個安全前綴清單——但新增前務必先確認這個食材的新鮮/乾燥狀態不會構成不同商品（見下方第四個真實案例的教訓）。
+
+3. 第三個真實案例（跟上面同一個 bug class，但方向相反）：`isInPantry` 裡有一段專門處理「食譜寫的名稱比同義詞條目更籠統」的分支（例如食譜只寫「起司」，同義詞條目是更具體的「帕瑪森起司」），舊寫法是 `looseMatch(alias, name) && name.length < alias.length`——只看長度、沒有走 `safeExtension` 防呆，於是「起司」被誤判成跟「帕瑪森起司」（canonical「帕瑪森」）已有；用同樣邏輯反查全部食譜後，還發現「香菜」被誤判成跟「洋香菜」（canonical「巴西里」，也就是巴西里香菜，跟香菜／芫荽是完全不同的香草）已有——這個誤判已經在 `stir-fried-instant-noodles.json`（炒泡麵）裡存在了一段時間都沒被發現。修法是把這個分支也換成 `safeExtension(alias, name)`，跟另一個方向共用同一套「開頭+括號」「結尾+敘述性前綴」判準，不再是只看長度的寬鬆比對。**這也是為什麼寧可讓籠統詞比對不到、交給下面的「家族」機制軟提示，也不要靠長度或字數這種粗略門檻直接判定已有**——這個 bug class 已經抓到三次，以後新增比對邏輯時預設不能信任「單純長度夠長就算安全」這個假設。
+
+4. 第四個真實案例（跟 `safeExtension` 的 `SAFE_DESCRIPTIVE_PREFIXES` 假設根本衝突，修過兩輪才穩定）：`data/pantry.json` 的「乾貨」分類底下曾經直接存成 `"香菇"`（沒有加「乾」字首），本意是指乾香菇，但字面上跟「生香菇」只差一個「生」字首——`safeExtension` 原本把「新鮮/乾燥/生/熟」都當成「不影響食材本身的敘述性前綴」，所以「生香菇」會被判定成「香菇」的安全延伸，誤判成已有乾香菇＝已有生香菇。
+
+   第一輪修法只把 `pantry.json` 的乾貨項目改成明確的 `"乾香菇"`，以為避開裸字「香菇」就沒事——**結果不夠**：依實際資料反查發現 `savory-tangyuan-soup.json`（鹹湯圓）的「香菇（切片）」本來就分類在「乾貨」，做法第一步「香菇、蝦米先泡水放著」跟蝦米一起泡發，看起來像是把裸字「香菇」當乾香菇用；新增的「香菇燴豆腐」也有同樣的「泡發」步驟。當時一度依這個線索把裸字「香菇」併進「乾香菇」群組。
+
+   **後來使用者明確拍板，改用相反的判準**：裸字「香菇」的分類邏輯要比照「辣椒／乾辣椒」的既有模式——`辣椒` 群組本身就是裸字「辣椒」當канonical（預設指新鮮），乾燥版另外用完全不同的名稱「乾辣椒」獨立成群，兩者不共用裸字。香菇依樣處理：**裸字「香菇」歸類「生香菇／鮮香菇」那一組（預設指新鮮），「乾香菇」保持完全獨立、不含裸字「香菇」**：`"香菇": ["香菇", "生香菇", "鮮香菇"]`、`"乾香菇": ["乾香菇"]`。這代表鹹湯圓、香菇燴豆腐這兩則食譜裡的裸字「香菇」，在使用者只有乾香菇、沒有新鮮香菇庫存的情況下，會顯示「還需要買」——即使這兩則食譜的「泡發」步驟讀起來更像是乾香菇的用法，**這是使用者明確選擇的判準，不要自己改回「裸字=乾」**；如果之後確認這兩則食譜真的是乾香菇，應該去修正那兩個食譜檔案本身的食材名稱（改成明確的「乾香菇」），而不是回頭修改同義詞群組的判準。
+
+   但只要「香菇」這個裸字本身是任何群組的別名，`safeExtension` 的「生/新鮮」前綴規則就會讓「生香菇」「新鮮香菇」自動安全延伸回這個裸字，導致又繞回同一個誤判（這次方向相反：生香菇被誤判成乾香菇已有）。**真正的修法是把 `SAFE_DESCRIPTIVE_PREFIXES` 裡的「新鮮」「乾燥」「生」整個移除**，因為這三個詞剛好就是本文件「食材分類」一節拿來區分「主食/乾貨」跟「生鮮食材」的判斷軸線本身——對薑、蒜這類食材，新鮮/乾燥只是「狀態」，買的是同一樣東西，用這三個前綴沒問題；但對香菇、蝦米這類食材，新鮮/乾燥根本是**不同的商品**，用同一套前綴規則本質上就是錯的，不能靠「食材而定」的例外去補，乾脆整個移出安全清單，改用明確的同義詞別名處理需要的個案（例如「辣椒」群組直接補上「新鮮辣椒」這個別名，取代原本靠前綴規則產生的比對）。移除後只剩 `["熟", "冷凍", "有機", "去皮", "帶皮"]`——這些詞不是「保存方式」的分界線，對目前用到的食材都還算安全。**以後遇到新的「A/B 只差一個生鮮狀態前綴」的比對需求，一律用明確的同義詞別名處理，不要再往 `SAFE_DESCRIPTIVE_PREFIXES` 加新鮮/乾燥/生這類詞。**
+
+5. 第五個案例（尺寸前綴，判斷後選擇「個案別名」而非「擴充安全前綴清單」）：食譜寫「大雞腿」，比對不到既有的「雞腿」，因為「大」不在 `SAFE_DESCRIPTIVE_PREFIXES` 裡。這裡有兩種修法：(a) 只把「大雞腿」當成「雞腿」的個案別名加進 `synonyms.json`；(b) 把「大/小/中」這類尺寸描述整個加進 `SAFE_DESCRIPTIVE_PREFIXES`，變成通用規則。**選了 (a)**：尺寸前綴比「新鮮/乾燥/生」風險更高——中文有大量食材名本身就內建「大/小」這類字（「大蒜」是蒜頭不是尺寸描述、「小黃瓜」是特定品種的瓜不是「黃瓜」的小尺寸版、「小魚乾」是獨立的乾貨品項不是「魚乾」的小尺寸版），如果把「大/小/中」列為全域安全前綴，會讓 `safeExtension` 在這些完全不相關的食材對之間產生大量誤判，風險遠高於逐一加別名的維護成本。`"雞腿": ["雞腿", "大雞腿"]` 是目前唯一加入的尺寸別名，**之後遇到類似「大/小 + 食材名」比對不到的情況，預設也走個案別名路線，不要把尺寸詞加進 `SAFE_DESCRIPTIVE_PREFIXES`**，除非之後累積夠多案例、且都確認相關食材沒有這種「尺寸字內建在名稱裡」的風險，才重新考慮通用化。
 
 ## 切法／處理方式參考詞彙表（`data/prep_forms.json`）
 
@@ -263,6 +295,7 @@ Thumbs.db
 - 篩選是多維度並列（facet），不是巢狀樹狀選單；同一維度內單選或複選依 `FACETS` 設定裡的 `multi` 決定。
 - 食譜詳細頁的食材區塊預設依 `ingredients[].category` 動態分組、依 `taxonomy.pantry_categories` 的順序顯示，該食譜沒用到的分類不顯示（不像食材庫分頁會列出全部 9 類含空分類）——這是刻意設計，讓食譜詳細頁的分類跟食材庫分頁用同一套詞彙表但呈現邏輯不同，修改前留意這個差異。如果食材有填 `component`，改成依 component 分組，見上方「多階段／多組件食譜」。
 - 做法區塊預設是單一攤平的 `<ol>`；如果步驟有填 `stage`，改成依 stage 分組各自顯示，見上方「多階段／多組件食譜」。
+- `ingredients[].always_available` 為 `true` 的項目不參與 `pantryStatus` 比對、不進購物清單，見上方「`always_available`：不需要追蹤庫存的食材」。
 - 「食譜」「食材庫」是分頁切換（`showRecipesTab` / `showPantryTab`），不是路由，重新整理頁面會回到食譜分頁，這是刻意的簡化，不需要加 URL hash 之類的路由邏輯。
 
 ## 不要做的事
@@ -519,10 +552,15 @@ function looseMatch(a, b) {
 //   1. 較短字串出現在開頭，後面接的是括號備註（例：「辣椒（切末）」延伸自「辣椒」）。
 //      括號本身就是明確的分界，不管較短字串是不是單一漢字（例如「鹽（醃肉用）」延伸自
 //      「鹽」）都不會跟「字黏在一起變成不同食材」搞混，所以這個情況不受長度門檻限制。
-//   2. 較短字串出現在結尾，前面是「新鮮/乾燥/生/熟」這類不影響食材本身的敘述性前綴。
+//   2. 較短字串出現在結尾，前面是「熟/冷凍/有機/去皮/帶皮」這類不影響食材本身的敘述性前綴。
 //      這個情況沒有括號這種明確分界，所以還是要滿足長度門檻，避免單一漢字字根誤判。
 // 其餘一律視為不同食材，不可放心比對，避免「醬油膏」被誤判成「醬油」已有。
-const SAFE_DESCRIPTIVE_PREFIXES = ["新鮮", "乾燥", "生", "熟", "冷凍", "有機", "去皮", "帶皮"];
+// 「新鮮／乾燥／生」刻意不放進這份清單——這三個詞剛好就是本專案「主食/乾貨」跟「生鮮食材」
+// 分類的判斷軸線本身，對薑、蒜這類食材是安全的（新鮮/乾燥只是狀態，買的是同一樣東西），
+// 但對香菇、蝦米這類食材，新鮮/乾燥根本是不同的商品，曾經導致「生香菇」被誤判成跟
+// 乾香菇已有（見 CLAUDE.md 食材別名章節第四個真實案例）。這種食材依賴的安全比對，
+// 一律用明確的同義詞別名處理（例如「辣椒」群組直接列「新鮮辣椒」），不要靠這份前綴清單。
+const SAFE_DESCRIPTIVE_PREFIXES = ["熟", "冷凍", "有機", "去皮", "帶皮"];
 function safeExtension(longer, shorter) {
   if (longer === shorter) return true;
   // 情況 1：括號備註，有明確分界，不受長度門檻限制
@@ -550,7 +588,7 @@ function isInPantry(ingredientName) {
     const hit = aliases.some(alias => {
       if (alias === name) return true;
       if (safeExtension(name, alias)) return true; // 食譜寫得比同義詞更具體（安全的前綴/備註延伸）
-      if (looseMatch(alias, name) && name.length < alias.length) return !ambiguous;
+      if (safeExtension(alias, name)) return !ambiguous; // 食譜寫得比同義詞更籠統，同樣要走安全延伸檢查，不能只看長度
       return false;
     });
     if (hit) {
@@ -684,18 +722,20 @@ function splitIngredientNote(name) {
 function renderIngredientList(items) {
   if (!items || items.length === 0) return "<p class=\"legend\">（無）</p>";
   return `<ul class="ingredient-list">${items.map(item => {
-    const status = pantryStatus(item.name);
+    // always_available（例如「水」）不算食材庫比對的對象，跳過 pantryStatus，
+    // 不套用 have/missing/maybe 顏色、也不顯示「+ 加入」按鈕。
+    const status = item.always_available ? null : pantryStatus(item.name);
     const hint = status === "maybe" ? `<span class="ing-hint" title="家族相近，品種或形態可能不同，請自行確認">？</span>` : "";
     const { base, note } = splitIngredientNote(item.name);
     const isOptionalNote = /可選|推薦/.test(note);
     const noteHtml = note
       ? `<div class="ing-note${isOptionalNote ? " ing-note-optional" : ""}">${escapeHtml(note)}</div>`
       : "";
-    // have 的項目食材庫已經有了，不需要再顯示「加入」按鈕
-    const addBtnHtml = status !== "have"
+    // have 的項目食材庫已經有了、always_available 的項目不需要追蹤，都不用顯示「加入」按鈕
+    const addBtnHtml = status && status !== "have"
       ? `<button class="ing-add-btn" type="button" data-category="${escapeHtml(item.category || "")}" data-name="${escapeHtml(base)}">+ 加入</button>`
       : "";
-    return `<li class="${status}">
+    return `<li class="${status || ""}">
       <div class="ing-main">
         <span class="ing-name">${escapeHtml(base)}${hint}</span>
         <div class="ing-right">
@@ -749,7 +789,8 @@ function stripNotes(name) {
 }
 
 function renderShoppingList(recipe) {
-  const items = recipe.ingredients || [];
+  // always_available（例如「水」）根本不是採購行為的對象，不列入購物清單任何分類。
+  const items = (recipe.ingredients || []).filter(item => !item.always_available);
   const statused = items.map(item => ({ name: stripNotes(item.name), status: pantryStatus(item.name) }));
   const missingNames = [...new Set(statused.filter(i => i.status === "missing").map(i => i.name))];
   const maybeNames = [...new Set(statused.filter(i => i.status === "maybe").map(i => i.name))];
@@ -1648,7 +1689,8 @@ ol.steps li { margin-bottom: 8px; }
 {
   "花椒": ["紅花椒", "青花椒粉"],
   "白胡椒": ["白胡椒粒", "白胡椒粉"],
-  "黑胡椒": ["黑胡椒粉"]
+  "黑胡椒": ["黑胡椒粉"],
+  "起司": ["帕瑪森", "切達", "Brie"]
 }
 ```
 
@@ -1724,7 +1766,7 @@ ol.steps li { margin-bottom: 8px; }
   ],
   "乾貨": [
     "蝦米",
-    "香菇"
+    "乾香菇"
   ],
   "生鮮食材": [
     "蝦仁",
@@ -1789,6 +1831,44 @@ ol.steps li { margin-bottom: 8px; }
   "spice_level": "不辣",
   "created_at": "2026-07-31",
   "raw_input": "家常滷肉\t\n五花肉1斤\t五花肉切塊水沖洗過吸乾 (走活水)\n鳥蛋\t五花肉小火乾煎至出油\n海帶3條\t蔥、薑、蒜放入炒香 (不用炒太久)\n油豆腐兩塊\t加一些醬油、砂糖、米酒炒到變金黃色\n麵輪少許\t將炒好的肉放入鍋中，加水蓋過肉\n豆干3塊\t加入全部的料頭 & 調味料\n乾香菇3朵\t小火燉約20-30分鐘，取出滷包\n白蘿蔔\t小火再燉30分鐘，起鍋前煮沸一下\n\t\n蔥2根 (切段)\t砂糖2大匙 (or冰糖5顆)\n薑片6片\t蠔油1大匙\n蒜頭6顆 (拍扁)\t醬油200ml\n辣椒1根\t醬油膏兩大匙 (有的話加分)\n滷包1包\t米酒100ml\n白胡椒少許\n五香粉少許"
+}
+```
+
+### ./data/recipes/braised-tofu-with-mushroom.json
+```json
+{
+  "id": "braised-tofu-with-mushroom",
+  "title": "香菇燴豆腐",
+  "source": "",
+  "ingredients": [
+    { "name": "板豆腐", "amount": "1", "unit": "盒", "category": "生鮮食材" },
+    { "name": "乾香菇", "amount": "4", "unit": "朵", "category": "乾貨" },
+    { "name": "紅蘿蔔", "amount": "半", "unit": "根", "category": "生鮮食材" },
+    { "name": "蒜頭", "amount": "2", "unit": "顆", "category": "辛香蔬菜" },
+    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
+    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
+    { "name": "白胡椒粉", "amount": "少許", "category": "調味粉" },
+    { "name": "素蠔油", "amount": "1.5", "unit": "茶匙", "category": "調味料" },
+    { "name": "太白粉水", "amount": "一些", "category": "澱粉" },
+    { "name": "香油", "amount": "少許", "category": "調味料" }
+  ],
+  "steps": [
+    { "order": 1, "text": "香菇泡發。" },
+    { "order": 2, "text": "豆腐切塊，下水汆燙。" },
+    { "order": 3, "text": "兩面煎成金黃色。" },
+    { "order": 4, "text": "依序下大蒜、紅蘿蔔、香菇。" },
+    { "order": 5, "text": "加入糖、鹽、白胡椒。" },
+    { "order": 6, "text": "加入素蠔油。" },
+    { "order": 7, "text": "加入水，悶煮。" },
+    { "order": 8, "text": "加入太白粉水。" },
+    { "order": 9, "text": "淋香油。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["煎", "燉"],
+  "main_ingredient_types": ["蛋豆製品", "蔬食"],
+  "course": "主菜",
+  "created_at": "2026-08-03",
+  "raw_input": "香菇燴豆腐\n\n材料：\n板豆腐 1盒\n香菇 4朵\n紅蘿蔔 半根\n蒜頭 2顆\n\n調味料：\n糖 1/4茶匙\n鹽 1/4茶匙\n白胡椒粉 少許\n素蠔油 1.5茶匙\n太白粉水 一些\n香油 少許\n\n做法：\n1. 香菇泡發。\n2. 豆腐切塊，下水汆燙。\n3. 兩面煎成金黃色。\n4. 依序下大蒜、紅蘿蔔、香菇。\n5. 加入糖、鹽、白胡椒。\n6. 加入素蠔油。\n7. 加入水，悶煮。\n8. 加入太白粉水。\n9. 淋香油。"
 }
 ```
 
@@ -2017,6 +2097,114 @@ ol.steps li { margin-bottom: 8px; }
 }
 ```
 
+### ./data/recipes/fried-rice-with-ham-and-mushroom.json
+```json
+{
+  "id": "fried-rice-with-ham-and-mushroom",
+  "title": "火腿蛋炒飯",
+  "source": "",
+  "ingredients": [
+    {
+      "name": "白飯",
+      "amount": "兩",
+      "unit": "杯",
+      "category": "主食"
+    },
+    {
+      "name": "蛋",
+      "amount": "3",
+      "unit": "顆",
+      "category": "生鮮食材"
+    },
+    {
+      "name": "火腿（切丁）",
+      "amount": "3",
+      "unit": "片",
+      "category": "生鮮食材"
+    },
+    {
+      "name": "乾香菇",
+      "amount": "2",
+      "unit": "顆",
+      "category": "乾貨"
+    },
+    {
+      "name": "青蔥",
+      "amount": "2",
+      "unit": "支",
+      "category": "辛香蔬菜"
+    },
+    {
+      "name": "香油",
+      "amount": "少許",
+      "category": "調味料"
+    },
+    {
+      "name": "鹽",
+      "amount": "少許",
+      "category": "調味料"
+    },
+    {
+      "name": "醬油",
+      "amount": "少許",
+      "category": "調味料"
+    },
+    {
+      "name": "豬油",
+      "amount": "少許",
+      "category": "調味料"
+    }
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "隔夜飯可加一點點油抓鬆。"
+    },
+    {
+      "order": 2,
+      "text": "香菇泡開，切丁。"
+    },
+    {
+      "order": 3,
+      "text": "蔥綠切花、蔥白切粒。"
+    },
+    {
+      "order": 4,
+      "text": "蔥白先下鍋慢炸，加香油少許，煉蔥油。"
+    },
+    {
+      "order": 5,
+      "text": "取起蔥油，蛋打散加鹽，鍋內餘油炒蛋，炒好取出。"
+    },
+    {
+      "order": 6,
+      "text": "加少許蔥油，大火快炒火腿丁，爆出火腿香。"
+    },
+    {
+      "order": 7,
+      "text": "蔥油、白飯、火腿、蛋、香菇、豬油少許，大火快炒。"
+    },
+    {
+      "order": 8,
+      "text": "從鍋邊加入醬油熗香，起鍋前撒蔥綠翻炒兩下。"
+    }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": [
+    "炒"
+  ],
+  "main_ingredient_types": [
+    "澱粉/主食",
+    "蛋豆製品",
+    "加工品",
+    "蔬食"
+  ],
+  "course": "主菜",
+  "created_at": "2026-08-03",
+  "raw_input": "蛋炒飯\n\n材料：\n白飯 兩杯（已煮熟）\n蛋 3顆\n火腿 3片（切丁）\n乾香菇 2顆\n青蔥 2支\n香油 少許\n鹽 少許\n醬油 少許\n豬油 少許\n\n做法：\n1. 隔夜飯可加一點點油抓鬆。\n2. 香菇泡開，切丁。\n3. 蔥綠切花、蔥白切粒。\n4. 蔥白先下鍋慢炸，加香油少許，煉蔥油。\n5. 取起蔥油，蛋打散加鹽，鍋內餘油炒蛋，炒好取出。\n6. 加少許蔥油，大火快炒火腿丁，爆出火腿香。\n7. 蔥油、白飯、火腿、蛋、香菇、豬油少許，大火快炒。\n8. 從鍋邊加入醬油熗香，起鍋前撒蔥綠翻炒兩下。"
+}
+```
+
 ### ./data/recipes/index.json
 ```json
 [
@@ -2028,7 +2216,11 @@ ol.steps li { margin-bottom: 8px; }
   "savory-tangyuan-soup",
   "stir-fried-instant-noodles",
   "dried-tofu-pork-celery-stirfry",
-  "chicken-soup-with-scallop-and-ham"
+  "chicken-soup-with-scallop-and-ham",
+  "spicy-diced-chicken",
+  "braised-tofu-with-mushroom",
+  "fried-rice-with-ham-and-mushroom",
+  "sesame-oil-chicken"
 ]
 ```
 
@@ -2304,7 +2496,7 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "福州丸", "category": "生鮮食材" },
     { "name": "大餛飩", "category": "生鮮食材" },
     { "name": "蝦米", "category": "乾貨" },
-    { "name": "香菇（切片）", "category": "乾貨" },
+    { "name": "乾香菇（切片）", "category": "乾貨" },
     { "name": "蒜苗（切片）", "category": "辛香蔬菜" },
     { "name": "茼蒿", "category": "生鮮食材" },
     { "name": "高湯罐", "category": "罐頭/醃漬" },
@@ -2325,6 +2517,41 @@ ol.steps li { margin-bottom: 8px; }
   "course": "湯品",
   "created_at": "2026-08-03",
   "raw_input": "鹹湯圓\n材料：\n鹹湯圓\n福州丸\n大餛飩\n蝦米\n香菇\n蒜仔\n茼蒿\n高湯罐\n紅蔥頭油\n\n作法：\n1. 香菇、蝦米先泡水放著。\n2. 香菇切片、蒜仔斜刀切片（蒜白、蒜綠分開）。\n3. 蝦米、香菇、蒜白下鍋一起炒。\n4. 炒香後加入高湯（罐頭高湯）、水、紅蔥頭油。\n5. 加入湯圓（鹹湯圓、福州丸、大餛飩）煮熟。\n6. 起鍋前加鹽巴，加入蒜綠、茼蒿。"
+}
+```
+
+### ./data/recipes/sesame-oil-chicken.json
+```json
+{
+  "id": "sesame-oil-chicken",
+  "title": "麻油雞",
+  "source": "",
+  "ingredients": [
+    { "name": "大雞腿", "amount": "1", "unit": "支", "category": "生鮮食材" },
+    { "name": "老薑", "amount": "50", "unit": "g", "category": "辛香蔬菜" },
+    { "name": "麻油", "amount": "70", "unit": "g", "category": "調味料" },
+    { "name": "橄欖油", "amount": "30", "unit": "g", "category": "調味料" },
+    { "name": "米酒", "amount": "2", "unit": "支", "category": "調味料" },
+    { "name": "高麗菜", "amount": "1", "unit": "顆", "category": "生鮮食材" },
+    { "name": "豬血糕", "amount": "1", "unit": "塊", "category": "生鮮食材" }
+  ],
+  "steps": [
+    { "order": 1, "text": "雞腿用一些白胡椒、鹽巴抓醃，放20分鐘。" },
+    { "order": 2, "text": "薑切薄片。" },
+    { "order": 3, "text": "麻油70g、橄欖油30g，冷鍋開始小火煸薑片。" },
+    { "order": 4, "text": "煸到薑旁微捲，雞皮朝下煎雞肉（火大一點）。" },
+    { "order": 5, "text": "薑夾到雞肉上方，避免焦掉。" },
+    { "order": 6, "text": "先關火，再加米酒（開蓋煮），加一些糖。" },
+    { "order": 7, "text": "煮個15-20分鐘。" },
+    { "order": 8, "text": "先加豬血糕，再加高麗菜，灑點鹽巴。" },
+    { "order": 9, "text": "5分鐘後起鍋。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["炒", "煎", "燉"],
+  "main_ingredient_types": ["肉類", "蔬食", "加工品"],
+  "course": "主菜",
+  "created_at": "2026-08-03",
+  "raw_input": "麻油雞\n\n材料：\n大雞腿 1支\n老薑 50g\n麻油 70g\n橄欖油 30g\n米酒 2支\n高麗菜 1顆\n豬血糕 1塊\n\n做法：\n1. 雞腿用一些白胡椒、鹽巴抓醃，放20分鐘。\n2. 薑切薄片。\n3. 麻油70g、橄欖油30g，冷鍋開始小火煸薑片。\n4. 煸到薑旁微捲，雞皮朝下煎雞肉（火大一點）。\n5. 薑夾到雞肉上方，避免焦掉。\n6. 先關火，再加米酒（開蓋煮），加一些糖。\n7. 煮個15-20分鐘。\n8. 先加豬血糕，再加高麗菜，灑點鹽巴。\n9. 5分鐘後起鍋。"
 }
 ```
 
@@ -2355,6 +2582,46 @@ ol.steps li { margin-bottom: 8px; }
   "spice_level": "不辣",
   "created_at": "2026-07-30",
   "raw_input": "（範例資料）蔥爆蝦仁：蝦仁300g、蔥3根、醬油1大匙、米酒1大匙、白胡椒粉適量。蝦仁去腸泥拍乾，蔥切段蔥白蔥綠分開，熱鍋煸香蔥白，下蝦仁炒至變色，嗆酒下醬油白胡椒粉拌炒，起鍋前下蔥綠。"
+}
+```
+
+### ./data/recipes/spicy-diced-chicken.json
+```json
+{
+  "id": "spicy-diced-chicken",
+  "title": "辣子雞丁",
+  "source": "",
+  "ingredients": [
+    { "name": "雞胸肉（切丁）", "category": "生鮮食材" },
+    { "name": "醬油", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
+    { "name": "水", "amount": "20", "unit": "cc", "category": "調味料", "always_available": true },
+    { "name": "太白粉", "amount": "1", "unit": "茶匙", "category": "澱粉" },
+    { "name": "米酒", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
+    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
+    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
+    { "name": "蔥", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
+    { "name": "薑", "amount": "15", "unit": "克", "category": "辛香蔬菜" },
+    { "name": "蒜", "amount": "2", "unit": "顆", "category": "辛香蔬菜" },
+    { "name": "辣椒", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
+    { "name": "豆瓣醬", "amount": "1", "unit": "茶匙", "category": "醬" },
+    { "name": "水", "amount": "30", "unit": "cc", "category": "調味料", "always_available": true },
+    { "name": "糖", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
+    { "name": "太白粉水", "amount": "一些", "category": "澱粉" }
+  ],
+  "steps": [
+    { "order": 1, "text": "下重油，炒雞胸肉。" },
+    { "order": 2, "text": "肉取出，爆料頭（蔥先不下）。" },
+    { "order": 3, "text": "料頭爆香後，加入調味料略炒。" },
+    { "order": 4, "text": "再加入雞丁，炒約一分鐘。" },
+    { "order": 5, "text": "加入蔥段，淋入太白粉水。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["炒"],
+  "main_ingredient_types": ["肉類"],
+  "course": "主菜",
+  "spice_level": "中辣",
+  "created_at": "2026-08-03",
+  "raw_input": "辣子雞丁\n\n主料（原文未寫份量，標題暗示是雞胸肉切丁）：\n雞胸肉（切丁）\n\n醃雞胸肉：\n醬油 1/2茶匙\n水 20cc\n太白粉 1茶匙\n米酒 1/2茶匙\n糖 1/4茶匙\n鹽 1/4茶匙\n\n料頭：\n蔥 1根\n薑 15克\n蒜 2顆\n辣椒 1根\n\n調味料：\n豆瓣醬 1茶匙\n水 30cc\n糖 1/2茶匙\n太白粉水 一些\n\n做法：\n1. 下重油，炒雞胸肉。\n2. 肉取出，爆料頭（蔥先不下）。\n3. 料頭爆香後，加入調味料略炒。\n4. 再加入雞丁，炒約一分鐘。\n5. 加入蔥段，淋入太白粉水。"
 }
 ```
 
@@ -2401,6 +2668,7 @@ ol.steps li { margin-bottom: 8px; }
 {
   "蝦仁": ["蝦仁"],
   "牛排": ["牛排"],
+  "雞腿": ["雞腿", "大雞腿"],
   "蔥": ["蔥", "青蔥", "珠蔥", "大蔥", "蔥花", "蔥段", "蔥絲"],
   "蒜頭": ["蒜頭", "蒜仁", "蒜末", "蒜", "大蒜", "蒜片", "蒜泥", "蒜蓉"],
   "醬油": ["醬油"],
@@ -2425,6 +2693,7 @@ ol.steps li { margin-bottom: 8px; }
   "白胡椒粒": ["白胡椒粒"],
   "黑胡椒粉": ["黑胡椒粉"],
   "香油": ["香油"],
+  "麻油": ["麻油"],
   "白醋": ["白醋"],
   "烏醋": ["烏醋", "黑醋"],
   "味醂": ["味醂", "米霖"],
@@ -2442,7 +2711,7 @@ ol.steps li { margin-bottom: 8px; }
   "美乃滋": ["美乃滋", "美奶滋", "mayo"],
   "薑": ["薑", "生薑", "老薑", "嫩薑", "薑末", "薑片", "薑絲", "薑泥", "薑塊"],
   "洋蔥": ["洋蔥", "洋蔥丁", "洋蔥絲", "洋蔥圈"],
-  "辣椒": ["辣椒", "紅辣椒", "青辣椒", "小辣椒", "辣椒末", "辣椒片", "辣椒絲"],
+  "辣椒": ["辣椒", "紅辣椒", "青辣椒", "小辣椒", "辣椒末", "辣椒片", "辣椒絲", "新鮮辣椒"],
   "帕瑪森": ["帕瑪森", "帕瑪森起司", "Parmesan"],
   "切達": ["切達", "切達起司", "cheddar"],
   "Brie": ["Brie", "brie", "布里起司"],
@@ -2450,7 +2719,10 @@ ol.steps li { margin-bottom: 8px; }
   "醃漬綠橄欖": ["醃漬綠橄欖", "綠橄欖"],
   "墨西哥綠辣椒": ["墨西哥綠辣椒", "墨西哥辣椒", "jalapeño", "jalapeno"],
   "鯷魚": ["鯷魚", "鯷魚罐頭", "anchovy"],
-  "鱈魚肝": ["鱈魚肝", "鱈魚肝罐頭"]
+  "鱈魚肝": ["鱈魚肝", "鱈魚肝罐頭"],
+  "太白粉": ["太白粉", "太白粉水"],
+  "香菇": ["香菇", "生香菇", "鮮香菇"],
+  "乾香菇": ["乾香菇"]
 }
 ```
 
