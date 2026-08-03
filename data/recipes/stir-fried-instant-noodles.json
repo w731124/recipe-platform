@@ -1,0 +1,34 @@
+{
+  "id": "stir-fried-instant-noodles",
+  "title": "炒泡麵",
+  "source": "",
+  "ingredients": [
+    { "name": "泡麵", "amount": "2", "unit": "包", "category": "主食" },
+    { "name": "豬肉片", "category": "生鮮食材" },
+    { "name": "竹輪", "category": "生鮮食材" },
+    { "name": "高麗菜", "category": "生鮮食材" },
+    { "name": "紅蘿蔔", "category": "生鮮食材" },
+    { "name": "生香菇", "category": "生鮮食材" },
+    { "name": "木耳", "category": "生鮮食材" },
+    { "name": "辣椒", "category": "辛香蔬菜" },
+    { "name": "大蒜", "category": "辛香蔬菜" },
+    { "name": "香菜", "category": "香草" }
+  ],
+  "steps": [
+    { "order": 1, "text": "煮泡麵至半熟。" },
+    { "order": 2, "text": "熱鍋，加入泡麵油包。" },
+    { "order": 3, "text": "爆香料頭。" },
+    { "order": 4, "text": "炒豬肉片至3/4熟後取出。" },
+    { "order": 5, "text": "下全部的蔬菜跟材料。" },
+    { "order": 6, "text": "加入豬肉片 & 泡麵。" },
+    { "order": 7, "text": "加入煮麵水 & 泡麵粉包。" },
+    { "order": 8, "text": "水分大致收乾，下香菜，起鍋。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["炒"],
+  "main_ingredient_types": ["肉類", "蔬食", "澱粉/主食", "加工品"],
+  "course": "主菜",
+  "spice_level": "微辣",
+  "created_at": "2026-08-03",
+  "raw_input": "炒泡麵\n\n材料：\n泡麵（兩包）\n豬肉片\n竹輪\n高麗菜\n紅蘿蔔\n生香菇\n木耳\n辣椒\n大蒜\n香菜\n\n作法：\n1. 煮泡麵至半熟。\n2. 熱鍋，加入泡麵油包。\n3. 爆香料頭。\n4. 炒豬肉片至3/4熟後取出。\n5. 下全部的蔬菜跟材料。\n6. 加入豬肉片 & 泡麵。\n7. 加入煮麵水 & 泡麵粉包。\n8. 水分大致收乾，下香菜，起鍋。"
+}
