@@ -112,6 +112,7 @@ body {
   padding: 16px;
 }
 .section-block h4 { font-size: 1rem; margin: 0 0 10px; border-left: 4px solid var(--accent); padding-left: 8px; }
+.stage-note { font-size: 0.8rem; font-weight: normal; color: var(--muted); }
 
 .ingredients-grid {
   display: grid;

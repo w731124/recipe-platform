@@ -263,10 +263,23 @@ function renderIngredientList(items) {
   }).join("")}</ul>`;
 }
 
-// 食材區塊依 taxonomy.pantry_categories 的順序分組顯示，該食譜沒用到的分類不顯示
-// （跟食材庫分頁會列出全部 9 類含空分類不同，這裡只顯示食譜實際用到的分類）
+// 食材區塊預設依 taxonomy.pantry_categories 的順序分組顯示，該食譜沒用到的分類不顯示
+// （跟食材庫分頁會列出全部 9 類含空分類不同，這裡只顯示食譜實際用到的分類）。
+// 如果食譜的食材有填 component（多組件食譜自訂的組件分組，跟 category 是兩件事），
+// 改成依 component 第一次出現的順序分組，不再疊加 category 二次分組。
 function renderIngredientsByCategory(recipe) {
   const items = recipe.ingredients || [];
+  const hasComponent = items.some(i => i.component);
+
+  if (hasComponent) {
+    const componentOrder = [...new Set(items.map(i => i.component || ""))];
+    const blocks = componentOrder.map(comp => `<div class="section-block">
+      <h4>${escapeHtml(comp || "其他")}</h4>
+      ${renderIngredientList(items.filter(i => (i.component || "") === comp))}
+    </div>`);
+    return `<div class="ingredients-grid">${blocks.join("")}</div>`;
+  }
+
   const known = new Set(state.pantryCategories);
   const blocks = state.pantryCategories
     .filter(cat => items.some(i => i.category === cat))
@@ -310,6 +323,37 @@ function renderShoppingList(recipe) {
   return `<div class="shopping-list">${missingBlock}${maybeBlock}</div>`;
 }
 
+// 做法區塊預設是單一攤平的 <ol>。如果食譜的步驟有填 stage（多階段食譜自訂的階段名稱，
+// 例如「熬湯頭」「雞湯配料前處理」），改成依 stage 第一次出現的順序分組，各自渲染成
+// 一個帶標題的區塊、步驟各自從 1 開始編號；stage_note（例如「與熬湯頭同時進行」）
+// 有填的話用小字附加在標題旁邊。
+function renderSteps(recipe) {
+  const steps = recipe.steps || [];
+  const hasStage = steps.some(s => s.stage);
+
+  if (!hasStage) {
+    const sorted = steps.slice().sort((a, b) => a.order - b.order);
+    return `<div class="section-block">
+      <h4>做法</h4>
+      <ol class="steps">
+        ${sorted.map(s => `<li>${escapeHtml(s.text)}</li>`).join("")}
+      </ol>
+    </div>`;
+  }
+
+  const stageOrder = [...new Set(steps.map(s => s.stage || ""))];
+  return stageOrder.map(stage => {
+    const stageSteps = steps.filter(s => (s.stage || "") === stage).slice().sort((a, b) => a.order - b.order);
+    const note = stageSteps.map(s => s.stage_note).find(Boolean) || "";
+    return `<div class="section-block">
+      <h4>${escapeHtml(stage || "做法")}${note ? ` <span class="stage-note">${escapeHtml(note)}</span>` : ""}</h4>
+      <ol class="steps">
+        ${stageSteps.map(s => `<li>${escapeHtml(s.text)}</li>`).join("")}
+      </ol>
+    </div>`;
+  }).join("");
+}
+
 // 3~5 秒後自動消失的小提示條，附一個「復原」文字按鈕。一次只保留一個提示，
 // 避免連續加好幾個食材時疊出一堆提示條。
 function showToast(message, onUndo) {
@@ -349,13 +393,7 @@ function showDetail(id) {
     <p class="legend"><span class="dot"></span>綠色底色代表素材庫已有此項目</p>
 
     ${renderIngredientsByCategory(recipe)}
-    <div class="section-block">
-      <h4>做法</h4>
-      <ol class="steps">
-        ${(recipe.steps || []).sort((a, b) => a.order - b.order)
-          .map(s => `<li>${escapeHtml(s.text)}</li>`).join("")}
-      </ol>
-    </div>
+    ${renderSteps(recipe)}
   `;
   document.getElementById("back-btn").onclick = () => {
     state.currentDetailId = null;

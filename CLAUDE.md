@@ -45,10 +45,16 @@
       "name": "string",
       "amount": "string，原文沒寫份量就省略這個欄位（不要填空字串或亂猜數字）",
       "unit": "string，同上，沒有就省略",
-      "category": "取自 taxonomy.pantry_categories（見下方「食材分類」）"
+      "category": "取自 taxonomy.pantry_categories（見下方「食材分類」）",
+      "component": "string，可選。食譜自訂的組件分組（例如「湯頭材料」「雞湯配料」），跟 category 是兩件不同的事，見下方「多階段／多組件食譜」"
     }
   ],
-  "steps": [{ "order": "number，從1開始", "text": "string" }],
+  "steps": [{
+    "order": "number，同一個 stage 底下從1開始重新編號（見下方「多階段／多組件食譜」）",
+    "text": "string",
+    "stage": "string，可選。食譜自訂的階段名稱（例如「熬湯頭」）",
+    "stage_note": "string，可選。階段補充說明（例如「與熬湯頭同時進行」）"
+  }],
   "cuisine": "取自 taxonomy.cuisine",
   "cooking_methods": ["取自 taxonomy.cooking_methods，可複選"],
   "main_ingredient_types": ["取自 taxonomy.main_ingredient_types，可複選"],
@@ -60,6 +66,18 @@
 ```
 
 `amount` 一律存字串，不要轉成數字型別（「適量」「少許」這類值會讓數字型別直接壞掉）。**舊版 schema 曾經把食材拆成 `ingredients` / `seasonings` / `spices` 三個陣列，v0.3 起統一成單一 `ingredients` 陣列，用 `category` 欄位分類（見下）——新食譜一律用新格式，不要再用三陣列的舊格式。**
+
+### 多階段／多組件食譜（`steps[].stage`／`ingredients[].component`）
+
+大部分食譜是單一線性流程，維持原本攤平寫法即可，`stage`／`component`／`stage_note` 這三個欄位全部省略。但少數食譜有多條獨立進行的流程（例如：湯底另外熬 3 小時 + 配料另外前處理 + 最後才組合），硬塞進單一編號清單會看不出真正的並行結構，這種情況才用這組欄位：
+
+- `steps[].stage`：這一步驟屬於哪個階段（自由文字，食譜自己命名，例如「熬湯頭」「雞湯配料與雞腿前處理」），不是固定詞彙表，不需要跟其他食譜的階段名稱一致，也不需要維護共用詞彙表。同一個 stage 底下的 `order` 各自從 1 開始重新編號，不要沿用全域編號。
+- `steps[].stage_note`：可選，補充說明這個階段跟其他階段的關係（例如「與熬湯頭同時進行」），畫面上會用小字附加在階段標題旁邊。
+- `ingredients[].component`：這個食材屬於食譜的哪個組件分組（自由文字，例如「湯頭材料」「雞湯配料」），跟 `category` 是兩件不同的事——`category` 是食材庫比對用的固定 12 大分類，`component` 純粹是這份食譜自己的組件分組，兩者互不影響、都要填。
+
+**只在食譜真的有多條獨立流程或多個組件時才用這組欄位**（湯底/配料/組合分開熬煮、醬汁/主料/配菜分開製作這類情況）。單一流程的家常炒菜、燉菜這類簡單食譜不要為了用這個功能而刻意拆分 stage/component，維持原本攤平寫法，避免簡單食譜也被過度切碎。
+
+前端渲染邏輯（`assets/app.js` 的 `renderSteps`／`renderIngredientsByCategory`）：只要 `recipe.steps` 裡有任一項帶 `stage`，做法區塊就依 stage 第一次出現的順序分組顯示；`recipe.ingredients` 裡有任一項帶 `component`，食材區塊就依 component 分組（不再疊加 category 二次分組）。沒有任何一項帶這些欄位的食譜，畫面呈現完全不受影響。
 
 ### 食材分類（`ingredients[].category`，沿用食材庫的 12 大分類）
 
@@ -199,7 +217,8 @@
 - 素材庫比對邏輯（`isInPantry`）：先查 `synonyms.json` 找出食材所屬的同義詞群組，群組的正式名稱若在 `pantry.json`（攤平後的 `state.pantryFlat`）裡就標記已有；如果食材完全沒有對應的同義詞群組，才退回直接對素材庫做字面包含比對。這是刻意設計，修改前先看 `PROJECT_SPEC.md` 第 5 節的理由。
 - 比對結果是三態（`pantryStatus`）：`have`（嚴格同義詞比對命中，綠色）／`maybe`（同義詞比對不到，但命中 `ingredient_families.json` 的家族關係，琥珀色，提示使用者自行確認品種/形態）／`missing`（都比對不到，還需要買）。詳細頁的逐項高亮跟購物清單（`renderShoppingList`）都要用這同一份三態邏輯，不要各自維護一套比對規則。
 - 篩選是多維度並列（facet），不是巢狀樹狀選單；同一維度內單選或複選依 `FACETS` 設定裡的 `multi` 決定。
-- 食譜詳細頁的食材區塊依 `ingredients[].category` 動態分組、依 `taxonomy.pantry_categories` 的順序顯示，該食譜沒用到的分類不顯示（不像食材庫分頁會列出全部 9 類含空分類）——這是刻意設計，讓食譜詳細頁的分類跟食材庫分頁用同一套詞彙表但呈現邏輯不同，修改前留意這個差異。
+- 食譜詳細頁的食材區塊預設依 `ingredients[].category` 動態分組、依 `taxonomy.pantry_categories` 的順序顯示，該食譜沒用到的分類不顯示（不像食材庫分頁會列出全部 9 類含空分類）——這是刻意設計，讓食譜詳細頁的分類跟食材庫分頁用同一套詞彙表但呈現邏輯不同，修改前留意這個差異。如果食材有填 `component`，改成依 component 分組，見上方「多階段／多組件食譜」。
+- 做法區塊預設是單一攤平的 `<ol>`；如果步驟有填 `stage`，改成依 stage 分組各自顯示，見上方「多階段／多組件食譜」。
 - 「食譜」「食材庫」是分頁切換（`showRecipesTab` / `showPantryTab`），不是路由，重新整理頁面會回到食譜分頁，這是刻意的簡化，不需要加 URL hash 之類的路由邏輯。
 
 ## 不要做的事
