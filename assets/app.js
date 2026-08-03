@@ -105,7 +105,7 @@ function isInPantry(ingredientName) {
     const hit = aliases.some(alias => {
       if (alias === name) return true;
       if (safeExtension(name, alias)) return true; // 食譜寫得比同義詞更具體（安全的前綴/備註延伸）
-      if (looseMatch(alias, name) && name.length < alias.length) return !ambiguous;
+      if (safeExtension(alias, name)) return !ambiguous; // 食譜寫得比同義詞更籠統，同樣要走安全延伸檢查，不能只看長度
       return false;
     });
     if (hit) {
