@@ -327,6 +327,18 @@ function renderShoppingList(recipe) {
 // 例如「熬湯頭」「雞湯配料前處理」），改成依 stage 第一次出現的順序分組，各自渲染成
 // 一個帶標題的區塊、步驟各自從 1 開始編號；stage_note（例如「與熬湯頭同時進行」）
 // 有填的話用小字附加在標題旁邊。
+// 每個 <li> 用 data-stage + data-order 標記這個步驟在 JSON 裡的正確位置（不是用文字內容比對，
+// 避免文字重複的步驟被編輯功能改錯行）。編輯圖示只在有設定 GitHub token 時顯示。
+function renderStepLi(s) {
+  const canEdit = !!getGhToken();
+  return `<li data-stage="${escapeHtml(s.stage || "")}" data-order="${s.order}">
+    <div class="step-row">
+      <span class="step-text">${escapeHtml(s.text)}</span>
+      ${canEdit ? `<button class="edit-icon-btn step-edit-btn" type="button" title="編輯這個步驟">✏️</button>` : ""}
+    </div>
+  </li>`;
+}
+
 function renderSteps(recipe) {
   const steps = recipe.steps || [];
   const hasStage = steps.some(s => s.stage);
@@ -336,7 +348,7 @@ function renderSteps(recipe) {
     return `<div class="section-block">
       <h4>做法</h4>
       <ol class="steps">
-        ${sorted.map(s => `<li>${escapeHtml(s.text)}</li>`).join("")}
+        ${sorted.map(renderStepLi).join("")}
       </ol>
     </div>`;
   }
@@ -348,10 +360,127 @@ function renderSteps(recipe) {
     return `<div class="section-block">
       <h4>${escapeHtml(stage || "做法")}${note ? ` <span class="stage-note">${escapeHtml(note)}</span>` : ""}</h4>
       <ol class="steps">
-        ${stageSteps.map(s => `<li>${escapeHtml(s.text)}</li>`).join("")}
+        ${stageSteps.map(renderStepLi).join("")}
       </ol>
     </div>`;
   }).join("");
+}
+
+// 標題／步驟文字的直接編輯（見 CLAUDE.md「網站直接寫入 GitHub」一節）：只有純文字內容，
+// 不包含新增/刪除/搬動步驟，也不包含食材、分類、菜系這類需要判斷的欄位。
+function wireTitleEdit(recipe) {
+  const btn = document.getElementById("edit-title-btn");
+  if (!btn) return;
+  btn.onclick = () => {
+    const row = btn.closest(".detail-title-row");
+    const oldTitle = recipe.title;
+    row.innerHTML = `
+      <input type="text" class="title-edit-input" id="title-edit-input" value="${escapeHtml(oldTitle)}">
+      <button class="btn-primary" id="title-save-btn" type="button">儲存</button>
+      <button class="btn-secondary" id="title-cancel-btn" type="button">取消</button>
+    `;
+    const input = document.getElementById("title-edit-input");
+    input.focus();
+    input.select();
+    document.getElementById("title-cancel-btn").onclick = () => showDetail(recipe.id);
+    const save = async () => {
+      const newTitle = input.value.trim();
+      if (!newTitle) { alert("標題不能空白"); return; }
+      if (newTitle === oldTitle) { showDetail(recipe.id); return; }
+      const saveBtn = document.getElementById("title-save-btn");
+      const cancelBtn = document.getElementById("title-cancel-btn");
+      saveBtn.disabled = true;
+      cancelBtn.disabled = true;
+      input.disabled = true;
+      saveBtn.textContent = "儲存中…";
+      try {
+        await updateRecipeField(
+          recipe.id,
+          current => ({ ...current, title: newTitle }),
+          `編輯食譜標題：${oldTitle} → ${newTitle}`
+        );
+        showToast("已更新標題", async () => {
+          try {
+            await updateRecipeField(
+              recipe.id,
+              current => ({ ...current, title: oldTitle }),
+              `復原標題編輯：${newTitle} → ${oldTitle}`
+            );
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      } catch (err) {
+        saveBtn.disabled = false;
+        cancelBtn.disabled = false;
+        input.disabled = false;
+        saveBtn.textContent = "儲存";
+        alert(err.message);
+      }
+    };
+    document.getElementById("title-save-btn").onclick = save;
+    input.onkeydown = (e) => {
+      if (e.key === "Enter") save();
+      if (e.key === "Escape") showDetail(recipe.id);
+    };
+  };
+}
+
+function wireStepEdit(recipe) {
+  if (!getGhToken()) return;
+  document.querySelectorAll(".step-edit-btn").forEach(btn => {
+    btn.onclick = () => {
+      const li = btn.closest("li");
+      const stage = li.dataset.stage || "";
+      const order = Number(li.dataset.order);
+      const step = (recipe.steps || []).find(s => (s.stage || "") === stage && s.order === order);
+      if (!step) return;
+      const oldText = step.text;
+      li.innerHTML = `
+        <textarea class="step-edit-textarea">${escapeHtml(oldText)}</textarea>
+        <div class="step-edit-actions">
+          <button class="btn-primary" type="button" data-action="save">儲存</button>
+          <button class="btn-secondary" type="button" data-action="cancel">取消</button>
+        </div>
+      `;
+      const textarea = li.querySelector("textarea");
+      textarea.focus();
+      const saveBtn = li.querySelector('[data-action="save"]');
+      const cancelBtn = li.querySelector('[data-action="cancel"]');
+      cancelBtn.onclick = () => showDetail(recipe.id);
+      saveBtn.onclick = async () => {
+        const newText = textarea.value.trim();
+        if (!newText) { alert("步驟內容不能空白"); return; }
+        if (newText === oldText) { showDetail(recipe.id); return; }
+        saveBtn.disabled = true;
+        cancelBtn.disabled = true;
+        textarea.disabled = true;
+        saveBtn.textContent = "儲存中…";
+        const applyText = text => current => {
+          const steps = current.steps.map(s =>
+            (s.stage || "") === stage && s.order === order ? { ...s, text } : s
+          );
+          return { ...current, steps };
+        };
+        try {
+          await updateRecipeField(recipe.id, applyText(newText), `編輯食譜步驟：${recipe.title}`);
+          showToast("已更新步驟", async () => {
+            try {
+              await updateRecipeField(recipe.id, applyText(oldText), `復原步驟編輯：${recipe.title}`);
+            } catch (err) {
+              alert(err.message);
+            }
+          });
+        } catch (err) {
+          saveBtn.disabled = false;
+          cancelBtn.disabled = false;
+          textarea.disabled = false;
+          saveBtn.textContent = "儲存";
+          alert(err.message);
+        }
+      };
+    };
+  });
 }
 
 // 3~5 秒後自動消失的小提示條，附一個「復原」文字按鈕。一次只保留一個提示，
@@ -377,6 +506,7 @@ function showDetail(id) {
   const recipe = state.recipes.find(r => r.id === id);
   if (!recipe) return;
   state.currentDetailId = id;
+  const canEdit = !!getGhToken();
 
   document.getElementById("list-view").classList.add("hidden");
   const detail = document.getElementById("detail-view");
@@ -387,7 +517,10 @@ function showDetail(id) {
       <button class="back-btn" id="back-btn">← 回列表</button>
       <button class="delete-recipe-btn" id="delete-recipe-btn">🗑 刪除食譜</button>
     </div>
-    <h2 class="detail-title">${escapeHtml(recipe.title)}</h2>
+    <div class="detail-title-row">
+      <h2 class="detail-title">${escapeHtml(recipe.title)}</h2>
+      ${canEdit ? `<button class="edit-icon-btn" id="edit-title-btn" type="button" title="編輯標題">✏️</button>` : ""}
+    </div>
     ${recipe.source ? `<div class="detail-meta">來源：${escapeHtml(recipe.source)}</div>` : ""}
     ${renderShoppingList(recipe)}
     <p class="legend"><span class="dot"></span>綠色底色代表素材庫已有此項目</p>
@@ -449,6 +582,8 @@ function showDetail(id) {
       }
     };
   });
+  wireTitleEdit(recipe);
+  wireStepEdit(recipe);
   window.scrollTo(0, 0);
 }
 
@@ -600,6 +735,16 @@ async function deleteRecipe(id) {
   );
   await deleteFileOnGitHub(`data/recipes/${id}.json`, `刪除食譜：${id}`);
   state.recipes = state.recipes.filter(r => r.id !== id);
+}
+
+// 食譜只有單一檔案要改（不像刪除食譜要同時動 index.json 跟食譜檔案兩個檔案），
+// 寫入成功後同步更新 state.recipes 快取、重新渲染詳細頁。
+async function updateRecipeField(id, mutateFn, message) {
+  const newRecipe = await updateJsonFileOnGitHub(`data/recipes/${id}.json`, mutateFn, message);
+  const idx = state.recipes.findIndex(r => r.id === id);
+  if (idx !== -1) state.recipes[idx] = newRecipe;
+  showDetail(id);
+  return newRecipe;
 }
 
 function renderPantryView() {
