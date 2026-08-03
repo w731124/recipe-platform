@@ -4,7 +4,7 @@
   "source": "",
   "ingredients": [
     { "name": "義大利麵", "amount": "180～200", "unit": "g", "category": "主食" },
-    { "name": "好市多龍蝦濃湯", "amount": "250～300", "unit": "ml", "category": "生鮮食材" },
+    { "name": "好市多龍蝦濃湯", "amount": "250～300", "unit": "ml", "category": "罐頭/醃漬" },
     { "name": "蝦仁", "amount": "200", "unit": "g", "category": "生鮮食材" },
     { "name": "洋蔥（切絲）", "amount": "半", "unit": "顆", "category": "辛香蔬菜" },
     { "name": "蘑菇（切片）", "amount": "150", "unit": "g", "category": "生鮮食材" },

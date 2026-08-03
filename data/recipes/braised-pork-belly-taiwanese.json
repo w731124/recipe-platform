@@ -9,7 +9,7 @@
     { "name": "油豆腐", "amount": "2", "unit": "塊", "category": "生鮮食材" },
     { "name": "麵輪", "amount": "少許", "category": "生鮮食材" },
     { "name": "豆干", "amount": "3", "unit": "塊", "category": "生鮮食材" },
-    { "name": "乾香菇", "amount": "3", "unit": "朵", "category": "生鮮食材" },
+    { "name": "乾香菇", "amount": "3", "unit": "朵", "category": "乾貨" },
     { "name": "白蘿蔔", "category": "生鮮食材" },
     { "name": "蔥（切段）", "amount": "2", "unit": "根", "category": "辛香蔬菜" },
     { "name": "薑片", "amount": "6", "unit": "片", "category": "辛香蔬菜" },
