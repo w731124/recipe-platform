@@ -11,6 +11,7 @@ const state = {
   ingredientFamilies: {},
   taxonomy: {},
   selectedPantryCategory: null,
+  currentDetailId: null,
   activeFilters: {
     cuisine: null,
     cooking_methods: new Set(),
@@ -322,6 +323,7 @@ function showToast(message, onUndo) {
 function showDetail(id) {
   const recipe = state.recipes.find(r => r.id === id);
   if (!recipe) return;
+  state.currentDetailId = id;
 
   document.getElementById("list-view").classList.add("hidden");
   const detail = document.getElementById("detail-view");
@@ -347,6 +349,7 @@ function showDetail(id) {
     </div>
   `;
   document.getElementById("back-btn").onclick = () => {
+    state.currentDetailId = null;
     detail.classList.add("hidden");
     document.getElementById("list-view").classList.remove("hidden");
   };
@@ -362,6 +365,7 @@ function showDetail(id) {
     btn.textContent = "刪除中…";
     try {
       await deleteRecipe(recipe.id);
+      state.currentDetailId = null;
       detail.classList.add("hidden");
       document.getElementById("list-view").classList.remove("hidden");
       renderList();
@@ -683,6 +687,13 @@ function showRecipesTab() {
   document.getElementById("tab-pantry").classList.remove("active");
   document.getElementById("app").classList.remove("hidden");
   document.getElementById("pantry-app").classList.add("hidden");
+  // 切分頁只是切換顯示/隱藏，DOM 不會自動重算：如果離開時食譜詳細頁還開著，
+  // 這段期間食材庫可能被改動過（在食材庫分頁新增/刪除），回來時要強制重新渲染，
+  // 不然還是顯示切分頁之前那份舊的 have/missing 狀態。
+  const detailView = document.getElementById("detail-view");
+  if (state.currentDetailId && !detailView.classList.contains("hidden")) {
+    showDetail(state.currentDetailId);
+  }
 }
 function showPantryTab() {
   document.getElementById("tab-pantry").classList.add("active");
