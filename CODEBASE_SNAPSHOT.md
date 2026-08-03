@@ -1,6 +1,6 @@
 # 食譜筆記本網站 — Codebase Snapshot
-- 產生時間：2026-07-31
-- Git commit：350b40bc746f7f399fca2600456e9ee59ca80edc
+- 產生時間：2026-08-03
+- Git commit：7736a256e7c248086360004c72be5f94c66bea0a
 - 所在分支：main
 
 ## 目錄樹
