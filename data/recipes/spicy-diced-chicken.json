@@ -1,0 +1,36 @@
+{
+  "id": "spicy-diced-chicken",
+  "title": "辣子雞丁",
+  "source": "",
+  "ingredients": [
+    { "name": "雞胸肉（切丁）", "category": "生鮮食材" },
+    { "name": "醬油", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
+    { "name": "水", "amount": "20", "unit": "cc", "category": "調味料", "always_available": true },
+    { "name": "太白粉", "amount": "1", "unit": "茶匙", "category": "澱粉" },
+    { "name": "米酒", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
+    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
+    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
+    { "name": "蔥", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
+    { "name": "薑", "amount": "15", "unit": "克", "category": "辛香蔬菜" },
+    { "name": "蒜", "amount": "2", "unit": "顆", "category": "辛香蔬菜" },
+    { "name": "辣椒", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
+    { "name": "豆瓣醬", "amount": "1", "unit": "茶匙", "category": "醬" },
+    { "name": "水", "amount": "30", "unit": "cc", "category": "調味料", "always_available": true },
+    { "name": "糖", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
+    { "name": "太白粉水", "amount": "一些", "category": "澱粉" }
+  ],
+  "steps": [
+    { "order": 1, "text": "下重油，炒雞胸肉。" },
+    { "order": 2, "text": "肉取出，爆料頭（蔥先不下）。" },
+    { "order": 3, "text": "料頭爆香後，加入調味料略炒。" },
+    { "order": 4, "text": "再加入雞丁，炒約一分鐘。" },
+    { "order": 5, "text": "加入蔥段，淋入太白粉水。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["炒"],
+  "main_ingredient_types": ["肉類"],
+  "course": "主菜",
+  "spice_level": "中辣",
+  "created_at": "2026-08-03",
+  "raw_input": "辣子雞丁\n\n主料（原文未寫份量，標題暗示是雞胸肉切丁）：\n雞胸肉（切丁）\n\n醃雞胸肉：\n醬油 1/2茶匙\n水 20cc\n太白粉 1茶匙\n米酒 1/2茶匙\n糖 1/4茶匙\n鹽 1/4茶匙\n\n料頭：\n蔥 1根\n薑 15克\n蒜 2顆\n辣椒 1根\n\n調味料：\n豆瓣醬 1茶匙\n水 30cc\n糖 1/2茶匙\n太白粉水 一些\n\n做法：\n1. 下重油，炒雞胸肉。\n2. 肉取出，爆料頭（蔥先不下）。\n3. 料頭爆香後，加入調味料略炒。\n4. 再加入雞丁，炒約一分鐘。\n5. 加入蔥段，淋入太白粉水。"
+}
