@@ -1,0 +1,31 @@
+{
+  "id": "sesame-oil-chicken",
+  "title": "麻油雞",
+  "source": "",
+  "ingredients": [
+    { "name": "大雞腿", "amount": "1", "unit": "支", "category": "生鮮食材" },
+    { "name": "老薑", "amount": "50", "unit": "g", "category": "辛香蔬菜" },
+    { "name": "麻油", "amount": "70", "unit": "g", "category": "調味料" },
+    { "name": "橄欖油", "amount": "30", "unit": "g", "category": "調味料" },
+    { "name": "米酒", "amount": "2", "unit": "支", "category": "調味料" },
+    { "name": "高麗菜", "amount": "1", "unit": "顆", "category": "生鮮食材" },
+    { "name": "豬血糕", "amount": "1", "unit": "塊", "category": "生鮮食材" }
+  ],
+  "steps": [
+    { "order": 1, "text": "雞腿用一些白胡椒、鹽巴抓醃，放20分鐘。" },
+    { "order": 2, "text": "薑切薄片。" },
+    { "order": 3, "text": "麻油70g、橄欖油30g，冷鍋開始小火煸薑片。" },
+    { "order": 4, "text": "煸到薑旁微捲，雞皮朝下煎雞肉（火大一點）。" },
+    { "order": 5, "text": "薑夾到雞肉上方，避免焦掉。" },
+    { "order": 6, "text": "先關火，再加米酒（開蓋煮），加一些糖。" },
+    { "order": 7, "text": "煮個15-20分鐘。" },
+    { "order": 8, "text": "先加豬血糕，再加高麗菜，灑點鹽巴。" },
+    { "order": 9, "text": "5分鐘後起鍋。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["炒", "煎", "燉"],
+  "main_ingredient_types": ["肉類", "蔬食", "加工品"],
+  "course": "主菜",
+  "created_at": "2026-08-03",
+  "raw_input": "麻油雞\n\n材料：\n大雞腿 1支\n老薑 50g\n麻油 70g\n橄欖油 30g\n米酒 2支\n高麗菜 1顆\n豬血糕 1塊\n\n做法：\n1. 雞腿用一些白胡椒、鹽巴抓醃，放20分鐘。\n2. 薑切薄片。\n3. 麻油70g、橄欖油30g，冷鍋開始小火煸薑片。\n4. 煸到薑旁微捲，雞皮朝下煎雞肉（火大一點）。\n5. 薑夾到雞肉上方，避免焦掉。\n6. 先關火，再加米酒（開蓋煮），加一些糖。\n7. 煮個15-20分鐘。\n8. 先加豬血糕，再加高麗菜，灑點鹽巴。\n9. 5分鐘後起鍋。"
+}
