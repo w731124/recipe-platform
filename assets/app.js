@@ -8,6 +8,7 @@ const state = {
   pantryFlat: [],
   pantryCategories: [],
   pantryCategoryGroups: {},
+  pantryOpenGroups: new Set(),
   synonyms: {},
   ingredientFamilies: {},
   taxonomy: {},
@@ -986,11 +987,15 @@ function renderPantryView() {
 
   // 純顯示層的分組（data/taxonomy.json 的 pantry_category_groups）：把 16 個分類收攏進幾個
   // 可摺疊大區塊方便瀏覽，不影響 category 值、同義詞比對或食譜的 ingredients[].category。
-  // 摺疊狀態刻意不記憶（用原生 <details>，每次重新渲染都回到預設全部展開），不加持久化邏輯。
+  // 預設全部收合，點開哪個就記在 state.pantryOpenGroups（只在這次瀏覽期間有效，重新整理頁面
+  // 就重置回全部收合，不加 localStorage 之類的跨頁面持久化）——這是因為新增/刪除食材會整個
+  // 重新渲染這個畫面，如果不記住目前開著哪些區塊，使用者剛展開、剛選取的分類會在動作後被
+  // 自動收合，體驗很差，所以還是需要這個 session 內的簡單狀態追蹤。
   const categoriesHtml = Object.entries(state.pantryCategoryGroups).map(([groupName, cats]) => {
     const count = cats.reduce((sum, cat) => sum + (state.pantry[cat] || []).length, 0);
     const cardsHtml = cats.map(renderCategoryCard).join("");
-    return `<details class="pantry-category-group" open>
+    const isOpen = state.pantryOpenGroups.has(groupName);
+    return `<details class="pantry-category-group" data-group="${escapeHtml(groupName)}"${isOpen ? " open" : ""}>
       <summary>${escapeHtml(groupName)}（${count}）</summary>
       <div class="pantry-categories">${cardsHtml}</div>
     </details>`;
@@ -1013,6 +1018,14 @@ function renderPantryView() {
     <div id="pantry-status"></div>
     <div class="pantry-category-groups">${categoriesHtml}</div>
   `;
+
+  el.querySelectorAll(".pantry-category-group").forEach(details => {
+    details.ontoggle = () => {
+      const groupName = details.dataset.group;
+      if (details.open) state.pantryOpenGroups.add(groupName);
+      else state.pantryOpenGroups.delete(groupName);
+    };
+  });
 
   const statusEl = document.getElementById("pantry-status");
   const showStatus = (msg, isError) => {
