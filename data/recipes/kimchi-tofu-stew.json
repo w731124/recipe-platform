@@ -1,0 +1,40 @@
+{
+  "id": "kimchi-tofu-stew",
+  "title": "韓式泡菜豆腐鍋",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "泡菜", "amount": "200", "unit": "克", "category": "罐頭/醃漬", "component": "主要材料" },
+    { "name": "豬五花肉片", "category": "肉類", "component": "主要材料" },
+    { "name": "蝦仁", "category": "海鮮", "component": "主要材料" },
+    { "name": "嫩豆腐", "amount": "1", "unit": "盒", "category": "生鮮食材", "component": "主要材料" },
+    { "name": "洋蔥（切絲）", "amount": "1/2", "unit": "顆", "category": "辛香蔬菜", "component": "主要材料" },
+    { "name": "蒜末", "amount": "2", "unit": "瓣", "category": "辛香蔬菜", "component": "主要材料" },
+    { "name": "黃豆芽", "amount": "1", "unit": "把", "category": "蔬菜", "component": "主要材料" },
+    { "name": "玉米筍", "category": "蔬菜", "component": "主要材料" },
+    { "name": "高麗菜", "category": "蔬菜", "component": "主要材料" },
+    { "name": "蔥", "category": "辛香蔬菜", "component": "主要材料" },
+    { "name": "韓式湯錠", "category": "調味料", "component": "湯底調味料" },
+    { "name": "韓式辣椒醬", "amount": "1", "unit": "大匙", "category": "醬", "component": "湯底調味料" },
+    { "name": "韓式辣椒粉", "amount": "1", "unit": "大匙", "category": "調味粉", "component": "湯底調味料" },
+    { "name": "醬油", "amount": "1", "unit": "大匙", "category": "調味料", "component": "湯底調味料" },
+    { "name": "味醂", "amount": "1", "unit": "大匙", "category": "調味料", "component": "湯底調味料" },
+    { "name": "韓式芝麻油", "amount": "1", "unit": "小匙", "category": "調味料", "component": "湯底調味料" }
+  ],
+  "steps": [
+    { "order": 1, "text": "爆香：鍋中加熱韓式芝麻油，放入蒜末與洋蔥絲炒香。" },
+    { "order": 2, "text": "炒肉與蝦子：加入豬五花肉片炒至變色，再加入蝦子稍微翻炒至表面轉紅。" },
+    { "order": 3, "text": "炒泡菜：放入泡菜繼續翻炒 1–2 分鐘，讓酸香味釋放出來。" },
+    { "order": 4, "text": "加入調味料：拌入韓式辣椒醬、韓式辣椒粉、醬油、味醂炒勻。" },
+    { "order": 5, "text": "加湯煮滾：倒入水、泡菜汁與韓式湯錠，煮滾後轉中小火煮 10 分鐘，讓食材入味。" },
+    { "order": 6, "text": "加豆腐與豆芽菜：加入豆腐塊、豆芽菜、菇菇、玉米筍與高麗菜，輕輕攪拌，繼續煮約 5 分鐘。" },
+    { "order": 7, "text": "撒蔥完成：起鍋前撒上剩下的蔥段即可上桌。" }
+  ],
+  "cuisine": "其他",
+  "cooking_methods": ["炒", "湯"],
+  "main_ingredient_types": ["肉類", "海鮮", "蔬食", "蛋豆製品"],
+  "course": "主菜",
+  "spice_level": "小辣",
+  "created_at": "2026-08-04",
+  "raw_input": "韓式泡菜豆腐鍋\t\n泡菜200 克 & 泡菜汁\t爆香：鍋中加熱芝麻油，放入蒜末與洋蔥絲炒香。\n豬五花肉片\t炒肉與蝦子：加入豬五花肉片炒至變色，再加入蝦子稍微翻炒至表面轉紅。\n蝦仁\t炒泡菜：放入泡菜繼續翻炒 1–2 分鐘，讓酸香味釋放出來。\n嫩豆腐1 盒\t加入調味料：拌入辣椒醬、辣椒粉、醬油、味醂炒勻。\n洋蔥1/2 顆，切絲\t加湯煮滾：倒入水與泡菜汁，煮滾後轉中小火煮 10 分鐘，讓食材入味。\n蒜末2 瓣\t加豆腐與豆芽菜：加入豆腐塊與豆芽菜，輕輕攪拌，繼續煮約 5 分鐘。\n黃豆芽1 把\t撒蔥完成：起鍋前撒上剩下的蔥段即可上桌。\n菇菇、玉米筍\t\n高麗菜\t\n\t\n韓式湯錠\t\n韓式辣椒醬1 大匙\t\n韓式辣椒粉1 大匙\t\n醬油1 大匙\t\n味醂1 大匙\t\n芝麻油1 小匙 (炒料用)"
+}
