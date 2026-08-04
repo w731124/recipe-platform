@@ -1,0 +1,26 @@
+{
+  "id": "roast-lamb-chops",
+  "title": "烤小羊排",
+  "source": "",
+  "ingredients": [
+    { "name": "小羊排", "amount": "數支", "category": "生鮮食材" },
+    { "name": "橄欖油", "category": "調味料" },
+    { "name": "大蒜（切末）", "category": "辛香蔬菜" },
+    { "name": "迷迭香", "category": "香草" },
+    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "義式香料", "category": "香草" }
+  ],
+  "steps": [
+    { "order": 1, "text": "羊排退冰到室溫用紙巾擦乾。" },
+    { "order": 2, "text": "香料全部切碎。" },
+    { "order": 3, "text": "羊排抹油，敷上香料醃漬。" },
+    { "order": 4, "text": "烤箱先預熱。" },
+    { "order": 5, "text": "220度上下火烤10-15分。" }
+  ],
+  "cuisine": "西式",
+  "cooking_methods": ["烤"],
+  "main_ingredient_types": ["肉類"],
+  "course": "主菜",
+  "created_at": "2026-08-04",
+  "raw_input": "烤小羊排\t\n材料\t作法\n小羊排數支\t羊排退冰到室溫用紙巾擦乾\n橄欖油\t香料全部切碎\n大蒜切末\t羊排抹油，敷上香料醃漬\n迷迭香\t烤箱先預熱\n黑胡椒\t220度上下火烤10-15分\n義式香料"
+}
