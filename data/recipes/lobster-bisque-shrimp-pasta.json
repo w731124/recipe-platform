@@ -50,13 +50,15 @@
       "name": "菠菜（可選，與蘆筍擇一）",
       "amount": "約50（1小把）",
       "unit": "g",
-      "category": "蔬菜"
+      "category": "蔬菜",
+      "choice_group": "配菜擇一"
     },
     {
       "name": "蘆筍（可選，與菠菜擇一）",
       "amount": "5～6",
       "unit": "根",
-      "category": "蔬菜"
+      "category": "蔬菜",
+      "choice_group": "配菜擇一"
     },
     {
       "name": "奶油",

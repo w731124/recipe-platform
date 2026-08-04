@@ -337,20 +337,50 @@ function stripNotes(name) {
 function renderShoppingList(recipe) {
   // always_available（例如「水」）根本不是採購行為的對象，不列入購物清單任何分類。
   const items = (recipe.ingredients || []).filter(item => !item.always_available);
-  const statused = items.map(item => ({ name: stripNotes(item.name), status: pantryStatus(item.name) }));
-  const missingNames = [...new Set(statused.filter(i => i.status === "missing").map(i => i.name))];
-  const maybeNames = [...new Set(statused.filter(i => i.status === "maybe").map(i => i.name))];
 
-  if (missingNames.length === 0 && maybeNames.length === 0) {
+  // choice_group 相同的食材代表「用其中一種即可」（例如菠菜／蘆筍擇一），跟 component 是獨立的
+  // 兩件事。沒有 choice_group 的食材維持原本各自獨立判斷的行為，不分組。
+  const grouped = new Map();
+  const standalone = [];
+  items.forEach(item => {
+    if (item.choice_group) {
+      if (!grouped.has(item.choice_group)) grouped.set(item.choice_group, []);
+      grouped.get(item.choice_group).push(item);
+    } else {
+      standalone.push(item);
+    }
+  });
+
+  const missingNames = [];
+  const maybeNames = [];
+
+  standalone.forEach(item => {
+    const status = pantryStatus(item.name);
+    if (status === "missing") missingNames.push(stripNotes(item.name));
+    else if (status === "maybe") maybeNames.push(stripNotes(item.name));
+  });
+
+  grouped.forEach(groupItems => {
+    const statused = groupItems.map(item => ({ name: stripNotes(item.name), status: pantryStatus(item.name) }));
+    if (statused.some(i => i.status === "have")) return; // 任一成員已有，整組視為已滿足，不進購物清單
+    const groupStatus = statused.some(i => i.status === "maybe") ? "maybe" : "missing";
+    const label = `${[...new Set(statused.map(i => i.name))].join("／")}（擇一）`;
+    (groupStatus === "missing" ? missingNames : maybeNames).push(label);
+  });
+
+  const uniqueMissing = [...new Set(missingNames)];
+  const uniqueMaybe = [...new Set(maybeNames)];
+
+  if (uniqueMissing.length === 0 && uniqueMaybe.length === 0) {
     return `<div class="shopping-list"><p class="legend">✅ 素材庫都有，不用額外採購！</p></div>`;
   }
-  const missingBlock = missingNames.length
+  const missingBlock = uniqueMissing.length
     ? `<h4>🛒 還需要買</h4>
-       <div class="tag-row">${missingNames.map(n => `<span class="tag missing">${escapeHtml(n)}</span>`).join("")}</div>`
+       <div class="tag-row">${uniqueMissing.map(n => `<span class="tag missing">${escapeHtml(n)}</span>`).join("")}</div>`
     : "";
-  const maybeBlock = maybeNames.length
+  const maybeBlock = uniqueMaybe.length
     ? `<h4>🤔 可能已有，請確認品種/形態</h4>
-       <div class="tag-row">${maybeNames.map(n => `<span class="tag maybe">${escapeHtml(n)}</span>`).join("")}</div>`
+       <div class="tag-row">${uniqueMaybe.map(n => `<span class="tag maybe">${escapeHtml(n)}</span>`).join("")}</div>`
     : "";
   return `<div class="shopping-list">${missingBlock}${maybeBlock}</div>`;
 }

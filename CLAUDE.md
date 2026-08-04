@@ -50,7 +50,8 @@
       "unit": "string，同上，沒有就省略",
       "category": "取自 taxonomy.pantry_categories（見下方「食材分類」）",
       "component": "string，可選。食譜自訂的組件分組（例如「湯頭材料」「雞湯配料」），跟 category 是兩件不同的事，見下方「多階段／多組件食譜」",
-      "always_available": "boolean，可選，預設不存在等同 false。見下方「always_available：不需要追蹤庫存的食材」"
+      "always_available": "boolean，可選，預設不存在等同 false。見下方「always_available：不需要追蹤庫存的食材」",
+      "choice_group": "string，可選。見下方「choice_group：擇一群組」"
     }
   ],
   "steps": [{
@@ -95,6 +96,18 @@
 - 遇到「水」這個食材時可以直接標 `always_available: true`，不用每次都詢問；其他候選食材如果拿不準是否符合「客觀上不存在採購/庫存」這條判準，先跟使用者確認，不要自己擴大範圍。
 
 前端行為（`assets/app.js` 的 `renderIngredientList`／`renderShoppingList`）：`always_available: true` 的食材不呼叫 `pantryStatus`，不套用 have/missing/maybe 顏色、不顯示「+ 加入」按鈕，純粹列出名稱和份量；購物清單（`renderShoppingList`）計算前也會先排除這些項目，不會出現在任何一個購物清單分類裡。
+
+### `choice_group`：擇一群組
+
+`ingredients[].choice_group` 處理的是「食譜明確列出多個可替代選項，使用者只需要其中一種就能滿足這道菜」的情況（例如「菇類任選」「菠菜或蘆筍擇一」），跟 `component`（食譜自訂的組件分組，用途是分類顯示）是兩件獨立的事，互不影響、可以同時填。
+
+- 同一食譜裡，`choice_group` 值相同的食材屬於同一組「擇一」關係。這個值是食譜自己命名的自由文字（例如「配菜擇一」），不是固定詞彙表，不需要跨食譜一致。
+- **只在食譜原文明確表達「這幾項是可替代選項、不是全部都要用」時才使用**，不要自己過度推測——如果原文只是單純列出食材、沒有「擇一」「任選」「二選一」這類措辭，不要自作主張加上 `choice_group`。
+- 沒有 `choice_group` 的食材完全不受影響，維持原本各自獨立判斷的行為。
+
+前端行為：
+- 食譜詳細頁的食材清單（`renderIngredientList`／`renderIngredientsByCategory`）**不受影響**——每個食材依然各自獨立顯示 have/maybe/missing 顏色，`choice_group` 只影響購物清單的合併邏輯，不影響食材清單本身的逐項顯示。
+- 購物清單（`renderShoppingList`）：同一個 `choice_group` 內只要有任一成員狀態是 `have`，整組視為已滿足，全部不列入購物清單（不進 missing 也不進 maybe）；如果組內沒有任何成員是 `have`，取組內最高優先狀態（`maybe` 優先於 `missing`）當作整組狀態，用「成員名稱1／成員名稱2／...（擇一）」合併成一行放進對應清單，不會把組內每個成員各自列一行。合併顯示用的名稱一樣經過 `stripNotes()` 去掉備註文字。
 
 ### 食材分類（`ingredients[].category`，沿用食材庫的 16 大分類）
 
