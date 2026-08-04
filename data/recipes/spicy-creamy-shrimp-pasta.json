@@ -4,31 +4,129 @@
   "source": "",
   "reference_url": "",
   "ingredients": [
-    { "name": "義大利麵", "amount": "120", "unit": "克", "category": "主食", "component": "主要材料" },
-    { "name": "蝦仁", "amount": "10", "unit": "隻", "category": "生鮮食材", "component": "主要材料" },
-    { "name": "麵粉", "amount": "1", "unit": "大匙", "category": "澱粉", "component": "主要材料" },
-    { "name": "生辣椒", "amount": "1", "unit": "支", "category": "辛香蔬菜", "component": "主要材料" },
-    { "name": "乾辣椒", "amount": "少許", "category": "香料", "component": "主要材料" },
-    { "name": "洋蔥", "amount": "1/2", "unit": "個", "category": "辛香蔬菜", "component": "主要材料" },
-    { "name": "鮮奶油", "amount": "80", "unit": "cc", "category": "調味料", "component": "主要材料" },
-    { "name": "檸檬汁", "amount": "一點點", "category": "調味料", "component": "主要材料" },
-    { "name": "蒜泥", "amount": "1.5", "unit": "小匙", "category": "辛香蔬菜", "component": "料汁" },
-    { "name": "薑泥", "amount": "1.5", "unit": "小匙", "category": "辛香蔬菜", "component": "料汁" },
-    { "name": "清酒", "amount": "2.5", "unit": "大匙", "category": "調味料", "component": "料汁" },
-    { "name": "砂糖", "amount": "2.5", "unit": "小匙", "category": "調味料", "component": "料汁" },
-    { "name": "醬油", "amount": "2.5", "unit": "小匙", "category": "調味料", "component": "料汁" },
-    { "name": "番茄醬", "amount": "70", "unit": "g", "category": "醬", "component": "料汁" }
+    {
+      "name": "義大利麵",
+      "amount": "120",
+      "unit": "克",
+      "category": "主食",
+      "component": "主要材料"
+    },
+    {
+      "name": "蝦仁",
+      "amount": "10",
+      "unit": "隻",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "麵粉",
+      "amount": "1",
+      "unit": "大匙",
+      "category": "澱粉",
+      "component": "主要材料"
+    },
+    {
+      "name": "生辣椒",
+      "amount": "1",
+      "unit": "支",
+      "category": "辛香蔬菜",
+      "component": "主要材料"
+    },
+    {
+      "name": "乾辣椒",
+      "amount": "少許",
+      "category": "香料",
+      "component": "主要材料"
+    },
+    {
+      "name": "洋蔥",
+      "amount": "1/2",
+      "unit": "個",
+      "category": "辛香蔬菜",
+      "component": "主要材料"
+    },
+    {
+      "name": "鮮奶油",
+      "amount": "80",
+      "unit": "cc",
+      "category": "調味料",
+      "component": "主要材料"
+    },
+    {
+      "name": "檸檬汁",
+      "amount": "一點點",
+      "category": "調味料",
+      "component": "主要材料"
+    },
+    {
+      "name": "蒜泥",
+      "amount": "1.5",
+      "unit": "小匙",
+      "category": "辛香蔬菜",
+      "component": "料汁"
+    },
+    {
+      "name": "薑泥",
+      "amount": "1.5",
+      "unit": "小匙",
+      "category": "辛香蔬菜",
+      "component": "料汁"
+    },
+    {
+      "name": "清酒",
+      "amount": "2.5",
+      "unit": "大匙",
+      "category": "調味料",
+      "component": "料汁"
+    },
+    {
+      "name": "砂糖",
+      "amount": "2.5",
+      "unit": "小匙",
+      "category": "調味料",
+      "component": "料汁"
+    },
+    {
+      "name": "醬油",
+      "amount": "2.5",
+      "unit": "小匙",
+      "category": "調味料",
+      "component": "料汁"
+    },
+    {
+      "name": "番茄醬",
+      "amount": "70",
+      "unit": "g",
+      "category": "醬",
+      "component": "料汁"
+    }
   ],
   "steps": [
-    { "order": 1, "text": "先煎蝦，取出後再炒洋蔥＆辣椒。" },
-    { "order": 2, "text": "下調好的醬汁+鮮奶油80cc。" },
-    { "order": 3, "text": "加一點點檸檬汁。" }
+    {
+      "order": 1,
+      "text": "先煎蝦，取出後再炒洋蔥＆辣椒。"
+    },
+    {
+      "order": 2,
+      "text": "下調好的醬汁+鮮奶油80cc。"
+    },
+    {
+      "order": 3,
+      "text": "加一點點檸檬汁。"
+    }
   ],
   "cuisine": "西式",
-  "cooking_methods": ["炒"],
-  "main_ingredient_types": ["海鮮", "澱粉/主食", "蔬食"],
+  "cooking_methods": [
+    "炒"
+  ],
+  "main_ingredient_types": [
+    "海鮮",
+    "澱粉/主食",
+    "蔬食"
+  ],
   "course": "主菜",
   "spice_level": "小辣",
   "created_at": "2026-08-04",
-  "raw_input": "辛辣奶味蝦仁拌麵\t\n材料\t作法\n義大利麵120克\t先煎蝦，取出後再炒洋蔥＆辣椒\n蝦仁10隻 、麵粉1大匙\t下調好的醬汁+鮮奶油80cc\n生辣椒1支\t加一點點檸檬汁\n乾辣椒少許\t\n洋蔥1/2個\t\n料汁\t\n蒜泥1.5小匙\t\n薑泥1.5小匙\t\n清酒2.5大匙\t\n砂糖2.5小匙\t\n醬油2.5小匙\t\n番茄醬70g"
+  "raw_input": "辛辣奶味蝦仁拌麵\t\n材料\t作法\n義大利麵120克\t先煎蝦，取出後再炒洋蔥＆辣椒\n蝦仁10隻 、麵粉1大匙\t下調好的醬汁+鮮奶油80cc\n生辣椒1支\t加一點點檸檬汁\n乾辣椒少許\t\n洋蔥1/2個\t\n料汁\t\n蒜泥1.5小匙\t\n薑泥1.5小匙\t\n清酒2.5大匙\t\n砂糖2.5小匙\t\n醬油2.5小匙\t\n番茄醬70g",
+  "reference_url": "https://www.youtube.com/watch?v=P9ttQy4sPSw"
 }
