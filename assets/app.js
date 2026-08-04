@@ -389,16 +389,24 @@ function renderShoppingList(recipe) {
 // 例如「熬湯頭」「雞湯配料前處理」），改成依 stage 第一次出現的順序分組，各自渲染成
 // 一個帶標題的區塊、步驟各自從 1 開始編號；stage_note（例如「與熬湯頭同時進行」）
 // 有填的話用小字附加在標題旁邊。
-// 每個 <li> 用 data-stage + data-order 標記這個步驟在 JSON 裡的正確位置（不是用文字內容比對，
-// 避免文字重複的步驟被編輯功能改錯行）。編輯圖示只在有設定 GitHub token 時顯示。
+// 每個區塊只有一個編輯圖示（不是每行各自一個），見 wireStepEdit：點下去整段文字一起編輯，
+// 用 data-stage 標記這個區塊對應 JSON 裡的哪個 stage（沒有 stage 的攤平食譜用空字串）。
+// 編輯圖示只在有設定 GitHub token 時顯示。
 function renderStepLi(s) {
+  return `<li>${escapeHtml(s.text)}</li>`;
+}
+
+function renderStepsBlock(title, stage, note, stepsList) {
   const canEdit = !!getGhToken();
-  return `<li data-stage="${escapeHtml(s.stage || "")}" data-order="${s.order}">
-    <div class="step-row">
-      <span class="step-text">${escapeHtml(s.text)}</span>
-      ${canEdit ? `<button class="edit-icon-btn step-edit-btn" type="button" title="編輯這個步驟">✏️</button>` : ""}
+  return `<div class="section-block steps-block" data-stage="${escapeHtml(stage)}">
+    <div class="steps-block-header">
+      <h4>${escapeHtml(title)}${note ? ` <span class="stage-note">${escapeHtml(note)}</span>` : ""}</h4>
+      ${canEdit ? `<button class="edit-icon-btn steps-block-edit-btn" type="button" title="編輯做法">✏️</button>` : ""}
     </div>
-  </li>`;
+    <ol class="steps">
+      ${stepsList.map(renderStepLi).join("")}
+    </ol>
+  </div>`;
 }
 
 function renderSteps(recipe) {
@@ -407,24 +415,14 @@ function renderSteps(recipe) {
 
   if (!hasStage) {
     const sorted = steps.slice().sort((a, b) => a.order - b.order);
-    return `<div class="section-block">
-      <h4>做法</h4>
-      <ol class="steps">
-        ${sorted.map(renderStepLi).join("")}
-      </ol>
-    </div>`;
+    return renderStepsBlock("做法", "", "", sorted);
   }
 
   const stageOrder = [...new Set(steps.map(s => s.stage || ""))];
   return stageOrder.map(stage => {
     const stageSteps = steps.filter(s => (s.stage || "") === stage).slice().sort((a, b) => a.order - b.order);
     const note = stageSteps.map(s => s.stage_note).find(Boolean) || "";
-    return `<div class="section-block">
-      <h4>${escapeHtml(stage || "做法")}${note ? ` <span class="stage-note">${escapeHtml(note)}</span>` : ""}</h4>
-      <ol class="steps">
-        ${stageSteps.map(renderStepLi).join("")}
-      </ol>
-    </div>`;
+    return renderStepsBlock(stage || "做法", stage, note, stageSteps);
   }).join("");
 }
 
@@ -502,47 +500,74 @@ function wireTitleEdit(recipe) {
   };
 }
 
+// 整個做法區塊（一個 stage，或沒有 stage 時整份食譜）只有一個編輯圖示，點下去整段文字一起編輯：
+// textarea 一行一個步驟，儲存時依當下行數重新編號、取代掉這個 stage 原本的所有步驟——
+// 增減/調整行的順序就等於新增/刪除/搬動步驟，這是刻意開放的範圍（見 CLAUDE.md「網站直接寫入
+// GitHub」一節），不像標題編輯只能改文字本身。其他 stage 的步驟完全不受影響，用「取代原本
+// stage 位置」的方式插回陣列，維持食譜其餘區塊的顯示順序不變。
 function wireStepEdit(recipe) {
   if (!getGhToken()) return;
-  document.querySelectorAll(".step-edit-btn").forEach(btn => {
+  document.querySelectorAll(".steps-block-edit-btn").forEach(btn => {
     btn.onclick = () => {
-      const li = btn.closest("li");
-      const stage = li.dataset.stage || "";
-      const order = Number(li.dataset.order);
-      const step = (recipe.steps || []).find(s => (s.stage || "") === stage && s.order === order);
-      if (!step) return;
-      const oldText = step.text;
-      li.innerHTML = `
-        <textarea class="step-edit-textarea">${escapeHtml(oldText)}</textarea>
+      const block = btn.closest(".steps-block");
+      const stage = block.dataset.stage || "";
+      const stageSteps = (recipe.steps || [])
+        .filter(s => (s.stage || "") === stage)
+        .slice()
+        .sort((a, b) => a.order - b.order);
+      const stageNote = stageSteps.map(s => s.stage_note).find(Boolean) || "";
+      const oldText = stageSteps.map(s => s.text).join("\n");
+
+      const ol = block.querySelector("ol.steps");
+      ol.outerHTML = `
+        <textarea class="steps-block-edit-textarea">${escapeHtml(oldText)}</textarea>
+        <p class="legend">每行一個步驟，儲存時會依行數重新編號；直接增減或調整行的順序即可新增/刪除/搬動步驟。</p>
         <div class="step-edit-actions">
           <button class="btn-primary" type="button" data-action="save">儲存</button>
           <button class="btn-secondary" type="button" data-action="cancel">取消</button>
         </div>
       `;
-      const textarea = li.querySelector("textarea");
+      btn.style.display = "none";
+      const textarea = block.querySelector(".steps-block-edit-textarea");
       textarea.focus();
-      const saveBtn = li.querySelector('[data-action="save"]');
-      const cancelBtn = li.querySelector('[data-action="cancel"]');
+      const saveBtn = block.querySelector('[data-action="save"]');
+      const cancelBtn = block.querySelector('[data-action="cancel"]');
       cancelBtn.onclick = () => showDetail(recipe.id);
+
+      const applyLines = lines => current => {
+        const newBlockSteps = lines.map((text, idx) => {
+          const s = { order: idx + 1, text };
+          if (stage) s.stage = stage;
+          if (idx === 0 && stageNote) s.stage_note = stageNote;
+          return s;
+        });
+        const result = [];
+        let inserted = false;
+        (current.steps || []).forEach(s => {
+          if ((s.stage || "") === stage) {
+            if (!inserted) { result.push(...newBlockSteps); inserted = true; }
+          } else {
+            result.push(s);
+          }
+        });
+        if (!inserted) result.push(...newBlockSteps);
+        return { ...current, steps: result };
+      };
+
       saveBtn.onclick = async () => {
-        const newText = textarea.value.trim();
-        if (!newText) { alert("步驟內容不能空白"); return; }
+        const lines = textarea.value.split("\n").map(l => l.trim()).filter(Boolean);
+        if (lines.length === 0) { alert("至少要保留一個步驟"); return; }
+        const newText = lines.join("\n");
         if (newText === oldText) { showDetail(recipe.id); return; }
         saveBtn.disabled = true;
         cancelBtn.disabled = true;
         textarea.disabled = true;
         saveBtn.textContent = "儲存中…";
-        const applyText = text => current => {
-          const steps = current.steps.map(s =>
-            (s.stage || "") === stage && s.order === order ? { ...s, text } : s
-          );
-          return { ...current, steps };
-        };
         try {
-          await updateRecipeField(recipe.id, applyText(newText), `編輯食譜步驟：${recipe.title}`);
-          showToast("已更新步驟", async () => {
+          await updateRecipeField(recipe.id, applyLines(lines), `編輯食譜做法：${recipe.title}`);
+          showToast("已更新做法", async () => {
             try {
-              await updateRecipeField(recipe.id, applyText(oldText), `復原步驟編輯：${recipe.title}`);
+              await updateRecipeField(recipe.id, applyLines(oldText.split("\n")), `復原做法編輯：${recipe.title}`);
             } catch (err) {
               alert(err.message);
             }

@@ -118,6 +118,12 @@ body {
   font-family: inherit; font-size: 0.9rem; resize: vertical; box-sizing: border-box;
 }
 .step-edit-actions { display: flex; gap: 8px; margin-top: 6px; }
+.steps-block-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.steps-block-header h4 { margin: 0; }
+.steps-block-edit-textarea {
+  width: 100%; min-height: 140px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
+  font-family: inherit; font-size: 0.9rem; line-height: 1.6; resize: vertical; box-sizing: border-box;
+}
 
 .reference-link-row { display: flex; align-items: center; gap: 8px; }
 .reference-link-content { flex: 1; }
@@ -184,9 +190,6 @@ ul.ingredient-list li.maybe .ing-name { color: var(--pantry-maybe-text); font-we
 
 ol.steps { padding-left: 20px; margin: 0; }
 ol.steps li { margin-bottom: 8px; }
-.step-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.step-row .step-text { flex: 1; }
-
 /* ---- 一鍵加入食材庫的提示條 ---- */
 .toast {
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
