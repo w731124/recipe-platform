@@ -5,12 +5,12 @@
   "reference_url": "",
   "ingredients": [
     { "name": "泡麵", "amount": "2", "unit": "包", "category": "主食" },
-    { "name": "豬肉片", "category": "生鮮食材" },
-    { "name": "竹輪", "category": "生鮮食材" },
-    { "name": "高麗菜", "category": "生鮮食材" },
-    { "name": "紅蘿蔔", "category": "生鮮食材" },
-    { "name": "生香菇", "category": "生鮮食材" },
-    { "name": "木耳", "category": "生鮮食材" },
+    { "name": "豬肉片", "category": "肉類" },
+    { "name": "竹輪", "category": "加工食品/火鍋料" },
+    { "name": "高麗菜", "category": "蔬菜" },
+    { "name": "紅蘿蔔", "category": "蔬菜" },
+    { "name": "生香菇", "category": "蔬菜" },
+    { "name": "木耳", "category": "蔬菜" },
     { "name": "辣椒", "category": "辛香蔬菜" },
     { "name": "大蒜", "category": "辛香蔬菜" },
     { "name": "香菜", "category": "香草" }

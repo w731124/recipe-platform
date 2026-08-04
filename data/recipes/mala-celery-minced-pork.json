@@ -4,8 +4,8 @@
   "source": "",
   "reference_url": "",
   "ingredients": [
-    { "name": "絞肉", "category": "生鮮食材" },
-    { "name": "芹菜（切丁）", "category": "生鮮食材" },
+    { "name": "絞肉", "category": "肉類" },
+    { "name": "芹菜（切丁）", "category": "蔬菜" },
     { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料" },
     { "name": "郫縣豆瓣醬", "amount": "1", "unit": "小匙", "category": "醬" },
     { "name": "醬油", "amount": "2", "unit": "大匙", "category": "調味料" },

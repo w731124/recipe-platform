@@ -4,13 +4,13 @@
   "source": "",
   "reference_url": "",
   "ingredients": [
-    { "name": "大雞腿", "amount": "1", "unit": "支", "category": "生鮮食材" },
+    { "name": "大雞腿", "amount": "1", "unit": "支", "category": "肉類" },
     { "name": "老薑", "amount": "50", "unit": "g", "category": "辛香蔬菜" },
     { "name": "麻油", "amount": "70", "unit": "g", "category": "調味料" },
     { "name": "橄欖油", "amount": "30", "unit": "g", "category": "調味料" },
     { "name": "米酒", "amount": "2", "unit": "支", "category": "調味料" },
-    { "name": "高麗菜", "amount": "1", "unit": "顆", "category": "生鮮食材" },
-    { "name": "豬血糕", "amount": "1", "unit": "塊", "category": "生鮮食材" }
+    { "name": "高麗菜", "amount": "1", "unit": "顆", "category": "蔬菜" },
+    { "name": "豬血糕", "amount": "1", "unit": "塊", "category": "加工食品/火鍋料" }
   ],
   "steps": [
     { "order": 1, "text": "雞腿用一些白胡椒、鹽巴抓醃，放20分鐘。" },

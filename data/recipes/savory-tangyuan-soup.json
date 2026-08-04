@@ -4,13 +4,13 @@
   "source": "",
   "reference_url": "",
   "ingredients": [
-    { "name": "鹹湯圓", "category": "生鮮食材" },
-    { "name": "福州丸", "category": "生鮮食材" },
-    { "name": "大餛飩", "category": "生鮮食材" },
+    { "name": "鹹湯圓", "category": "加工食品/火鍋料" },
+    { "name": "福州丸", "category": "加工食品/火鍋料" },
+    { "name": "大餛飩", "category": "加工食品/火鍋料" },
     { "name": "蝦米", "category": "乾貨" },
     { "name": "乾香菇（切片）", "category": "乾貨" },
     { "name": "蒜苗（切片）", "category": "辛香蔬菜" },
-    { "name": "茼蒿", "category": "生鮮食材" },
+    { "name": "茼蒿", "category": "蔬菜" },
     { "name": "高湯罐", "category": "罐頭/醃漬" },
     { "name": "紅蔥頭油", "category": "調味料" },
     { "name": "鹽巴", "category": "調味料" }

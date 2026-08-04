@@ -8,40 +8,40 @@
       "name": "雞架子",
       "amount": "3",
       "unit": "副",
-      "category": "生鮮食材",
+      "category": "肉類",
       "component": "湯頭材料"
     },
     {
       "name": "雞爪",
       "amount": "2",
       "unit": "支",
-      "category": "生鮮食材",
+      "category": "肉類",
       "component": "湯頭材料"
     },
     {
       "name": "雞翅",
       "amount": "看多少錢",
-      "category": "生鮮食材",
+      "category": "肉類",
       "component": "湯頭材料"
     },
     {
       "name": "龍骨",
       "amount": "半斤",
-      "category": "生鮮食材",
+      "category": "肉類",
       "component": "湯頭材料"
     },
     {
       "name": "腳蹄",
       "amount": "1",
       "unit": "段",
-      "category": "生鮮食材",
+      "category": "肉類",
       "component": "湯頭材料"
     },
     {
       "name": "里肌（瘦肉）",
       "amount": "4",
       "unit": "兩",
-      "category": "生鮮食材",
+      "category": "肉類",
       "component": "湯頭材料"
     },
     {
@@ -90,14 +90,14 @@
       "name": "雞腿",
       "amount": "1",
       "unit": "支",
-      "category": "生鮮食材",
+      "category": "肉類",
       "component": "雞湯材料"
     },
     {
       "name": "白菜（or 娃娃菜）",
       "amount": "半",
       "unit": "顆",
-      "category": "生鮮食材",
+      "category": "蔬菜",
       "component": "雞湯材料"
     }
   ],

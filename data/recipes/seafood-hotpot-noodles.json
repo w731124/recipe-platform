@@ -6,12 +6,12 @@
   "ingredients": [
     {
       "name": "小白菜",
-      "category": "生鮮食材",
+      "category": "蔬菜",
       "component": "主要材料"
     },
     {
       "name": "肉絲",
-      "category": "生鮮食材",
+      "category": "肉類",
       "component": "主要材料"
     },
     {
@@ -21,12 +21,12 @@
     },
     {
       "name": "蝦子",
-      "category": "生鮮食材",
+      "category": "海鮮",
       "component": "主要材料"
     },
     {
       "name": "花枝丸",
-      "category": "生鮮食材",
+      "category": "加工食品/火鍋料",
       "component": "主要材料"
     },
     {

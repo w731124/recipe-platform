@@ -20,7 +20,7 @@
       "name": "蝦仁",
       "amount": "200",
       "unit": "g",
-      "category": "生鮮食材"
+      "category": "海鮮"
     },
     {
       "name": "洋蔥（切絲）",
@@ -32,7 +32,7 @@
       "name": "蘑菇（切片）",
       "amount": "150",
       "unit": "g",
-      "category": "生鮮食材"
+      "category": "蔬菜"
     },
     {
       "name": "蒜頭（切末）",
@@ -44,19 +44,19 @@
       "name": "小番茄（切半，可選）",
       "amount": "6～8",
       "unit": "顆",
-      "category": "生鮮食材"
+      "category": "蔬菜"
     },
     {
       "name": "菠菜（可選，與蘆筍擇一）",
       "amount": "約50（1小把）",
       "unit": "g",
-      "category": "生鮮食材"
+      "category": "蔬菜"
     },
     {
       "name": "蘆筍（可選，與菠菜擇一）",
       "amount": "5～6",
       "unit": "根",
-      "category": "生鮮食材"
+      "category": "蔬菜"
     },
     {
       "name": "奶油",

@@ -4,8 +4,8 @@
   "source": "",
   "reference_url": "",
   "ingredients": [
-    { "name": "五花肉片", "category": "生鮮食材" },
-    { "name": "高麗菜", "category": "生鮮食材" },
+    { "name": "五花肉片", "category": "肉類" },
+    { "name": "高麗菜", "category": "蔬菜" },
     { "name": "薑", "category": "辛香蔬菜" },
     { "name": "蒜", "category": "辛香蔬菜" },
     { "name": "辣椒", "category": "辛香蔬菜" },

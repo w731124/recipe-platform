@@ -6,7 +6,7 @@
   "ingredients": [
     { "name": "板豆腐", "amount": "1", "unit": "盒", "category": "生鮮食材" },
     { "name": "乾香菇", "amount": "4", "unit": "朵", "category": "乾貨" },
-    { "name": "紅蘿蔔", "amount": "半", "unit": "根", "category": "生鮮食材" },
+    { "name": "紅蘿蔔", "amount": "半", "unit": "根", "category": "蔬菜" },
     { "name": "蒜頭", "amount": "2", "unit": "顆", "category": "辛香蔬菜" },
     { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
     { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
