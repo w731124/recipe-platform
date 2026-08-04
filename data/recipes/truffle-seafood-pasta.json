@@ -1,0 +1,37 @@
+{
+  "id": "truffle-seafood-pasta",
+  "title": "松露海鮮義大利麵",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "義大利麵", "category": "主食" },
+    { "name": "蘑菇（可選，依喜好挑選一種或多種菇類）", "category": "蔬菜", "choice_group": "菇類擇一" },
+    { "name": "秀珍菇（可選，依喜好挑選一種或多種菇類）", "category": "蔬菜", "choice_group": "菇類擇一" },
+    { "name": "鴻喜菇（可選，依喜好挑選一種或多種菇類）", "category": "蔬菜", "choice_group": "菇類擇一" },
+    { "name": "雪白菇（可選，依喜好挑選一種或多種菇類）", "category": "蔬菜", "choice_group": "菇類擇一" },
+    { "name": "白酒", "amount": "200", "unit": "cc", "category": "調味料" },
+    { "name": "大蒜（切片）", "amount": "2-3", "unit": "顆", "category": "辛香蔬菜" },
+    { "name": "洋蔥（切丁）", "amount": "1/3", "unit": "顆", "category": "辛香蔬菜" },
+    { "name": "松露醬", "amount": "2-3", "unit": "大匙", "category": "醬" },
+    { "name": "奶油", "amount": "1", "unit": "塊", "category": "調味料" },
+    { "name": "鹽", "amount": "少許", "category": "調味料" },
+    { "name": "黑胡椒粉", "amount": "少許", "category": "調味粉" }
+  ],
+  "steps": [
+    { "order": 1, "text": "煮義大利麵至8分熟。" },
+    { "order": 2, "text": "海鮮先燙起來。" },
+    { "order": 3, "text": "大蒜洋蔥爆香。" },
+    { "order": 4, "text": "菇類、海鮮下鍋一起炒。" },
+    { "order": 5, "text": "加入白酒200cc悶煮。" },
+    { "order": 6, "text": "收到剩1/4之後加入兩大匙松露醬。" },
+    { "order": 7, "text": "加鹽巴＆黑胡椒調味。" },
+    { "order": 8, "text": "關火之後加入1塊奶油。" },
+    { "order": 9, "text": "加入義大利麵拌一拌。" }
+  ],
+  "cuisine": "西式",
+  "cooking_methods": ["炒"],
+  "main_ingredient_types": ["海鮮", "蔬食", "澱粉/主食"],
+  "course": "主菜",
+  "created_at": "2026-08-04",
+  "raw_input": "松露海鮮義大利麵\t\n材料\t作法\n義大利麵 \t煮義大利麵至8分熟\n各種綜合海鮮\t海鮮先燙起來\n蘑菇、秀珍菇、鴻喜、雪白\t大蒜洋蔥爆香\n白酒200cc\t菇類、海鮮下鍋一起炒\n大蒜2-3顆切片\t加入白酒200cc悶煮\n洋蔥1/3顆切丁\t收到剩1/4之後加入兩大匙松露醬\n松露醬2-3匙\t加鹽巴&黑胡椒調味\n奶油1塊\t關火之後加入1塊奶油\n鹽少許\t加入義大利麵拌一拌\n黑胡椒少許"
+}
