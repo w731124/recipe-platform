@@ -1,0 +1,99 @@
+{
+  "id": "seafood-hotpot-noodles",
+  "title": "鍋燒麵",
+  "source": "",
+  "ingredients": [
+    {
+      "name": "小白菜",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "肉絲",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "雞蛋",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "蝦子",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "花枝丸",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "白麵條",
+      "category": "主食",
+      "component": "主要材料"
+    },
+    {
+      "name": "乾香菇（洗淨泡開切片）",
+      "category": "乾貨",
+      "component": "湯頭"
+    },
+    {
+      "name": "烹大師",
+      "amount": "一些",
+      "category": "調味粉",
+      "component": "湯頭"
+    },
+    {
+      "name": "柴魚片",
+      "amount": "一把",
+      "category": "乾貨",
+      "component": "湯頭"
+    },
+    {
+      "name": "味醂",
+      "amount": "一些些",
+      "category": "調味料",
+      "component": "湯頭"
+    },
+    {
+      "name": "太白粉",
+      "amount": "一些",
+      "category": "澱粉",
+      "component": "醃肉絲"
+    },
+    {
+      "name": "白胡椒粉",
+      "amount": "一些",
+      "category": "調味粉",
+      "component": "醃肉絲"
+    },
+    {
+      "name": "醬油",
+      "amount": "一些",
+      "category": "調味料",
+      "component": "醃肉絲"
+    },
+    {
+      "name": "米酒",
+      "amount": "一些些",
+      "category": "調味料",
+      "component": "醃肉絲"
+    }
+  ],
+  "steps": [
+    { "order": 1, "text": "先做湯頭。" },
+    { "order": 2, "text": "下火鍋料。" },
+    { "order": 3, "text": "下冷凍海鮮。" },
+    { "order": 4, "text": "下肉絲。" },
+    { "order": 5, "text": "下麵。" },
+    { "order": 6, "text": "下雞蛋。" },
+    { "order": 7, "text": "下菜。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["湯"],
+  "main_ingredient_types": ["肉類", "海鮮", "蛋豆製品", "蔬食", "澱粉/主食"],
+  "course": "主菜",
+  "created_at": "2026-08-04",
+  "raw_input": "鍋燒麵\n材料\t作法\n小白菜\t先做湯頭\n肉絲\t下火鍋料\n雞蛋\t下冷凍海鮮\n蝦子\t下肉絲\n花枝丸\t下麵\n一些冷凍海鮮\t下雞蛋\n香菇\t下菜\n湯頭\t\n香菇洗淨泡開切片\t\n烹大師一些\t\n柴魚片一把\t\n味琳一些些\t\n醃肉絲\t\n太白粉一些\t\n白胡椒一些\t\n醬油一些\t\n米酒一些些"
+}
