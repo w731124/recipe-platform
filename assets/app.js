@@ -102,7 +102,11 @@ function safeExtension(longer, shorter) {
 }
 
 // ---- 素材庫比對（同義詞庫查表，見規格 5 節）----
-function isInPantry(ingredientName) {
+// 回傳這個食材在 pantry.json 裡實際比對到的分類＋正式名稱（不是食譜自己寫的名稱／category）。
+// 例如食譜寫「大蒜（切末）」，pantry.json 裡實際存的是「蒜頭」——「已有」狀態要提供移除按鈕時，
+// 需要這組精準的分類＋名稱才能呼叫 removePantryItem，不能直接沿用食譜的 item.category/item.name。
+// isInPantry 沿用同一套邏輯，只是只回傳布林值。
+function findPantryMatch(ingredientName) {
   const name = ingredientName.trim();
   const ambiguous = relatesToFamily(name);
   let matchedGroup = false;
@@ -115,13 +119,24 @@ function isInPantry(ingredientName) {
     });
     if (hit) {
       matchedGroup = true;
-      if (state.pantryFlat.includes(canonical)) return true;
+      if (state.pantryFlat.includes(canonical)) {
+        const category = Object.keys(state.pantry).find(cat => (state.pantry[cat] || []).includes(canonical));
+        if (category) return { category, name: canonical };
+      }
     }
   }
-  if (matchedGroup) return false; // 同義詞群組存在，但素材庫沒有該項目
-  if (ambiguous) return false; // 跟家族有關的籠統詞交給 familyStatus 處理，這裡不用寬鬆比對誤判成已有
+  if (matchedGroup) return null; // 同義詞群組存在，但素材庫沒有該項目
+  if (ambiguous) return null; // 跟家族有關的籠統詞交給 familyStatus 處理，這裡不用寬鬆比對誤判成已有
   // 回退：沒有對應同義詞群組時，直接對素材庫做安全延伸比對
-  return state.pantryFlat.some(p => safeExtension(name, p));
+  for (const [category, items] of Object.entries(state.pantry)) {
+    const hitName = (items || []).find(p => safeExtension(name, p));
+    if (hitName) return { category, name: hitName };
+  }
+  return null;
+}
+
+function isInPantry(ingredientName) {
+  return !!findPantryMatch(ingredientName);
 }
 
 // 「同一家族但品種/形態不確定」的軟比對（例：食譜寫「花椒」，庫存有「紅花椒粒」「青花椒粉」，
@@ -253,10 +268,17 @@ function renderIngredientList(items) {
     const noteHtml = note
       ? `<div class="ing-note${isOptionalNote ? " ing-note-optional" : ""}">${escapeHtml(note)}</div>`
       : "";
-    // have 的項目食材庫已經有了、always_available 的項目不需要追蹤，都不用顯示「加入」按鈕
-    const addBtnHtml = status && status !== "have"
-      ? `<button class="ing-add-btn" type="button" data-category="${escapeHtml(item.category || "")}" data-name="${escapeHtml(base)}">+ 加入</button>`
-      : "";
+    // have 的項目改顯示「移除」（用光了可以直接從這裡取消庫存標記）；always_available 的項目
+    // 不需要追蹤，兩種按鈕都不顯示；其餘（missing/maybe）顯示「加入」。
+    let addBtnHtml = "";
+    if (status === "have") {
+      const match = findPantryMatch(item.name);
+      if (match) {
+        addBtnHtml = `<button class="ing-remove-btn" type="button" data-category="${escapeHtml(match.category)}" data-name="${escapeHtml(match.name)}" title="從食材庫移除（用完了）">− 移除</button>`;
+      }
+    } else if (status) {
+      addBtnHtml = `<button class="ing-add-btn" type="button" data-category="${escapeHtml(item.category || "")}" data-name="${escapeHtml(base)}">+ 加入</button>`;
+    }
     return `<li class="${status || ""}">
       <div class="ing-main">
         <span class="ing-name">${escapeHtml(base)}${hint}</span>
@@ -664,6 +686,33 @@ function showDetail(id) {
       } catch (err) {
         addBtn.disabled = false;
         addBtn.textContent = "+ 加入";
+        alert(err.message);
+      }
+    };
+  });
+  detail.querySelectorAll(".ing-remove-btn").forEach(removeBtn => {
+    removeBtn.onclick = async () => {
+      if (!getGhToken()) {
+        alert("尚未設定 GitHub token，請先到食材庫分頁貼上 token（移除食材共用同一組 token）。");
+        return;
+      }
+      const { category, name } = removeBtn.dataset;
+      removeBtn.disabled = true;
+      removeBtn.textContent = "移除中…";
+      try {
+        await removePantryItem(category, name);
+        showDetail(recipe.id);
+        showToast(`已從食材庫移除：${name}`, async () => {
+          try {
+            await addPantryItem(category, name);
+            showDetail(recipe.id);
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      } catch (err) {
+        removeBtn.disabled = false;
+        removeBtn.textContent = "− 移除";
         alert(err.message);
       }
     };

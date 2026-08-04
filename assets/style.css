@@ -174,6 +174,13 @@ ul.ingredient-list li.maybe .ing-name { color: var(--pantry-maybe-text); font-we
 }
 .ing-add-btn:hover { background: var(--accent); color: #fff; }
 .ing-add-btn:disabled { opacity: 0.6; cursor: default; }
+.ing-remove-btn {
+  background: none; border: 1px solid var(--pantry-yes-text); color: var(--pantry-yes-text);
+  border-radius: 999px; padding: 2px 10px; font-size: 0.75rem; cursor: pointer;
+  flex-shrink: 0; white-space: nowrap;
+}
+.ing-remove-btn:hover { background: var(--pantry-yes-text); color: #fff; }
+.ing-remove-btn:disabled { opacity: 0.6; cursor: default; }
 
 ol.steps { padding-left: 20px; margin: 0; }
 ol.steps li { margin-bottom: 8px; }
