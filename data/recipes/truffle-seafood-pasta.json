@@ -5,6 +5,7 @@
   "reference_url": "",
   "ingredients": [
     { "name": "義大利麵", "category": "主食" },
+    { "name": "海鮮（各種綜合，依喜好選擇）", "category": "海鮮" },
     { "name": "蘑菇（可選，依喜好挑選一種或多種菇類）", "category": "蔬菜", "choice_group": "菇類擇一" },
     { "name": "秀珍菇（可選，依喜好挑選一種或多種菇類）", "category": "蔬菜", "choice_group": "菇類擇一" },
     { "name": "鴻喜菇（可選，依喜好挑選一種或多種菇類）", "category": "蔬菜", "choice_group": "菇類擇一" },
