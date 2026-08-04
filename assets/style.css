@@ -119,6 +119,14 @@ body {
 }
 .step-edit-actions { display: flex; gap: 8px; margin-top: 6px; }
 
+.reference-link-row { display: flex; align-items: center; gap: 8px; }
+.reference-link-content { flex: 1; }
+.reference-link { color: var(--accent); text-decoration: none; font-weight: 600; }
+.reference-link:hover { text-decoration: underline; }
+.reference-edit-input {
+  flex: 1; font-size: 0.9rem; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px;
+}
+
 .section-block {
   margin-bottom: 24px;
   background: var(--bg);

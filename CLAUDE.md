@@ -5,10 +5,11 @@
 ## 這是什麼專案
 純靜態網站（vanilla HTML/CSS/JS，無框架、無建置流程），部署在 GitHub Pages。網站本身不解析、不呼叫任何 AI API。所有「智慧」工作（食譜解析、同義詞生成、分類詞彙表維護）都在 Claude Code 對話中離線完成，結果以 JSON 檔案寫入 `/data`，git commit + push 後由 GitHub Pages 自動重新部署。
 
-**例外**：以下三種操作可以直接在網站上做，網站會用使用者自己貼上、存在瀏覽器 localStorage 的同一組 GitHub token 直接呼叫 GitHub API 寫回 repo（見下方「網站直接寫入 GitHub」一節）：
+**例外**：以下四種操作可以直接在網站上做，網站會用使用者自己貼上、存在瀏覽器 localStorage 的同一組 GitHub token 直接呼叫 GitHub API 寫回 repo（見下方「網站直接寫入 GitHub」一節）：
 - 食材庫（`data/pantry.json`）的新增/刪除。
 - 食譜的刪除（同時刪除 `data/recipes/{id}.json` 並更新 `data/recipes/index.json`）。
 - 食譜標題、做法步驟文字的直接編輯（純文字內容，不包含新增/刪除/搬動步驟，也不包含食材、分類、菜系等任何需要判斷的欄位）。
+- 食譜相關連結（`reference_url`）的直接編輯（純粹修改這一個欄位的值，接受空字串代表清除連結）。
 
 除此之外的所有寫入（新增食譜、食譜的其他欄位、分類詞彙表、同義詞庫）仍然只能透過 Claude Code 對話離線寫入。
 
@@ -41,6 +42,7 @@
   "id": "string，kebab-case",
   "title": "string",
   "source": "string，可留空字串",
+  "reference_url": "string，必填欄位，沒有連結就填空字串 \"\"，不要省略這個欄位。放教學影片或原始食譜網頁的連結，兩種用途不特別區分，同一欄位共用",
   "ingredients": [
     {
       "name": "string",
@@ -246,13 +248,14 @@
 
 這是專案裡允許網站執行期寫入資料的地方，設計如下（改動前務必先跟使用者確認，不要自作主張擴大範圍）：
 
-- 使用者在「食材庫」分頁貼上一組 **fine-grained GitHub token**，只給 `w731124/recipe-platform` 這個 repo 的 Contents 讀寫權限，其餘權限一律不給。這組 token 是共用的：食材庫的新增/刪除、食譜的刪除、食譜標題/步驟文字的編輯都用同一組。
+- 使用者在「食材庫」分頁貼上一組 **fine-grained GitHub token**，只給 `w731124/recipe-platform` 這個 repo 的 Contents 讀寫權限，其餘權限一律不給。這組 token 是共用的：食材庫的新增/刪除、食譜的刪除、食譜標題/步驟文字的編輯、食譜相關連結的編輯都用同一組。
 - Token 只存在瀏覽器的 `localStorage`（key: `recipe_platform_gh_token`），**絕對不可以**出現在原始碼、commit 記錄或 repo 裡的任何檔案。
 - 共用的 GitHub 讀寫邏輯在 `assets/app.js` 的 `readJsonFileFromGitHub` / `updateJsonFileOnGitHub` / `deleteFileOnGitHub`，都是「先用 `cache: no-store` 抓 GitHub 上真正最新的內容跟 sha，套用變更，再寫回去；遇到 409 衝突自動重試最多 3 次」的模式，新增其他直接寫入操作時應該重用這幾個函式，不要另外寫一套。
 - 目前允許的操作範圍**只有**：
   - `data/pantry.json` 的新增/刪除單一項目。
   - 刪除食譜：先更新 `data/recipes/index.json` 移除該 id，再刪除 `data/recipes/{id}.json`（順序不能反過來，否則中途失敗會讓 index.json 留著指向不存在檔案的 id，前端一次 fetch 全部食譜時會整批失敗）。
   - **食譜標題、做法步驟文字的直接編輯**（`assets/app.js` 的 `updateRecipeField`，只有單一檔案要改，不用擔心順序問題）。**範圍嚴格限定在純文字內容**：只能改 `title` 欄位、只能改單一步驟的 `text` 欄位。**不包含**新增/刪除/搬動步驟、也**不包含**食材、`category`、`component`、`cuisine`、`cooking_methods`、`spice_level` 等任何需要判斷的欄位——這些仍然只能透過 Claude Code 離線流程處理。步驟的定位用 `stage` + `order` 一起比對（不是用文字內容比對），避免文字重複的步驟被改錯行。**不要把這個例外誤解成「食譜什麼都能在網站上改」**，之後如果要擴充其他欄位的線上編輯，先跟使用者確認範圍再動手。
+  - **食譜相關連結（`reference_url`）的直接編輯**（`assets/app.js` 的 `wireReferenceLinkEdit`，同樣透過 `updateRecipeField`）。範圍嚴格限定在**這一個欄位**：只能改 `reference_url` 的值，**允許存空字串**（代表清除連結），儲存前只驗證「空字串，或以 `http://`／`https://` 開頭」，不限制網域（教學影片、原始食譜網頁等各種連結都要能放）。跟標題/步驟編輯的差異在於這裡允許空值——因為空字串是這個欄位的合法狀態（代表「尚未新增連結」），不是缺漏。
 - 不要把這個模式擴大到食譜的新增、`taxonomy.json`、`synonyms.json`——那些仍然要走 Claude Code 離線流程，理由見 PROJECT_SPEC.md 第 2 節（避免網站執行期出現不可控的寫入邏輯、保留人工 review 環節）。
 - 沒有設定 token 的訪客仍然可以正常瀏覽食材庫內容、食譜內容（唯讀），只是看不到新增/刪除/刪除食譜的按鈕，符合「單一維護者上傳、其他人唯讀瀏覽」的定位。
 
@@ -268,9 +271,10 @@
 - 做法區塊預設是單一攤平的 `<ol>`；如果步驟有填 `stage`，改成依 stage 分組各自顯示，見上方「多階段／多組件食譜」。
 - `ingredients[].always_available` 為 `true` 的項目不參與 `pantryStatus` 比對、不進購物清單，見上方「`always_available`：不需要追蹤庫存的食材」。
 - 「食譜」「食材庫」是分頁切換（`showRecipesTab` / `showPantryTab`），不是路由，重新整理頁面會回到食譜分頁，這是刻意的簡化，不需要加 URL hash 之類的路由邏輯。
+- 做法卡片下方會顯示 `reference_url`（有值就顯示「🔗 相關連結」超連結，空字串顯示「尚未新增相關連結」提示文字），不依網址判斷是影片還是網頁，統一同一種顯示方式。有 token 時額外顯示編輯圖示，見 `wireReferenceLinkEdit`。
 
 ## 不要做的事
 - 不要在前端程式碼裡加入任何 **LLM API key** 或呼叫任何 LLM API——所有解析與同義詞生成都應該發生在 Claude Code 對話裡，不是網站執行期。（食材庫的 GitHub token 是唯一經過確認的例外，見上一節，不要把這個例外泛化成「前端可以放憑證」。）
 - 不要用 `fetch` 去抓外部食譜網址；食譜內容一律由使用者貼上文字。
 - 不要把 `data/recipes/index.json` 漏更新——這是唯一列出「有哪些食譜檔案」的清單，前端沒有目錄列表能力。
-- 不要把網站直接寫入 GitHub 的模式擴大到「食材庫新增/刪除」「食譜刪除」「食譜標題/步驟文字編輯」以外的操作（尤其是食譜的新增、食材/分類/菜系等需要判斷的欄位），也不要把 token 硬編碼進原始碼或以任何方式提交進 repo。
+- 不要把網站直接寫入 GitHub 的模式擴大到「食材庫新增/刪除」「食譜刪除」「食譜標題/步驟文字編輯」「食譜相關連結（`reference_url`）編輯」以外的操作（尤其是食譜的新增、食材/分類/菜系等需要判斷的欄位），也不要把 token 硬編碼進原始碼或以任何方式提交進 repo。

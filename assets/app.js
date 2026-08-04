@@ -374,6 +374,20 @@ function renderSteps(recipe) {
   }).join("");
 }
 
+// 相關連結（reference_url）：教學影片或原始食譜網頁連結皆可，兩種用途共用同一欄位、
+// 不依網址判斷內容種類，統一同一種顯示方式。
+function renderReferenceLink(recipe) {
+  const canEdit = !!getGhToken();
+  const url = recipe.reference_url || "";
+  const content = url
+    ? `<a class="reference-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">🔗 相關連結</a>`
+    : `<span class="legend">尚未新增相關連結</span>`;
+  return `<div class="section-block reference-link-row" id="reference-link-row">
+    <div class="reference-link-content" id="reference-link-content">${content}</div>
+    ${canEdit ? `<button class="edit-icon-btn" id="edit-reference-btn" type="button" title="編輯相關連結">✏️</button>` : ""}
+  </div>`;
+}
+
 // 標題／步驟文字的直接編輯（見 CLAUDE.md「網站直接寫入 GitHub」一節）：只有純文字內容，
 // 不包含新增/刪除/搬動步驟，也不包含食材、分類、菜系這類需要判斷的欄位。
 function wireTitleEdit(recipe) {
@@ -491,6 +505,69 @@ function wireStepEdit(recipe) {
   });
 }
 
+// 跟 wireTitleEdit 同一套架構，差別是這個欄位允許存空字串（代表清除連結），
+// 不能像標題那樣擋空值；儲存前只驗證「空字串，或以 http(s):// 開頭」，不限制網域。
+function wireReferenceLinkEdit(recipe) {
+  const btn = document.getElementById("edit-reference-btn");
+  if (!btn) return;
+  btn.onclick = () => {
+    const row = btn.closest(".reference-link-row");
+    const oldUrl = recipe.reference_url || "";
+    row.innerHTML = `
+      <input type="text" class="reference-edit-input" id="reference-edit-input" value="${escapeHtml(oldUrl)}" placeholder="https://…（留空可清除連結）">
+      <button class="btn-primary" id="reference-save-btn" type="button">儲存</button>
+      <button class="btn-secondary" id="reference-cancel-btn" type="button">取消</button>
+    `;
+    const input = document.getElementById("reference-edit-input");
+    input.focus();
+    input.select();
+    document.getElementById("reference-cancel-btn").onclick = () => showDetail(recipe.id);
+    const save = async () => {
+      const newUrl = input.value.trim();
+      if (newUrl !== "" && !/^https?:\/\//i.test(newUrl)) {
+        alert("連結格式不正確：請留空，或輸入以 http:// 或 https:// 開頭的網址");
+        return;
+      }
+      if (newUrl === oldUrl) { showDetail(recipe.id); return; }
+      const saveBtn = document.getElementById("reference-save-btn");
+      const cancelBtn = document.getElementById("reference-cancel-btn");
+      saveBtn.disabled = true;
+      cancelBtn.disabled = true;
+      input.disabled = true;
+      saveBtn.textContent = "儲存中…";
+      try {
+        await updateRecipeField(
+          recipe.id,
+          current => ({ ...current, reference_url: newUrl }),
+          `編輯食譜相關連結：${recipe.title}`
+        );
+        showToast("已更新相關連結", async () => {
+          try {
+            await updateRecipeField(
+              recipe.id,
+              current => ({ ...current, reference_url: oldUrl }),
+              `復原相關連結編輯：${recipe.title}`
+            );
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      } catch (err) {
+        saveBtn.disabled = false;
+        cancelBtn.disabled = false;
+        input.disabled = false;
+        saveBtn.textContent = "儲存";
+        alert(err.message);
+      }
+    };
+    document.getElementById("reference-save-btn").onclick = save;
+    input.onkeydown = (e) => {
+      if (e.key === "Enter") save();
+      if (e.key === "Escape") showDetail(recipe.id);
+    };
+  };
+}
+
 // 3~5 秒後自動消失的小提示條，附一個「復原」文字按鈕。一次只保留一個提示，
 // 避免連續加好幾個食材時疊出一堆提示條。
 function showToast(message, onUndo) {
@@ -535,6 +612,7 @@ function showDetail(id) {
 
     ${renderIngredientsByCategory(recipe)}
     ${renderSteps(recipe)}
+    ${renderReferenceLink(recipe)}
   `;
   document.getElementById("back-btn").onclick = () => {
     state.currentDetailId = null;
@@ -592,6 +670,7 @@ function showDetail(id) {
   });
   wireTitleEdit(recipe);
   wireStepEdit(recipe);
+  wireReferenceLinkEdit(recipe);
   window.scrollTo(0, 0);
 }
 
