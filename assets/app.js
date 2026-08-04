@@ -7,6 +7,7 @@ const state = {
   pantry: {},
   pantryFlat: [],
   pantryCategories: [],
+  pantryCategoryGroups: {},
   synonyms: {},
   ingredientFamilies: {},
   taxonomy: {},
@@ -42,6 +43,7 @@ async function loadData() {
   );
   state.taxonomy = taxonomy;
   state.pantryCategories = taxonomy.pantry_categories || [];
+  state.pantryCategoryGroups = taxonomy.pantry_category_groups || {};
   state.pantry = pantry;
   state.pantryFlat = flattenPantry(pantry);
   state.synonyms = synonyms;
@@ -909,7 +911,7 @@ function renderPantryView() {
 
   const selectedCategory = token ? state.selectedPantryCategory : null;
 
-  const categoriesHtml = state.pantryCategories.map(cat => {
+  const renderCategoryCard = cat => {
     const items = state.pantry[cat] || [];
     const chips = items.length
       ? items.map(name => `
@@ -925,6 +927,18 @@ function renderPantryView() {
       <h3>${escapeHtml(cat)}</h3>
       <div class="pantry-chips">${chips}</div>
     </div>`;
+  };
+
+  // 純顯示層的分組（data/taxonomy.json 的 pantry_category_groups）：把 16 個分類收攏進幾個
+  // 可摺疊大區塊方便瀏覽，不影響 category 值、同義詞比對或食譜的 ingredients[].category。
+  // 摺疊狀態刻意不記憶（用原生 <details>，每次重新渲染都回到預設全部展開），不加持久化邏輯。
+  const categoriesHtml = Object.entries(state.pantryCategoryGroups).map(([groupName, cats]) => {
+    const count = cats.reduce((sum, cat) => sum + (state.pantry[cat] || []).length, 0);
+    const cardsHtml = cats.map(renderCategoryCard).join("");
+    return `<details class="pantry-category-group" open>
+      <summary>${escapeHtml(groupName)}（${count}）</summary>
+      <div class="pantry-categories">${cardsHtml}</div>
+    </details>`;
   }).join("");
 
   const addForm = token
@@ -942,7 +956,7 @@ function renderPantryView() {
     ${tokenPanel}
     ${addForm}
     <div id="pantry-status"></div>
-    <div class="pantry-categories">${categoriesHtml}</div>
+    <div class="pantry-category-groups">${categoriesHtml}</div>
   `;
 
   const statusEl = document.getElementById("pantry-status");

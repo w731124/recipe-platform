@@ -245,9 +245,19 @@ ol.steps li { margin-bottom: 8px; }
 .pantry-ok { color: var(--pantry-yes-text); font-size: 0.85rem; }
 .pantry-error { color: #a1481a; font-size: 0.85rem; }
 
+.pantry-category-groups { display: flex; flex-direction: column; gap: 16px; }
+.pantry-category-group {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px;
+}
+.pantry-category-group summary {
+  cursor: pointer; font-weight: 600; font-size: 1rem; padding: 4px 0; list-style: revert;
+}
+.pantry-category-group summary::marker { color: var(--accent); }
+.pantry-category-group[open] summary { margin-bottom: 8px; }
+
 .pantry-categories {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 .pantry-category {
   background: var(--card-bg); border: 2px solid var(--border); border-radius: 10px; padding: 16px;
