@@ -1,6 +1,6 @@
 # 食譜筆記本網站 — Codebase Snapshot
-- 產生時間：2026-08-03
-- Git commit：85331a787229d62e7f6975e97bc1dc8aeaf51adb
+- 產生時間：2026-08-04
+- Git commit：da26e7f642c0bf85b16de989eb5316de40eb7c5e
 - 所在分支：main
 
 ## 目錄樹
@@ -21,12 +21,16 @@
 ./data/recipes/dried-tofu-pork-celery-stirfry.json
 ./data/recipes/fried-rice-with-ham-and-mushroom.json
 ./data/recipes/index.json
+./data/recipes/leftover-veggie-ramen.json
 ./data/recipes/lobster-bisque-shrimp-pasta.json
 ./data/recipes/mala-celery-minced-pork.json
 ./data/recipes/pan-seared-steak-garlic-butter.json
+./data/recipes/roast-lamb-chops.json
 ./data/recipes/savory-tangyuan-soup.json
+./data/recipes/seafood-hotpot-noodles.json
 ./data/recipes/sesame-oil-chicken.json
 ./data/recipes/shrimp-stirfry-scallion.json
+./data/recipes/spicy-creamy-shrimp-pasta.json
 ./data/recipes/spicy-diced-chicken.json
 ./data/recipes/stir-fried-instant-noodles.json
 ./data/synonyms.json
@@ -51,10 +55,11 @@ Thumbs.db
 ## 這是什麼專案
 純靜態網站（vanilla HTML/CSS/JS，無框架、無建置流程），部署在 GitHub Pages。網站本身不解析、不呼叫任何 AI API。所有「智慧」工作（食譜解析、同義詞生成、分類詞彙表維護）都在 Claude Code 對話中離線完成，結果以 JSON 檔案寫入 `/data`，git commit + push 後由 GitHub Pages 自動重新部署。
 
-**例外**：以下三種操作可以直接在網站上做，網站會用使用者自己貼上、存在瀏覽器 localStorage 的同一組 GitHub token 直接呼叫 GitHub API 寫回 repo（見下方「網站直接寫入 GitHub」一節）：
+**例外**：以下四種操作可以直接在網站上做，網站會用使用者自己貼上、存在瀏覽器 localStorage 的同一組 GitHub token 直接呼叫 GitHub API 寫回 repo（見下方「網站直接寫入 GitHub」一節）：
 - 食材庫（`data/pantry.json`）的新增/刪除。
 - 食譜的刪除（同時刪除 `data/recipes/{id}.json` 並更新 `data/recipes/index.json`）。
 - 食譜標題、做法步驟文字的直接編輯（純文字內容，不包含新增/刪除/搬動步驟，也不包含食材、分類、菜系等任何需要判斷的欄位）。
+- 食譜相關連結（`reference_url`）的直接編輯（純粹修改這一個欄位的值，接受空字串代表清除連結）。
 
 除此之外的所有寫入（新增食譜、食譜的其他欄位、分類詞彙表、同義詞庫）仍然只能透過 Claude Code 對話離線寫入。
 
@@ -87,6 +92,7 @@ Thumbs.db
   "id": "string，kebab-case",
   "title": "string",
   "source": "string，可留空字串",
+  "reference_url": "string，必填欄位，沒有連結就填空字串 \"\"，不要省略這個欄位。放教學影片或原始食譜網頁的連結，兩種用途不特別區分，同一欄位共用",
   "ingredients": [
     {
       "name": "string",
@@ -167,7 +173,24 @@ Thumbs.db
 
 遇到表裡沒有的新分類需求時，先跟使用者確認要不要擴充 `pantry_categories`，不要自己偷加——沿用既有的分類詞彙表治理原則。
 
+### 「隨興食材」：食譜寫「有什麼加什麼」時怎麼處理
+
+有些食譜原文會用「有什麼加什麼」「看冰箱有啥菜」「隨意」這類措辭，指的是一個不特定的食材類別（通常是「菜」或「配料」），不是省略了某個具體食材的名字——這裡沒有「食材」可以放進 `ingredients` 陣列，因為原作者根本沒指定是哪一種。
+
+這跟上面 `always_available`（例如「水」）是兩件不同的事，判準不一樣，**不要用同一個欄位處理**：
+- `always_available` 的判準是「客觀上不存在採購/庫存這件事」（水根本不會被列進購物清單）。
+- 「隨興食材」的判準是「客觀上存在採購行為，但原作者刻意不指定是哪一種」——不是這個東西不用買，是根本沒說要買什麼，無從歸類、無從比對。
+
+處理方式：
+- 這類措辭**不列入 `ingredients` 陣列**，不參與食材庫比對、不進購物清單（沒有具體食材名稱，比對邏輯無從下手）。
+- 但要**保留在 `steps` 的步驟文字裡**，讓做法本身維持完整可讀（原文怎麼寫步驟就照抄，例如「加水、有啥菜加啥菜、日式醬油…」整句留在對應步驟的 `text`）。
+- `raw_input` 一律完整保留原文，不受這條規則影響。
+
+判斷原則：只有整段話明確表達「不特定、隨意」語意時才適用這條規則（例如「有啥菜加啥菜」「看冰箱有什麼」）。**如果原文是「某某（可選）」這種已經指定了具體食材、只是份量或要不要加不確定，那是既有的可選食材處理方式（照樣列進 `ingredients`，名稱後面用括號註記可選），不適用這條新規則**，兩者不要混淆。
+
 ### 辣度（`spice_level`）自動判斷規則（v2，依實際案例校正過）
+
+`spice_level` 詞彙表目前是「不辣／小辣／中辣／大辣」（原本第二級叫「微辣」，使用者已改名為「小辣」；日常對話或食譜原文如果出現「微辣」，視為「小辣」的口語講法，直接寫入「小辣」即可，不用另外提出來問）。
 
 辣度判斷很主觀，用下面這套規則自動評估，**不需要每次都先問使用者**，但判斷完要在回覆裡附上依據（用了哪些辣度來源、各自的份量級距），方便使用者一眼檢查合不合理、要不要調整：
 
@@ -178,10 +201,10 @@ Thumbs.db
    - Tier 3（中量）：1 大匙 ~ 2 大匙，或 3~5 根/顆
    - Tier 4（大量）：> 2 大匙、整把、大量
 3. 完全沒有辣度來源 → `不辣`（或省略 `spice_level` 欄位）。
-4. 只有 Tier 1 的來源，且種類 ≤ 2 種 → `微辣`。
+4. 只有 Tier 1 的來源，且種類 ≤ 2 種 → `小辣`。
 5. 符合以下任一條件 → `中辣`：至少一個辣度來源達到 Tier 2 或 Tier 3；或有 3 種以上不同辣度來源疊加，但沒有任何一個到達 Tier 3 以上（即使種類多、個別都只是少量點綴，也不直接跳大辣）。
 6. 符合以下任一條件 → `大辣`：食譜名稱或原文出現「麻辣／爆辣／重辣／死辣」等明確強辣描述；或任一辣度來源達到 Tier 4；或 4 種以上不同辣度來源疊加，且至少一種達到 Tier 3 以上。
-7. **烹調方式是「燉／滷／湯」、湯汁份量大（水蓋過主料）時，稀釋效果會大幅降低感知辣度**——單一辣度來源即使份量達到 Tier 2、機械算出來是中辣，實際吃起來常常只是提味、感覺不到辣，這種情況判斷可以下修一級（中辣→微辣，甚至不辣），回覆裡要註明「機械規則算出來是 X，但因為是大量湯汁稀釋，我判斷比較接近 Y」讓使用者確認。真實案例：家常滷肉只放 1 根辣椒提味，機械規則算中辣，實際成品完全不辣。
+7. **烹調方式是「燉／滷／湯」、湯汁份量大（水蓋過主料）時，稀釋效果會大幅降低感知辣度**——單一辣度來源即使份量達到 Tier 2、機械算出來是中辣，實際吃起來常常只是提味、感覺不到辣，這種情況判斷可以下修一級（中辣→小辣，甚至不辣），回覆裡要註明「機械規則算出來是 X，但因為是大量湯汁稀釋，我判斷比較接近 Y」讓使用者確認。真實案例：家常滷肉只放 1 根辣椒提味，機械規則算中辣，實際成品完全不辣。
 8. 這是輔助判斷，不是絕對規則——花椒帶來的「麻」跟辣椒的「辣」不完全是同一種感受，但這裡先都算進辣度來源，判斷有明顯不合理時（例如花椒只是裝飾、根本不會吃下去），可以在回覆裡註明「規則判斷為 X，但實際可能偏 Y」，讓使用者視情況調整，不需要為此中斷流程先問；使用者確認判斷不準時，直接照使用者的判斷寫入，並視情況把規則本身也一併校正（像這次一樣），不用來回爭論規則該不該改。
 
 ## 素材庫維護（新增/刪除庫存項目時）
@@ -275,13 +298,14 @@ Thumbs.db
 
 這是專案裡允許網站執行期寫入資料的地方，設計如下（改動前務必先跟使用者確認，不要自作主張擴大範圍）：
 
-- 使用者在「食材庫」分頁貼上一組 **fine-grained GitHub token**，只給 `w731124/recipe-platform` 這個 repo 的 Contents 讀寫權限，其餘權限一律不給。這組 token 是共用的：食材庫的新增/刪除、食譜的刪除、食譜標題/步驟文字的編輯都用同一組。
+- 使用者在「食材庫」分頁貼上一組 **fine-grained GitHub token**，只給 `w731124/recipe-platform` 這個 repo 的 Contents 讀寫權限，其餘權限一律不給。這組 token 是共用的：食材庫的新增/刪除、食譜的刪除、食譜標題/步驟文字的編輯、食譜相關連結的編輯都用同一組。
 - Token 只存在瀏覽器的 `localStorage`（key: `recipe_platform_gh_token`），**絕對不可以**出現在原始碼、commit 記錄或 repo 裡的任何檔案。
 - 共用的 GitHub 讀寫邏輯在 `assets/app.js` 的 `readJsonFileFromGitHub` / `updateJsonFileOnGitHub` / `deleteFileOnGitHub`，都是「先用 `cache: no-store` 抓 GitHub 上真正最新的內容跟 sha，套用變更，再寫回去；遇到 409 衝突自動重試最多 3 次」的模式，新增其他直接寫入操作時應該重用這幾個函式，不要另外寫一套。
 - 目前允許的操作範圍**只有**：
   - `data/pantry.json` 的新增/刪除單一項目。
   - 刪除食譜：先更新 `data/recipes/index.json` 移除該 id，再刪除 `data/recipes/{id}.json`（順序不能反過來，否則中途失敗會讓 index.json 留著指向不存在檔案的 id，前端一次 fetch 全部食譜時會整批失敗）。
   - **食譜標題、做法步驟文字的直接編輯**（`assets/app.js` 的 `updateRecipeField`，只有單一檔案要改，不用擔心順序問題）。**範圍嚴格限定在純文字內容**：只能改 `title` 欄位、只能改單一步驟的 `text` 欄位。**不包含**新增/刪除/搬動步驟、也**不包含**食材、`category`、`component`、`cuisine`、`cooking_methods`、`spice_level` 等任何需要判斷的欄位——這些仍然只能透過 Claude Code 離線流程處理。步驟的定位用 `stage` + `order` 一起比對（不是用文字內容比對），避免文字重複的步驟被改錯行。**不要把這個例外誤解成「食譜什麼都能在網站上改」**，之後如果要擴充其他欄位的線上編輯，先跟使用者確認範圍再動手。
+  - **食譜相關連結（`reference_url`）的直接編輯**（`assets/app.js` 的 `wireReferenceLinkEdit`，同樣透過 `updateRecipeField`）。範圍嚴格限定在**這一個欄位**：只能改 `reference_url` 的值，**允許存空字串**（代表清除連結），儲存前只驗證「空字串，或以 `http://`／`https://` 開頭」，不限制網域（教學影片、原始食譜網頁等各種連結都要能放）。跟標題/步驟編輯的差異在於這裡允許空值——因為空字串是這個欄位的合法狀態（代表「尚未新增連結」），不是缺漏。
 - 不要把這個模式擴大到食譜的新增、`taxonomy.json`、`synonyms.json`——那些仍然要走 Claude Code 離線流程，理由見 PROJECT_SPEC.md 第 2 節（避免網站執行期出現不可控的寫入邏輯、保留人工 review 環節）。
 - 沒有設定 token 的訪客仍然可以正常瀏覽食材庫內容、食譜內容（唯讀），只是看不到新增/刪除/刪除食譜的按鈕，符合「單一維護者上傳、其他人唯讀瀏覽」的定位。
 
@@ -297,12 +321,13 @@ Thumbs.db
 - 做法區塊預設是單一攤平的 `<ol>`；如果步驟有填 `stage`，改成依 stage 分組各自顯示，見上方「多階段／多組件食譜」。
 - `ingredients[].always_available` 為 `true` 的項目不參與 `pantryStatus` 比對、不進購物清單，見上方「`always_available`：不需要追蹤庫存的食材」。
 - 「食譜」「食材庫」是分頁切換（`showRecipesTab` / `showPantryTab`），不是路由，重新整理頁面會回到食譜分頁，這是刻意的簡化，不需要加 URL hash 之類的路由邏輯。
+- 做法卡片下方會顯示 `reference_url`（有值就顯示「🔗 相關連結」超連結，空字串顯示「尚未新增相關連結」提示文字），不依網址判斷是影片還是網頁，統一同一種顯示方式。有 token 時額外顯示編輯圖示，見 `wireReferenceLinkEdit`。
 
 ## 不要做的事
 - 不要在前端程式碼裡加入任何 **LLM API key** 或呼叫任何 LLM API——所有解析與同義詞生成都應該發生在 Claude Code 對話裡，不是網站執行期。（食材庫的 GitHub token 是唯一經過確認的例外，見上一節，不要把這個例外泛化成「前端可以放憑證」。）
 - 不要用 `fetch` 去抓外部食譜網址；食譜內容一律由使用者貼上文字。
 - 不要把 `data/recipes/index.json` 漏更新——這是唯一列出「有哪些食譜檔案」的清單，前端沒有目錄列表能力。
-- 不要把網站直接寫入 GitHub 的模式擴大到「食材庫新增/刪除」「食譜刪除」「食譜標題/步驟文字編輯」以外的操作（尤其是食譜的新增、食材/分類/菜系等需要判斷的欄位），也不要把 token 硬編碼進原始碼或以任何方式提交進 repo。
+- 不要把網站直接寫入 GitHub 的模式擴大到「食材庫新增/刪除」「食譜刪除」「食譜標題/步驟文字編輯」「食譜相關連結（`reference_url`）編輯」以外的操作（尤其是食譜的新增、食材/分類/菜系等需要判斷的欄位），也不要把 token 硬編碼進原始碼或以任何方式提交進 repo。
 ```
 
 ### ./CODEBASE_SNAPSHOT.md
@@ -580,7 +605,11 @@ function safeExtension(longer, shorter) {
 }
 
 // ---- 素材庫比對（同義詞庫查表，見規格 5 節）----
-function isInPantry(ingredientName) {
+// 回傳這個食材在 pantry.json 裡實際比對到的分類＋正式名稱（不是食譜自己寫的名稱／category）。
+// 例如食譜寫「大蒜（切末）」，pantry.json 裡實際存的是「蒜頭」——「已有」狀態要提供移除按鈕時，
+// 需要這組精準的分類＋名稱才能呼叫 removePantryItem，不能直接沿用食譜的 item.category/item.name。
+// isInPantry 沿用同一套邏輯，只是只回傳布林值。
+function findPantryMatch(ingredientName) {
   const name = ingredientName.trim();
   const ambiguous = relatesToFamily(name);
   let matchedGroup = false;
@@ -593,13 +622,24 @@ function isInPantry(ingredientName) {
     });
     if (hit) {
       matchedGroup = true;
-      if (state.pantryFlat.includes(canonical)) return true;
+      if (state.pantryFlat.includes(canonical)) {
+        const category = Object.keys(state.pantry).find(cat => (state.pantry[cat] || []).includes(canonical));
+        if (category) return { category, name: canonical };
+      }
     }
   }
-  if (matchedGroup) return false; // 同義詞群組存在，但素材庫沒有該項目
-  if (ambiguous) return false; // 跟家族有關的籠統詞交給 familyStatus 處理，這裡不用寬鬆比對誤判成已有
+  if (matchedGroup) return null; // 同義詞群組存在，但素材庫沒有該項目
+  if (ambiguous) return null; // 跟家族有關的籠統詞交給 familyStatus 處理，這裡不用寬鬆比對誤判成已有
   // 回退：沒有對應同義詞群組時，直接對素材庫做安全延伸比對
-  return state.pantryFlat.some(p => safeExtension(name, p));
+  for (const [category, items] of Object.entries(state.pantry)) {
+    const hitName = (items || []).find(p => safeExtension(name, p));
+    if (hitName) return { category, name: hitName };
+  }
+  return null;
+}
+
+function isInPantry(ingredientName) {
+  return !!findPantryMatch(ingredientName);
 }
 
 // 「同一家族但品種/形態不確定」的軟比對（例：食譜寫「花椒」，庫存有「紅花椒粒」「青花椒粉」，
@@ -731,10 +771,17 @@ function renderIngredientList(items) {
     const noteHtml = note
       ? `<div class="ing-note${isOptionalNote ? " ing-note-optional" : ""}">${escapeHtml(note)}</div>`
       : "";
-    // have 的項目食材庫已經有了、always_available 的項目不需要追蹤，都不用顯示「加入」按鈕
-    const addBtnHtml = status && status !== "have"
-      ? `<button class="ing-add-btn" type="button" data-category="${escapeHtml(item.category || "")}" data-name="${escapeHtml(base)}">+ 加入</button>`
-      : "";
+    // have 的項目改顯示「移除」（用光了可以直接從這裡取消庫存標記）；always_available 的項目
+    // 不需要追蹤，兩種按鈕都不顯示；其餘（missing/maybe）顯示「加入」。
+    let addBtnHtml = "";
+    if (status === "have") {
+      const match = findPantryMatch(item.name);
+      if (match) {
+        addBtnHtml = `<button class="ing-remove-btn" type="button" data-category="${escapeHtml(match.category)}" data-name="${escapeHtml(match.name)}" title="從食材庫移除（用完了）">− 移除</button>`;
+      }
+    } else if (status) {
+      addBtnHtml = `<button class="ing-add-btn" type="button" data-category="${escapeHtml(item.category || "")}" data-name="${escapeHtml(base)}">+ 加入</button>`;
+    }
     return `<li class="${status || ""}">
       <div class="ing-main">
         <span class="ing-name">${escapeHtml(base)}${hint}</span>
@@ -850,6 +897,20 @@ function renderSteps(recipe) {
       </ol>
     </div>`;
   }).join("");
+}
+
+// 相關連結（reference_url）：教學影片或原始食譜網頁連結皆可，兩種用途共用同一欄位、
+// 不依網址判斷內容種類，統一同一種顯示方式。
+function renderReferenceLink(recipe) {
+  const canEdit = !!getGhToken();
+  const url = recipe.reference_url || "";
+  const content = url
+    ? `<a class="reference-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">🔗 相關連結</a>`
+    : `<span class="legend">尚未新增相關連結</span>`;
+  return `<div class="section-block reference-link-row" id="reference-link-row">
+    <div class="reference-link-content" id="reference-link-content">${content}</div>
+    ${canEdit ? `<button class="edit-icon-btn" id="edit-reference-btn" type="button" title="編輯相關連結">✏️</button>` : ""}
+  </div>`;
 }
 
 // 標題／步驟文字的直接編輯（見 CLAUDE.md「網站直接寫入 GitHub」一節）：只有純文字內容，
@@ -969,6 +1030,69 @@ function wireStepEdit(recipe) {
   });
 }
 
+// 跟 wireTitleEdit 同一套架構，差別是這個欄位允許存空字串（代表清除連結），
+// 不能像標題那樣擋空值；儲存前只驗證「空字串，或以 http(s):// 開頭」，不限制網域。
+function wireReferenceLinkEdit(recipe) {
+  const btn = document.getElementById("edit-reference-btn");
+  if (!btn) return;
+  btn.onclick = () => {
+    const row = btn.closest(".reference-link-row");
+    const oldUrl = recipe.reference_url || "";
+    row.innerHTML = `
+      <input type="text" class="reference-edit-input" id="reference-edit-input" value="${escapeHtml(oldUrl)}" placeholder="https://…（留空可清除連結）">
+      <button class="btn-primary" id="reference-save-btn" type="button">儲存</button>
+      <button class="btn-secondary" id="reference-cancel-btn" type="button">取消</button>
+    `;
+    const input = document.getElementById("reference-edit-input");
+    input.focus();
+    input.select();
+    document.getElementById("reference-cancel-btn").onclick = () => showDetail(recipe.id);
+    const save = async () => {
+      const newUrl = input.value.trim();
+      if (newUrl !== "" && !/^https?:\/\//i.test(newUrl)) {
+        alert("連結格式不正確：請留空，或輸入以 http:// 或 https:// 開頭的網址");
+        return;
+      }
+      if (newUrl === oldUrl) { showDetail(recipe.id); return; }
+      const saveBtn = document.getElementById("reference-save-btn");
+      const cancelBtn = document.getElementById("reference-cancel-btn");
+      saveBtn.disabled = true;
+      cancelBtn.disabled = true;
+      input.disabled = true;
+      saveBtn.textContent = "儲存中…";
+      try {
+        await updateRecipeField(
+          recipe.id,
+          current => ({ ...current, reference_url: newUrl }),
+          `編輯食譜相關連結：${recipe.title}`
+        );
+        showToast("已更新相關連結", async () => {
+          try {
+            await updateRecipeField(
+              recipe.id,
+              current => ({ ...current, reference_url: oldUrl }),
+              `復原相關連結編輯：${recipe.title}`
+            );
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      } catch (err) {
+        saveBtn.disabled = false;
+        cancelBtn.disabled = false;
+        input.disabled = false;
+        saveBtn.textContent = "儲存";
+        alert(err.message);
+      }
+    };
+    document.getElementById("reference-save-btn").onclick = save;
+    input.onkeydown = (e) => {
+      if (e.key === "Enter") save();
+      if (e.key === "Escape") showDetail(recipe.id);
+    };
+  };
+}
+
 // 3~5 秒後自動消失的小提示條，附一個「復原」文字按鈕。一次只保留一個提示，
 // 避免連續加好幾個食材時疊出一堆提示條。
 function showToast(message, onUndo) {
@@ -1013,6 +1137,7 @@ function showDetail(id) {
 
     ${renderIngredientsByCategory(recipe)}
     ${renderSteps(recipe)}
+    ${renderReferenceLink(recipe)}
   `;
   document.getElementById("back-btn").onclick = () => {
     state.currentDetailId = null;
@@ -1068,8 +1193,36 @@ function showDetail(id) {
       }
     };
   });
+  detail.querySelectorAll(".ing-remove-btn").forEach(removeBtn => {
+    removeBtn.onclick = async () => {
+      if (!getGhToken()) {
+        alert("尚未設定 GitHub token，請先到食材庫分頁貼上 token（移除食材共用同一組 token）。");
+        return;
+      }
+      const { category, name } = removeBtn.dataset;
+      removeBtn.disabled = true;
+      removeBtn.textContent = "移除中…";
+      try {
+        await removePantryItem(category, name);
+        showDetail(recipe.id);
+        showToast(`已從食材庫移除：${name}`, async () => {
+          try {
+            await addPantryItem(category, name);
+            showDetail(recipe.id);
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      } catch (err) {
+        removeBtn.disabled = false;
+        removeBtn.textContent = "− 移除";
+        alert(err.message);
+      }
+    };
+  });
   wireTitleEdit(recipe);
   wireStepEdit(recipe);
+  wireReferenceLinkEdit(recipe);
   window.scrollTo(0, 0);
 }
 
@@ -1528,6 +1681,14 @@ body {
 }
 .step-edit-actions { display: flex; gap: 8px; margin-top: 6px; }
 
+.reference-link-row { display: flex; align-items: center; gap: 8px; }
+.reference-link-content { flex: 1; }
+.reference-link { color: var(--accent); text-decoration: none; font-weight: 600; }
+.reference-link:hover { text-decoration: underline; }
+.reference-edit-input {
+  flex: 1; font-size: 0.9rem; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px;
+}
+
 .section-block {
   margin-bottom: 24px;
   background: var(--bg);
@@ -1575,6 +1736,13 @@ ul.ingredient-list li.maybe .ing-name { color: var(--pantry-maybe-text); font-we
 }
 .ing-add-btn:hover { background: var(--accent); color: #fff; }
 .ing-add-btn:disabled { opacity: 0.6; cursor: default; }
+.ing-remove-btn {
+  background: none; border: 1px solid var(--pantry-yes-text); color: var(--pantry-yes-text);
+  border-radius: 999px; padding: 2px 10px; font-size: 0.75rem; cursor: pointer;
+  flex-shrink: 0; white-space: nowrap;
+}
+.ing-remove-btn:hover { background: var(--pantry-yes-text); color: #fff; }
+.ing-remove-btn:disabled { opacity: 0.6; cursor: default; }
 
 ol.steps { padding-left: 20px; margin: 0; }
 ol.steps li { margin-bottom: 8px; }
@@ -1717,7 +1885,9 @@ ol.steps li { margin-bottom: 8px; }
     "咖哩粉",
     "五香粉",
     "白胡椒粉",
-    "黑胡椒粉"
+    "黑胡椒粉",
+    "烹大師",
+    "雞粉"
   ],
   "調味料": [
     "醬油",
@@ -1733,7 +1903,9 @@ ol.steps li { margin-bottom: 8px; }
     "白糖",
     "醬油膏",
     "橄欖油",
-    "蠔油"
+    "蠔油",
+    "日式醬油",
+    "檸檬汁"
   ],
   "醬": [
     "番茄醬",
@@ -1762,18 +1934,23 @@ ol.steps li { margin-bottom: 8px; }
   ],
   "主食": [
     "米",
-    "義大利麵"
+    "義大利麵",
+    "白麵條"
   ],
   "乾貨": [
     "蝦米",
-    "乾香菇"
+    "乾香菇",
+    "柴魚片"
   ],
   "生鮮食材": [
     "蝦仁",
-    "牛排"
+    "牛排",
+    "雞蛋",
+    "高麗菜"
   ],
   "澱粉": [
-    "太白粉"
+    "太白粉",
+    "麵粉"
   ]
 }
 ```
@@ -1792,6 +1969,7 @@ ol.steps li { margin-bottom: 8px; }
   "id": "braised-pork-belly-taiwanese",
   "title": "家常滷肉",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     { "name": "五花肉", "amount": "1", "unit": "斤", "category": "生鮮食材" },
     { "name": "鳥蛋", "category": "生鮮食材" },
@@ -1840,6 +2018,7 @@ ol.steps li { margin-bottom: 8px; }
   "id": "braised-tofu-with-mushroom",
   "title": "香菇燴豆腐",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     { "name": "板豆腐", "amount": "1", "unit": "盒", "category": "生鮮食材" },
     { "name": "乾香菇", "amount": "4", "unit": "朵", "category": "乾貨" },
@@ -1878,6 +2057,7 @@ ol.steps li { margin-bottom: 8px; }
   "id": "chicken-soup-with-scallop-and-ham",
   "title": "高級雞湯",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     {
       "name": "雞架子",
@@ -2058,6 +2238,7 @@ ol.steps li { margin-bottom: 8px; }
   "id": "dried-tofu-pork-celery-stirfry",
   "title": "豆干肉絲炒芹菜",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     { "name": "豆干（切片）", "category": "生鮮食材" },
     { "name": "豬肉絲", "category": "生鮮食材" },
@@ -2103,6 +2284,7 @@ ol.steps li { margin-bottom: 8px; }
   "id": "fried-rice-with-ham-and-mushroom",
   "title": "火腿蛋炒飯",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     {
       "name": "白飯",
@@ -2220,8 +2402,49 @@ ol.steps li { margin-bottom: 8px; }
   "spicy-diced-chicken",
   "braised-tofu-with-mushroom",
   "fried-rice-with-ham-and-mushroom",
-  "sesame-oil-chicken"
+  "sesame-oil-chicken",
+  "seafood-hotpot-noodles",
+  "leftover-veggie-ramen",
+  "roast-lamb-chops",
+  "spicy-creamy-shrimp-pasta"
 ]
+```
+
+### ./data/recipes/leftover-veggie-ramen.json
+```json
+{
+  "id": "leftover-veggie-ramen",
+  "title": "強棒清冰箱拉麵",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "五花肉片", "category": "生鮮食材" },
+    { "name": "高麗菜", "category": "生鮮食材" },
+    { "name": "薑", "category": "辛香蔬菜" },
+    { "name": "蒜", "category": "辛香蔬菜" },
+    { "name": "辣椒", "category": "辛香蔬菜" },
+    { "name": "日式醬油", "category": "調味料" },
+    { "name": "蠔油", "category": "調味料" },
+    { "name": "米酒", "category": "調味料" },
+    { "name": "雞粉", "category": "調味粉" },
+    { "name": "白胡椒粉", "category": "調味粉" },
+    { "name": "香油", "category": "調味料" },
+    { "name": "白麵條", "category": "主食" }
+  ],
+  "steps": [
+    { "order": 1, "text": "先炒肉，焦香後加料頭爆香。" },
+    { "order": 2, "text": "炒高麗菜跟其他配料。" },
+    { "order": 3, "text": "有啥菜加啥菜，加水、日式醬油、蠔油、米酒、雞粉。" },
+    { "order": 4, "text": "湯頭煨好就下麵。" },
+    { "order": 5, "text": "起鍋灑白胡椒＆香油。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["炒", "湯"],
+  "main_ingredient_types": ["肉類", "蔬食", "澱粉/主食"],
+  "course": "主菜",
+  "created_at": "2026-08-04",
+  "raw_input": "強棒清冰箱拉麵\t\n材料\t作法\n五花肉片\t先炒肉，焦香後加料頭爆香\n高麗菜\t炒高麗菜跟其他配料\n有啥菜加啥菜\t加水、日式醬油、蠔油、米酒、雞粉\n薑、蒜、辣椒\t湯頭煨好就下麵\n醬油、蠔油、米酒\t起鍋灑白胡椒&香油\n白胡椒、香油\t"
+}
 ```
 
 ### ./data/recipes/lobster-bisque-shrimp-pasta.json
@@ -2230,6 +2453,7 @@ ol.steps li { margin-bottom: 8px; }
   "id": "lobster-bisque-shrimp-pasta",
   "title": "龍蝦濃湯蝦仁蘑菇義大利麵",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     {
       "name": "義大利麵",
@@ -2419,6 +2643,7 @@ ol.steps li { margin-bottom: 8px; }
   "id": "mala-celery-minced-pork",
   "title": "椒麻芹菜肉末",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     { "name": "絞肉", "category": "生鮮食材" },
     { "name": "芹菜（切丁）", "category": "生鮮食材" },
@@ -2457,6 +2682,7 @@ ol.steps li { margin-bottom: 8px; }
   "id": "pan-seared-steak-garlic-butter",
   "title": "煎牛排",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     { "name": "牛排", "category": "生鮮食材" },
     { "name": "大蒜（切片）", "amount": "6~8", "unit": "瓣", "category": "辛香蔬菜" },
@@ -2485,12 +2711,44 @@ ol.steps li { margin-bottom: 8px; }
 }
 ```
 
+### ./data/recipes/roast-lamb-chops.json
+```json
+{
+  "id": "roast-lamb-chops",
+  "title": "烤小羊排",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "小羊排", "amount": "數支", "category": "生鮮食材" },
+    { "name": "橄欖油", "category": "調味料" },
+    { "name": "大蒜（切末）", "category": "辛香蔬菜" },
+    { "name": "迷迭香", "category": "香草" },
+    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "義式香料", "category": "香草" }
+  ],
+  "steps": [
+    { "order": 1, "text": "羊排退冰到室溫用紙巾擦乾。" },
+    { "order": 2, "text": "香料全部切碎。" },
+    { "order": 3, "text": "羊排抹油，敷上香料醃漬。" },
+    { "order": 4, "text": "烤箱先預熱。" },
+    { "order": 5, "text": "220度上下火烤10-15分。" }
+  ],
+  "cuisine": "西式",
+  "cooking_methods": ["烤"],
+  "main_ingredient_types": ["肉類"],
+  "course": "主菜",
+  "created_at": "2026-08-04",
+  "raw_input": "烤小羊排\t\n材料\t作法\n小羊排數支\t羊排退冰到室溫用紙巾擦乾\n橄欖油\t香料全部切碎\n大蒜切末\t羊排抹油，敷上香料醃漬\n迷迭香\t烤箱先預熱\n黑胡椒\t220度上下火烤10-15分\n義式香料"
+}
+```
+
 ### ./data/recipes/savory-tangyuan-soup.json
 ```json
 {
   "id": "savory-tangyuan-soup",
   "title": "鹹湯圓",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     { "name": "鹹湯圓", "category": "生鮮食材" },
     { "name": "福州丸", "category": "生鮮食材" },
@@ -2520,12 +2778,117 @@ ol.steps li { margin-bottom: 8px; }
 }
 ```
 
+### ./data/recipes/seafood-hotpot-noodles.json
+```json
+{
+  "id": "seafood-hotpot-noodles",
+  "title": "鍋燒麵",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    {
+      "name": "小白菜",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "肉絲",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "雞蛋",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "蝦子",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "花枝丸",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "白麵條",
+      "category": "主食",
+      "component": "主要材料"
+    },
+    {
+      "name": "乾香菇（洗淨泡開切片）",
+      "category": "乾貨",
+      "component": "湯頭"
+    },
+    {
+      "name": "烹大師",
+      "amount": "一些",
+      "category": "調味粉",
+      "component": "湯頭"
+    },
+    {
+      "name": "柴魚片",
+      "amount": "一把",
+      "category": "乾貨",
+      "component": "湯頭"
+    },
+    {
+      "name": "味醂",
+      "amount": "一些些",
+      "category": "調味料",
+      "component": "湯頭"
+    },
+    {
+      "name": "太白粉",
+      "amount": "一些",
+      "category": "澱粉",
+      "component": "醃肉絲"
+    },
+    {
+      "name": "白胡椒粉",
+      "amount": "一些",
+      "category": "調味粉",
+      "component": "醃肉絲"
+    },
+    {
+      "name": "醬油",
+      "amount": "一些",
+      "category": "調味料",
+      "component": "醃肉絲"
+    },
+    {
+      "name": "米酒",
+      "amount": "一些些",
+      "category": "調味料",
+      "component": "醃肉絲"
+    }
+  ],
+  "steps": [
+    { "order": 1, "text": "先做湯頭。" },
+    { "order": 2, "text": "下火鍋料。" },
+    { "order": 3, "text": "下冷凍海鮮。" },
+    { "order": 4, "text": "下肉絲。" },
+    { "order": 5, "text": "下麵。" },
+    { "order": 6, "text": "下雞蛋。" },
+    { "order": 7, "text": "下菜。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["湯"],
+  "main_ingredient_types": ["肉類", "海鮮", "蛋豆製品", "蔬食", "澱粉/主食"],
+  "course": "主菜",
+  "created_at": "2026-08-04",
+  "raw_input": "鍋燒麵\n材料\t作法\n小白菜\t先做湯頭\n肉絲\t下火鍋料\n雞蛋\t下冷凍海鮮\n蝦子\t下肉絲\n花枝丸\t下麵\n一些冷凍海鮮\t下雞蛋\n香菇\t下菜\n湯頭\t\n香菇洗淨泡開切片\t\n烹大師一些\t\n柴魚片一把\t\n味琳一些些\t\n醃肉絲\t\n太白粉一些\t\n白胡椒一些\t\n醬油一些\t\n米酒一些些"
+}
+```
+
 ### ./data/recipes/sesame-oil-chicken.json
 ```json
 {
   "id": "sesame-oil-chicken",
   "title": "麻油雞",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     { "name": "大雞腿", "amount": "1", "unit": "支", "category": "生鮮食材" },
     { "name": "老薑", "amount": "50", "unit": "g", "category": "辛香蔬菜" },
@@ -2561,6 +2924,7 @@ ol.steps li { margin-bottom: 8px; }
   "id": "shrimp-stirfry-scallion",
   "title": "蔥爆蝦仁",
   "source": "範例資料，示範用",
+  "reference_url": "",
   "ingredients": [
     { "name": "蝦仁", "amount": "300", "unit": "g", "category": "生鮮食材" },
     { "name": "青蔥", "amount": "3", "unit": "根", "category": "辛香蔬菜" },
@@ -2585,12 +2949,148 @@ ol.steps li { margin-bottom: 8px; }
 }
 ```
 
+### ./data/recipes/spicy-creamy-shrimp-pasta.json
+```json
+{
+  "id": "spicy-creamy-shrimp-pasta",
+  "title": "辛辣奶味蝦仁拌麵",
+  "source": "",
+  "reference_url": "https://www.youtube.com/watch?v=P9ttQy4sPSw",
+  "ingredients": [
+    {
+      "name": "義大利麵",
+      "amount": "120",
+      "unit": "克",
+      "category": "主食",
+      "component": "主要材料"
+    },
+    {
+      "name": "蝦仁",
+      "amount": "10",
+      "unit": "隻",
+      "category": "生鮮食材",
+      "component": "主要材料"
+    },
+    {
+      "name": "麵粉",
+      "amount": "1",
+      "unit": "大匙",
+      "category": "澱粉",
+      "component": "主要材料"
+    },
+    {
+      "name": "生辣椒",
+      "amount": "1",
+      "unit": "支",
+      "category": "辛香蔬菜",
+      "component": "主要材料"
+    },
+    {
+      "name": "乾辣椒",
+      "amount": "少許",
+      "category": "香料",
+      "component": "主要材料"
+    },
+    {
+      "name": "洋蔥",
+      "amount": "1/2",
+      "unit": "個",
+      "category": "辛香蔬菜",
+      "component": "主要材料"
+    },
+    {
+      "name": "鮮奶油",
+      "amount": "80",
+      "unit": "cc",
+      "category": "調味料",
+      "component": "主要材料"
+    },
+    {
+      "name": "檸檬汁",
+      "amount": "一點點",
+      "category": "調味料",
+      "component": "主要材料"
+    },
+    {
+      "name": "蒜泥",
+      "amount": "1.5",
+      "unit": "小匙",
+      "category": "辛香蔬菜",
+      "component": "料汁"
+    },
+    {
+      "name": "薑泥",
+      "amount": "1.5",
+      "unit": "小匙",
+      "category": "辛香蔬菜",
+      "component": "料汁"
+    },
+    {
+      "name": "清酒",
+      "amount": "2.5",
+      "unit": "大匙",
+      "category": "調味料",
+      "component": "料汁"
+    },
+    {
+      "name": "砂糖",
+      "amount": "2.5",
+      "unit": "小匙",
+      "category": "調味料",
+      "component": "料汁"
+    },
+    {
+      "name": "醬油",
+      "amount": "2.5",
+      "unit": "小匙",
+      "category": "調味料",
+      "component": "料汁"
+    },
+    {
+      "name": "番茄醬",
+      "amount": "70",
+      "unit": "g",
+      "category": "醬",
+      "component": "料汁"
+    }
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "先煎蝦，取出後再炒洋蔥＆辣椒。"
+    },
+    {
+      "order": 2,
+      "text": "下調好的醬汁+鮮奶油80cc。"
+    },
+    {
+      "order": 3,
+      "text": "加一點點檸檬汁。"
+    }
+  ],
+  "cuisine": "西式",
+  "cooking_methods": [
+    "炒"
+  ],
+  "main_ingredient_types": [
+    "海鮮",
+    "澱粉/主食",
+    "蔬食"
+  ],
+  "course": "主菜",
+  "spice_level": "小辣",
+  "created_at": "2026-08-04",
+  "raw_input": "辛辣奶味蝦仁拌麵\t\n材料\t作法\n義大利麵120克\t先煎蝦，取出後再炒洋蔥＆辣椒\n蝦仁10隻 、麵粉1大匙\t下調好的醬汁+鮮奶油80cc\n生辣椒1支\t加一點點檸檬汁\n乾辣椒少許\t\n洋蔥1/2個\t\n料汁\t\n蒜泥1.5小匙\t\n薑泥1.5小匙\t\n清酒2.5大匙\t\n砂糖2.5小匙\t\n醬油2.5小匙\t\n番茄醬70g"
+}
+```
+
 ### ./data/recipes/spicy-diced-chicken.json
 ```json
 {
   "id": "spicy-diced-chicken",
   "title": "辣子雞丁",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     { "name": "雞胸肉（切丁）", "category": "生鮮食材" },
     { "name": "醬油", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
@@ -2631,6 +3131,7 @@ ol.steps li { margin-bottom: 8px; }
   "id": "stir-fried-instant-noodles",
   "title": "炒泡麵",
   "source": "",
+  "reference_url": "",
   "ingredients": [
     { "name": "泡麵", "amount": "2", "unit": "包", "category": "主食" },
     { "name": "豬肉片", "category": "生鮮食材" },
@@ -2657,7 +3158,7 @@ ol.steps li { margin-bottom: 8px; }
   "cooking_methods": ["炒"],
   "main_ingredient_types": ["肉類", "蔬食", "澱粉/主食", "加工品"],
   "course": "主菜",
-  "spice_level": "微辣",
+  "spice_level": "小辣",
   "created_at": "2026-08-03",
   "raw_input": "炒泡麵\n\n材料：\n泡麵（兩包）\n豬肉片\n竹輪\n高麗菜\n紅蘿蔔\n生香菇\n木耳\n辣椒\n大蒜\n香菜\n\n作法：\n1. 煮泡麵至半熟。\n2. 熱鍋，加入泡麵油包。\n3. 爆香料頭。\n4. 炒豬肉片至3/4熟後取出。\n5. 下全部的蔬菜跟材料。\n6. 加入豬肉片 & 泡麵。\n7. 加入煮麵水 & 泡麵粉包。\n8. 水分大致收乾，下香菜，起鍋。"
 }
@@ -2699,7 +3200,7 @@ ol.steps li { margin-bottom: 8px; }
   "味醂": ["味醂", "米霖"],
   "巴薩米克醋": ["巴薩米克醋", "balsamic", "義大利黑醋"],
   "米酒": ["米酒", "料理米酒"],
-  "米": ["米", "白米"],
+  "米": ["米", "白米", "白飯"],
   "鹽巴": ["鹽巴", "鹽"],
   "白糖": ["白糖", "砂糖", "細砂糖", "糖"],
   "清酒": ["清酒", "日本酒", "sake"],
@@ -2711,7 +3212,7 @@ ol.steps li { margin-bottom: 8px; }
   "美乃滋": ["美乃滋", "美奶滋", "mayo"],
   "薑": ["薑", "生薑", "老薑", "嫩薑", "薑末", "薑片", "薑絲", "薑泥", "薑塊"],
   "洋蔥": ["洋蔥", "洋蔥丁", "洋蔥絲", "洋蔥圈"],
-  "辣椒": ["辣椒", "紅辣椒", "青辣椒", "小辣椒", "辣椒末", "辣椒片", "辣椒絲", "新鮮辣椒"],
+  "辣椒": ["辣椒", "紅辣椒", "青辣椒", "小辣椒", "辣椒末", "辣椒片", "辣椒絲", "新鮮辣椒", "生辣椒"],
   "帕瑪森": ["帕瑪森", "帕瑪森起司", "Parmesan"],
   "切達": ["切達", "切達起司", "cheddar"],
   "Brie": ["Brie", "brie", "布里起司"],
@@ -2722,7 +3223,20 @@ ol.steps li { margin-bottom: 8px; }
   "鱈魚肝": ["鱈魚肝", "鱈魚肝罐頭"],
   "太白粉": ["太白粉", "太白粉水"],
   "香菇": ["香菇", "生香菇", "鮮香菇"],
-  "乾香菇": ["乾香菇"]
+  "乾香菇": ["乾香菇"],
+  "橄欖油": ["橄欖油", "olive oil", "特級初榨橄欖油", "初榨橄欖油"],
+  "蠔油": ["蠔油", "oyster sauce"],
+  "義大利麵": ["義大利麵", "pasta"],
+  "蝦米": ["蝦米"],
+  "烹大師": ["烹大師"],
+  "柴魚片": ["柴魚片"],
+  "日式醬油": ["日式醬油"],
+  "雞粉": ["雞粉"],
+  "雞蛋": ["雞蛋", "蛋"],
+  "白麵條": ["白麵條", "麵條", "陽春麵"],
+  "麵粉": ["麵粉"],
+  "鮮奶油": ["鮮奶油"],
+  "檸檬汁": ["檸檬汁"]
 }
 ```
 
@@ -2733,7 +3247,7 @@ ol.steps li { margin-bottom: 8px; }
   "cooking_methods": ["炒", "煎", "滷", "蒸", "烤", "炸", "燙/汆燙", "涼拌", "燉", "湯", "生食"],
   "main_ingredient_types": ["肉類", "海鮮", "蛋豆製品", "蔬食", "澱粉/主食", "加工品"],
   "course": ["主菜", "配菜", "湯品", "甜點", "醬料/沾醬", "早餐"],
-  "spice_level": ["不辣", "微辣", "中辣", "大辣"],
+  "spice_level": ["不辣", "小辣", "中辣", "大辣"],
   "pantry_categories": ["香料", "香草", "調味粉", "調味料", "醬", "辛香蔬菜", "起司", "罐頭/醃漬", "主食", "澱粉", "乾貨", "生鮮食材"]
 }
 ```
