@@ -11,6 +11,7 @@
     { "name": "洋蔥（切絲）", "amount": "1/2", "unit": "顆", "category": "辛香蔬菜" },
     { "name": "蒜末", "amount": "2", "unit": "瓣", "category": "辛香蔬菜" },
     { "name": "黃豆芽", "amount": "1", "unit": "把", "category": "蔬菜" },
+    { "name": "菇類（各種皆可）", "category": "蔬菜" },
     { "name": "玉米筍", "category": "蔬菜" },
     { "name": "高麗菜", "category": "蔬菜" },
     { "name": "蔥", "category": "辛香蔬菜" },
