@@ -1,0 +1,32 @@
+{
+  "id": "leftover-veggie-ramen",
+  "title": "強棒清冰箱拉麵",
+  "source": "",
+  "ingredients": [
+    { "name": "五花肉片", "category": "生鮮食材" },
+    { "name": "高麗菜", "category": "生鮮食材" },
+    { "name": "薑", "category": "辛香蔬菜" },
+    { "name": "蒜", "category": "辛香蔬菜" },
+    { "name": "辣椒", "category": "辛香蔬菜" },
+    { "name": "日式醬油", "category": "調味料" },
+    { "name": "蠔油", "category": "調味料" },
+    { "name": "米酒", "category": "調味料" },
+    { "name": "雞粉", "category": "調味粉" },
+    { "name": "白胡椒粉", "category": "調味粉" },
+    { "name": "香油", "category": "調味料" },
+    { "name": "白麵條", "category": "主食" }
+  ],
+  "steps": [
+    { "order": 1, "text": "先炒肉，焦香後加料頭爆香。" },
+    { "order": 2, "text": "炒高麗菜跟其他配料。" },
+    { "order": 3, "text": "有啥菜加啥菜，加水、日式醬油、蠔油、米酒、雞粉。" },
+    { "order": 4, "text": "湯頭煨好就下麵。" },
+    { "order": 5, "text": "起鍋灑白胡椒＆香油。" }
+  ],
+  "cuisine": "中式",
+  "cooking_methods": ["炒", "湯"],
+  "main_ingredient_types": ["肉類", "蔬食", "澱粉/主食"],
+  "course": "主菜",
+  "created_at": "2026-08-04",
+  "raw_input": "強棒清冰箱拉麵\t\n材料\t作法\n五花肉片\t先炒肉，焦香後加料頭爆香\n高麗菜\t炒高麗菜跟其他配料\n有啥菜加啥菜\t加水、日式醬油、蠔油、米酒、雞粉\n薑、蒜、辣椒\t湯頭煨好就下麵\n醬油、蠔油、米酒\t起鍋灑白胡椒&香油\n白胡椒、香油\t"
+}
