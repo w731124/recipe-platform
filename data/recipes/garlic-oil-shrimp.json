@@ -1,0 +1,30 @@
+{
+  "id": "garlic-oil-shrimp",
+  "title": "油蒜蝦",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "蝦子", "category": "海鮮" },
+    { "name": "蒜頭", "amount": "8", "unit": "顆", "category": "辛香蔬菜" },
+    { "name": "橄欖油", "amount": "一堆", "category": "調味料" },
+    { "name": "乾辣椒", "category": "香料" },
+    { "name": "羅勒", "amount": "一大堆", "category": "香草" },
+    { "name": "鹽", "category": "調味料" },
+    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "紅椒粉", "category": "調味粉" }
+  ],
+  "steps": [
+    { "order": 1, "text": "蝦子退冰吸乾、用鹽巴＆黑胡椒醃。" },
+    { "order": 2, "text": "切八顆蒜頭，加一堆橄欖油，用超小火慢慢煎香。" },
+    { "order": 3, "text": "加入乾辣椒，灑一大堆羅勒。" },
+    { "order": 4, "text": "下蝦子、大蒜，快焦就離火煎。" },
+    { "order": 5, "text": "再加鹽巴＆黑胡椒，最後撒紅椒粉。" }
+  ],
+  "cuisine": "西式",
+  "cooking_methods": ["煎"],
+  "main_ingredient_types": ["海鮮"],
+  "course": "主菜",
+  "spice_level": "小辣",
+  "created_at": "2026-08-04",
+  "raw_input": "油蒜蝦\n蝦子退冰吸乾、用鹽巴&黑胡椒醃\n切八顆蒜頭、加一堆橄欖油用超小火慢慢煎香\n加入乾辣椒、灑一大堆羅勒\n下蝦子、大蒜快焦就離火煎\n再加鹽巴&黑胡椒，最後撒紅椒粉"
+}
