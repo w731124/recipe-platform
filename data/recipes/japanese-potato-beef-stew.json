@@ -1,0 +1,36 @@
+{
+  "id": "japanese-potato-beef-stew",
+  "title": "馬鈴薯燉肉",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "牛肉片", "amount": "1", "unit": "盒", "category": "肉類", "choice_group": "牛豬肉片擇一" },
+    { "name": "豬肉片", "amount": "1", "unit": "盒", "category": "肉類", "choice_group": "牛豬肉片擇一" },
+    { "name": "馬鈴薯", "amount": "2-3", "unit": "塊", "category": "蔬菜" },
+    { "name": "紅蘿蔔", "amount": "1", "unit": "根", "category": "蔬菜" },
+    { "name": "洋蔥", "amount": "1", "unit": "顆", "category": "辛香蔬菜" },
+    { "name": "蒟蒻絲（可選）", "category": "加工食品/火鍋料" },
+    { "name": "蔥花", "category": "辛香蔬菜" },
+    { "name": "日式醬油", "amount": "6", "unit": "大匙", "category": "調味料" },
+    { "name": "味醂", "amount": "2", "unit": "大匙", "category": "調味料" },
+    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料" },
+    { "name": "砂糖", "amount": "1", "unit": "小匙", "category": "調味料" },
+    { "name": "柴魚片（可選）", "category": "乾貨" }
+  ],
+  "steps": [
+    { "order": 1, "text": "馬鈴薯、紅蘿蔔去皮後切滾刀塊，洋蔥切絲。" },
+    { "order": 2, "text": "在鍋中加少許油，以中小火炒香洋蔥絲至透明。" },
+    { "order": 3, "text": "牛肉片加入鍋中，炒至變色。" },
+    { "order": 4, "text": "加入馬鈴薯、紅蘿蔔和蒟蒻，稍微翻炒。" },
+    { "order": 5, "text": "倒入日式醬油、味醂、米酒、砂糖和水，拌勻。" },
+    { "order": 6, "text": "轉中火煮滾後，轉小火蓋上鍋蓋，燉煮約 20–30 分鐘，直到馬鈴薯和紅蘿蔔變軟。" },
+    { "order": 7, "text": "關火後，加入柴魚片，靜置 5 分鐘，讓風味融入湯汁。" },
+    { "order": 8, "text": "撒上蔥花。" }
+  ],
+  "cuisine": "其他",
+  "cooking_methods": ["炒", "燉"],
+  "main_ingredient_types": ["肉類", "蔬食", "加工品"],
+  "course": "主菜",
+  "created_at": "2026-08-04",
+  "raw_input": "牛、豬肉片1盒\t馬鈴薯、紅蘿蔔去皮後切滾刀塊，洋蔥切絲\n馬鈴薯2-3塊\t在鍋中加少許油，以中小火炒香洋蔥絲至透明。\n紅蘿蔔1根\t牛肉片加入鍋中，炒至變色\n洋蔥1顆\t加入馬鈴薯、紅蘿蔔和蒟蒻，稍微翻炒\n蒟蒻絲 (Optional)\t倒入日式醬油、味醂、米酒、砂糖和水，拌勻\n蔥花\t轉中火煮滾後，轉小火蓋上鍋蓋，燉煮約 20–30 分鐘，直到馬鈴薯和紅蘿蔔變軟\n\t關火後，加入柴魚片，靜置 5 分鐘，讓風味融入湯汁。\n日式醬油6大匙\t撒上蔥花\n味醂2大匙\t\n米酒2大匙\t\n砂糖1小匙\t\n柴魚片 (Optional)"
+}
