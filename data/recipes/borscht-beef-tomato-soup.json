@@ -20,7 +20,7 @@
     { "name": "月桂葉", "amount": "2", "unit": "片", "category": "香草" },
     { "name": "麵粉", "amount": "少許", "category": "澱粉" },
     { "name": "鹽", "amount": "少許", "category": "調味料" },
-    { "name": "黑胡椒粒", "amount": "少許", "category": "香料" },
+    { "name": "黑胡椒粉", "amount": "少許", "category": "調味粉" },
     { "name": "義大利綜合香料", "amount": "少許", "category": "香草" }
   ],
   "steps": [
