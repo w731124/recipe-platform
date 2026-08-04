@@ -231,6 +231,12 @@ function renderList() {
   const el = document.getElementById("recipe-list");
   el.innerHTML = "";
   const filtered = state.recipes.filter(matchesFilters);
+  const total = state.recipes.length;
+
+  const countEl = document.getElementById("recipe-count");
+  countEl.textContent = filtered.length === total
+    ? `共 ${total} 則食譜`
+    : `顯示 ${filtered.length}／共 ${total} 則食譜`;
 
   if (filtered.length === 0) {
     el.innerHTML = `<div class="empty-state">沒有符合篩選條件的食譜。</div>`;
