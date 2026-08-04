@@ -1,0 +1,39 @@
+{
+  "id": "hungarian-beef-goulash",
+  "title": "匈牙利燉牛肉",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "牛肋條", "amount": "500", "unit": "克", "category": "肉類" },
+    { "name": "紅椒", "amount": "1", "unit": "顆", "category": "蔬菜" },
+    { "name": "番茄", "amount": "1", "unit": "顆", "category": "蔬菜" },
+    { "name": "紅蘿蔔", "amount": "1", "unit": "根", "category": "蔬菜" },
+    { "name": "馬鈴薯", "amount": "2", "unit": "小顆", "category": "蔬菜" },
+    { "name": "高湯", "amount": "1", "unit": "罐", "category": "調味料" },
+    { "name": "洋蔥", "amount": "1", "unit": "顆", "category": "辛香蔬菜" },
+    { "name": "辣椒", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
+    { "name": "大蒜", "amount": "3", "unit": "瓣", "category": "辛香蔬菜" },
+    { "name": "月桂葉", "amount": "2", "unit": "片", "category": "香草" },
+    { "name": "奶油", "amount": "一些", "category": "調味料" },
+    { "name": "鹽", "category": "調味料" },
+    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "麵粉", "category": "澱粉" },
+    { "name": "紅椒粉", "category": "調味粉" }
+  ],
+  "steps": [
+    { "order": 1, "text": "牛肉用鹽巴跟黑胡椒調味、裹上麵粉。" },
+    { "order": 2, "text": "紅椒、番茄切小塊、馬鈴薯&紅蘿蔔切小塊、洋蔥切丁。" },
+    { "order": 3, "text": "牛肋修下來的油拿去煸油脂。" },
+    { "order": 4, "text": "加一些些奶油炒洋蔥丁、再下大蒜&辣椒，加一些鹽＆黑胡椒。" },
+    { "order": 5, "text": "下牛肋、番茄、紅蘿蔔、紅椒、紅椒粉。" },
+    { "order": 6, "text": "加高湯&月桂葉。" },
+    { "order": 7, "text": "煮半小時之後放馬鈴薯、再燉半小時。" }
+  ],
+  "cuisine": "西式",
+  "cooking_methods": ["炒", "燉"],
+  "main_ingredient_types": ["肉類", "蔬食"],
+  "course": "主菜",
+  "spice_level": "小辣",
+  "created_at": "2026-08-04",
+  "raw_input": "匈牙利燉牛肉\t\n牛肋條500克\t牛肉用鹽巴跟黑胡椒調味、裹上麵粉\n紅椒1顆\t紅椒、番茄切小塊、馬鈴薯&蘿蔔切小塊、洋蔥切丁\n番茄1顆\t牛肋修下來的油拿去煸油脂\n紅蘿蔔1根\t加一些些奶油炒洋蔥丁、再下大蒜&辣椒，加一些鹽＆黑胡椒\n馬鈴薯2小顆\t下牛肋、番茄、紅蘿蔔、紅椒、紅椒粉\n高湯1罐\t加高湯&月桂葉\n\t煮半小時之後放馬鈴薯、再燉半小時\n洋蔥1顆\t\n辣椒1根\t\n大蒜3瓣\t\n月桂葉2片\t\n奶油一些"
+}
