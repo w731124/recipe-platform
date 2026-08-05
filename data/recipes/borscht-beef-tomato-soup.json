@@ -19,8 +19,8 @@
     { "name": "蒜頭", "amount": "5", "unit": "顆", "category": "辛香蔬菜" },
     { "name": "月桂葉", "amount": "2", "unit": "片", "category": "香草" },
     { "name": "麵粉", "amount": "少許", "category": "澱粉" },
-    { "name": "鹽", "amount": "少許", "category": "調味料" },
-    { "name": "黑胡椒粉", "amount": "少許", "category": "調味粉" },
+    { "name": "鹽", "amount": "少許", "category": "調味料", "always_available": true },
+    { "name": "黑胡椒粉", "amount": "少許", "category": "調味粉", "always_available": true },
     { "name": "義大利綜合香料", "amount": "少許", "category": "香草" }
   ],
   "steps": [

@@ -8,12 +8,12 @@
     { "name": "乾香菇", "amount": "4", "unit": "朵", "category": "乾貨" },
     { "name": "紅蘿蔔", "amount": "半", "unit": "根", "category": "蔬菜" },
     { "name": "蒜頭", "amount": "2", "unit": "顆", "category": "辛香蔬菜" },
-    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
-    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
-    { "name": "白胡椒粉", "amount": "少許", "category": "調味粉" },
+    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料", "always_available": true },
+    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料", "always_available": true },
+    { "name": "白胡椒粉", "amount": "少許", "category": "調味粉", "always_available": true },
     { "name": "素蠔油", "amount": "1.5", "unit": "茶匙", "category": "調味料" },
-    { "name": "太白粉水", "amount": "一些", "category": "澱粉" },
-    { "name": "香油", "amount": "少許", "category": "調味料" }
+    { "name": "太白粉水", "amount": "一些", "category": "澱粉", "always_available": true },
+    { "name": "香油", "amount": "少許", "category": "調味料", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "香菇泡發。" },

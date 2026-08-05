@@ -5,20 +5,20 @@
   "reference_url": "",
   "ingredients": [
     { "name": "雞胸肉（切丁）", "category": "肉類" },
-    { "name": "醬油", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
+    { "name": "醬油", "amount": "1/2", "unit": "茶匙", "category": "調味料", "always_available": true },
     { "name": "水", "amount": "20", "unit": "cc", "category": "調味料", "always_available": true },
-    { "name": "太白粉", "amount": "1", "unit": "茶匙", "category": "澱粉" },
-    { "name": "米酒", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
-    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
-    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
+    { "name": "太白粉", "amount": "1", "unit": "茶匙", "category": "澱粉", "always_available": true },
+    { "name": "米酒", "amount": "1/2", "unit": "茶匙", "category": "調味料", "always_available": true },
+    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料", "always_available": true },
+    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料", "always_available": true },
     { "name": "蔥", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
     { "name": "薑", "amount": "15", "unit": "克", "category": "辛香蔬菜" },
     { "name": "蒜", "amount": "2", "unit": "顆", "category": "辛香蔬菜" },
     { "name": "辣椒", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
     { "name": "豆瓣醬", "amount": "1", "unit": "茶匙", "category": "醬" },
     { "name": "水", "amount": "30", "unit": "cc", "category": "調味料", "always_available": true },
-    { "name": "糖", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
-    { "name": "太白粉水", "amount": "一些", "category": "澱粉" }
+    { "name": "糖", "amount": "1/2", "unit": "茶匙", "category": "調味料", "always_available": true },
+    { "name": "太白粉水", "amount": "一些", "category": "澱粉", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "下重油，炒雞胸肉。" },

@@ -9,8 +9,8 @@
     { "name": "薑泥", "category": "辛香蔬菜" },
     { "name": "烹大師", "category": "調味粉" },
     { "name": "味醂", "category": "調味料" },
-    { "name": "醬油", "category": "調味料" },
-    { "name": "米酒", "category": "調味料" },
+    { "name": "醬油", "category": "調味料", "always_available": true },
+    { "name": "米酒", "category": "調味料", "always_available": true },
     { "name": "洋蔥", "category": "辛香蔬菜" },
     { "name": "高麗菜", "category": "蔬菜" },
     { "name": "紅蘿蔔", "category": "蔬菜" },
@@ -19,8 +19,8 @@
     { "name": "生香菇", "category": "蔬菜" },
     { "name": "金針菇", "category": "蔬菜" },
     { "name": "味噌", "category": "醬" },
-    { "name": "鹽", "category": "調味料" },
-    { "name": "白胡椒粉", "category": "調味粉" }
+    { "name": "鹽", "category": "調味料", "always_available": true },
+    { "name": "白胡椒粉", "category": "調味粉", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "雞肉用鹽、白胡椒醃漬。" },

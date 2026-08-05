@@ -13,8 +13,8 @@
     { "name": "蔥花", "category": "辛香蔬菜" },
     { "name": "日式醬油", "amount": "6", "unit": "大匙", "category": "調味料" },
     { "name": "味醂", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "砂糖", "amount": "1", "unit": "小匙", "category": "調味料" },
+    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "砂糖", "amount": "1", "unit": "小匙", "category": "調味料", "always_available": true },
     { "name": "柴魚片（可選）", "category": "乾貨" }
   ],
   "steps": [

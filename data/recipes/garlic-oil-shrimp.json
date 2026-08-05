@@ -9,8 +9,8 @@
     { "name": "橄欖油", "amount": "一堆", "category": "調味料" },
     { "name": "乾辣椒", "category": "香料" },
     { "name": "羅勒", "amount": "一大堆", "category": "香草" },
-    { "name": "鹽", "category": "調味料" },
-    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "鹽", "category": "調味料", "always_available": true },
+    { "name": "黑胡椒粉", "category": "調味粉", "always_available": true },
     { "name": "紅椒粉", "category": "調味粉" }
   ],
   "steps": [

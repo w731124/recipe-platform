@@ -61,25 +61,29 @@
       "name": "太白粉",
       "amount": "一些",
       "category": "澱粉",
-      "component": "醃肉絲"
+      "component": "醃肉絲",
+      "always_available": true
     },
     {
       "name": "白胡椒粉",
       "amount": "一些",
       "category": "調味粉",
-      "component": "醃肉絲"
+      "component": "醃肉絲",
+      "always_available": true
     },
     {
       "name": "醬油",
       "amount": "一些",
       "category": "調味料",
-      "component": "醃肉絲"
+      "component": "醃肉絲",
+      "always_available": true
     },
     {
       "name": "米酒",
       "amount": "一些些",
       "category": "調味料",
-      "component": "醃肉絲"
+      "component": "醃肉絲",
+      "always_available": true
     }
   ],
   "steps": [

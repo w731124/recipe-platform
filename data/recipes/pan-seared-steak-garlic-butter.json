@@ -6,7 +6,7 @@
   "ingredients": [
     { "name": "牛排", "category": "肉類" },
     { "name": "大蒜（切片）", "amount": "6~8", "unit": "瓣", "category": "辛香蔬菜" },
-    { "name": "鹽巴", "amount": "少許", "category": "調味料" },
+    { "name": "鹽巴", "amount": "少許", "category": "調味料", "always_available": true },
     { "name": "奶油", "amount": "20", "unit": "g", "category": "調味料" },
     { "name": "迷迭香", "amount": "4", "unit": "支", "category": "香草" }
   ],

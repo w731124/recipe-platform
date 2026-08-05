@@ -104,7 +104,8 @@
     {
       "name": "黑胡椒粉",
       "amount": "適量",
-      "category": "調味粉"
+      "category": "調味粉",
+      "always_available": true
     },
     {
       "name": "巴西里（乾燥或新鮮）",

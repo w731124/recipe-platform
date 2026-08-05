@@ -15,8 +15,8 @@
     { "name": "大蒜", "amount": "3", "unit": "瓣", "category": "辛香蔬菜" },
     { "name": "月桂葉", "amount": "2", "unit": "片", "category": "香草" },
     { "name": "奶油", "amount": "一些", "category": "調味料" },
-    { "name": "鹽", "category": "調味料" },
-    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "鹽", "category": "調味料", "always_available": true },
+    { "name": "黑胡椒粉", "category": "調味粉", "always_available": true },
     { "name": "麵粉", "category": "澱粉" },
     { "name": "紅椒粉", "category": "調味粉" }
   ],

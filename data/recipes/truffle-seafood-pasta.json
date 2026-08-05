@@ -15,8 +15,8 @@
     { "name": "洋蔥（切丁）", "amount": "1/3", "unit": "顆", "category": "辛香蔬菜" },
     { "name": "松露醬", "amount": "2-3", "unit": "大匙", "category": "醬" },
     { "name": "奶油", "amount": "1", "unit": "塊", "category": "調味料" },
-    { "name": "鹽", "amount": "少許", "category": "調味料" },
-    { "name": "黑胡椒粉", "amount": "少許", "category": "調味粉" }
+    { "name": "鹽", "amount": "少許", "category": "調味料", "always_available": true },
+    { "name": "黑胡椒粉", "amount": "少許", "category": "調味粉", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "煮義大利麵至8分熟。" },

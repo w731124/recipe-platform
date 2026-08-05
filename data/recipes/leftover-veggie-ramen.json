@@ -10,11 +10,11 @@
     { "name": "蒜", "category": "辛香蔬菜" },
     { "name": "辣椒", "category": "辛香蔬菜" },
     { "name": "日式醬油", "category": "調味料" },
-    { "name": "蠔油", "category": "調味料" },
-    { "name": "米酒", "category": "調味料" },
+    { "name": "蠔油", "category": "調味料", "always_available": true },
+    { "name": "米酒", "category": "調味料", "always_available": true },
     { "name": "雞粉", "category": "調味粉" },
-    { "name": "白胡椒粉", "category": "調味粉" },
-    { "name": "香油", "category": "調味料" },
+    { "name": "白胡椒粉", "category": "調味粉", "always_available": true },
+    { "name": "香油", "category": "調味料", "always_available": true },
     { "name": "白麵條", "category": "主食" }
   ],
   "steps": [

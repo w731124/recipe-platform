@@ -18,7 +18,7 @@
     { "name": "韓式湯錠", "category": "調味料" },
     { "name": "韓式辣椒醬", "amount": "1", "unit": "大匙", "category": "醬" },
     { "name": "韓式辣椒粉", "amount": "1", "unit": "大匙", "category": "調味粉" },
-    { "name": "醬油", "amount": "1", "unit": "大匙", "category": "調味料" },
+    { "name": "醬油", "amount": "1", "unit": "大匙", "category": "調味料", "always_available": true },
     { "name": "味醂", "amount": "1", "unit": "大匙", "category": "調味料" },
     { "name": "韓式芝麻油", "amount": "1", "unit": "小匙", "category": "調味料" }
   ],

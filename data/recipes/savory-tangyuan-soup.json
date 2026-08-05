@@ -13,7 +13,7 @@
     { "name": "茼蒿", "category": "蔬菜" },
     { "name": "高湯罐", "category": "罐頭/醃漬" },
     { "name": "紅蔥頭油", "category": "調味料" },
-    { "name": "鹽巴", "category": "調味料" }
+    { "name": "鹽巴", "category": "調味料", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "香菇、蝦米先泡水放著。" },

@@ -37,17 +37,20 @@
     {
       "name": "香油",
       "amount": "少許",
-      "category": "調味料"
+      "category": "調味料",
+      "always_available": true
     },
     {
       "name": "鹽",
       "amount": "少許",
-      "category": "調味料"
+      "category": "調味料",
+      "always_available": true
     },
     {
       "name": "醬油",
       "amount": "少許",
-      "category": "調味料"
+      "category": "調味料",
+      "always_available": true
     },
     {
       "name": "豬油",

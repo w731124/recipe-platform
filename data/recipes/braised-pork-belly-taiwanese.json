@@ -17,12 +17,12 @@
     { "name": "蒜頭（拍扁）", "amount": "6", "unit": "顆", "category": "辛香蔬菜" },
     { "name": "辣椒", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
     { "name": "滷包", "amount": "1", "unit": "包", "category": "香料" },
-    { "name": "砂糖（可用冰糖5顆替代）", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "蠔油", "amount": "1", "unit": "大匙", "category": "調味料" },
-    { "name": "醬油", "amount": "200", "unit": "ml", "category": "調味料" },
+    { "name": "砂糖（可用冰糖5顆替代）", "amount": "2", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "蠔油", "amount": "1", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "醬油", "amount": "200", "unit": "ml", "category": "調味料", "always_available": true },
     { "name": "醬油膏（可選，有的話加分）", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "米酒", "amount": "100", "unit": "ml", "category": "調味料" },
-    { "name": "白胡椒粉", "amount": "少許", "category": "調味粉" },
+    { "name": "米酒", "amount": "100", "unit": "ml", "category": "調味料", "always_available": true },
+    { "name": "白胡椒粉", "amount": "少許", "category": "調味粉", "always_available": true },
     { "name": "五香粉", "amount": "少許", "category": "調味粉" }
   ],
   "steps": [

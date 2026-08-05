@@ -6,10 +6,10 @@
   "ingredients": [
     { "name": "絞肉", "category": "肉類" },
     { "name": "芹菜（切丁）", "category": "蔬菜" },
-    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料" },
+    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料", "always_available": true },
     { "name": "郫縣豆瓣醬", "amount": "1", "unit": "小匙", "category": "醬" },
-    { "name": "醬油", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "糖", "amount": "適量", "category": "調味料" },
+    { "name": "醬油", "amount": "2", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "糖", "amount": "適量", "category": "調味料", "always_available": true },
     { "name": "乾辣椒", "amount": "少許", "category": "香料" },
     { "name": "青花椒", "amount": "1/2", "unit": "小匙", "category": "香料" },
     { "name": "新鮮辣椒（切末）", "amount": "少許", "category": "辛香蔬菜" },

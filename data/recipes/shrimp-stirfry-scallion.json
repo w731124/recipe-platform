@@ -6,9 +6,9 @@
   "ingredients": [
     { "name": "蝦仁", "amount": "300", "unit": "g", "category": "海鮮" },
     { "name": "青蔥", "amount": "3", "unit": "根", "category": "辛香蔬菜" },
-    { "name": "醬油", "amount": "1", "unit": "大匙", "category": "調味料" },
-    { "name": "米酒", "amount": "1", "unit": "大匙", "category": "調味料" },
-    { "name": "白胡椒粉", "amount": "適量", "category": "調味粉" }
+    { "name": "醬油", "amount": "1", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "米酒", "amount": "1", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "白胡椒粉", "amount": "適量", "category": "調味粉", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "蝦仁洗淨去腸泥，用廚房紙巾拍乾。" },

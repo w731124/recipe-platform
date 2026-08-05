@@ -5,9 +5,9 @@
   "reference_url": "",
   "ingredients": [
     { "name": "馬鈴薯（切塊）", "category": "蔬菜" },
-    { "name": "油", "category": "調味料" },
-    { "name": "鹽", "category": "調味料" },
-    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "油", "category": "調味料", "always_available": true },
+    { "name": "鹽", "category": "調味料", "always_available": true },
+    { "name": "黑胡椒粉", "category": "調味粉", "always_available": true },
     { "name": "紅椒粉", "category": "調味粉" }
   ],
   "steps": [
