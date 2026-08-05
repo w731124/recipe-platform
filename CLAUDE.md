@@ -110,7 +110,7 @@
 - 食譜詳細頁的食材清單（`renderIngredientList`／`renderIngredientsByCategory`）**不受影響**——每個食材依然各自獨立顯示 have/maybe/missing 顏色，`choice_group` 只影響購物清單的合併邏輯，不影響食材清單本身的逐項顯示。
 - 購物清單（`renderShoppingList`）：同一個 `choice_group` 內只要有任一成員狀態是 `have`，整組視為已滿足，全部不列入購物清單（不進 missing 也不進 maybe）；如果組內沒有任何成員是 `have`，取組內最高優先狀態（`maybe` 優先於 `missing`）當作整組狀態，用「成員名稱1／成員名稱2／...（擇一）」合併成一行放進對應清單，不會把組內每個成員各自列一行。合併顯示用的名稱一樣經過 `stripNotes()` 去掉備註文字。
 
-### 食材分類（`ingredients[].category`，沿用食材庫的 16 大分類）
+### 食材分類（`ingredients[].category`，沿用食材庫的 16 大分類：15 個有明確判準的分類 + 1 個「生鮮食材」接底分類）
 
 食譜裡每個食材都要歸類到 `data/taxonomy.json` 的 `pantry_categories` 詞彙表（跟食材庫分頁用的是同一份，這樣食譜詳細頁才能用跟食材庫一致的分類呈現，也讓使用者一眼看出「這個食材屬於食材庫哪一類、平常會不會囤貨」）：
 
