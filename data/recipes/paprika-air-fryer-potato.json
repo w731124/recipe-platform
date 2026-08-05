@@ -1,0 +1,25 @@
+{
+  "id": "paprika-air-fryer-potato",
+  "title": "紅椒粉馬鈴薯塊",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "馬鈴薯（切塊）", "category": "蔬菜" },
+    { "name": "油", "category": "調味料" },
+    { "name": "鹽", "category": "調味料" },
+    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "紅椒粉", "category": "調味粉" }
+  ],
+  "steps": [
+    { "order": 1, "text": "用油、鹽巴、黑胡椒、紅椒粉拌勻後刷上馬鈴薯。" },
+    { "order": 2, "text": "氣炸約10-15分鐘。" },
+    { "order": 3, "text": "出爐之後再撒一點紅椒粉。" }
+  ],
+  "cuisine": "西式",
+  "cooking_methods": ["氣炸"],
+  "main_ingredient_types": ["蔬食"],
+  "course": "配菜",
+  "spice_level": "不辣",
+  "created_at": "2026-08-04",
+  "raw_input": "紅椒粉馬鈴薯塊\n (用氣炸鍋)\n先用油、鹽巴、黑胡椒、紅椒粉拌勻後刷上馬鈴薯\n氣炸約10-15分鐘\n出爐之後再撒一點紅椒粉"
+}
