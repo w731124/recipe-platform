@@ -29,7 +29,7 @@
     { "order": 4, "text": "依序加入各種蔬菜豆腐。" },
     { "order": 5, "text": "最後關小火加入味噌。" }
   ],
-  "cuisine": "其他",
+  "cuisine": "日式",
   "cooking_methods": ["炒", "湯"],
   "main_ingredient_types": ["肉類", "蔬食", "蛋豆製品"],
   "course": "主菜",

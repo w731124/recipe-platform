@@ -27,7 +27,7 @@
     { "order": 7, "text": "關火後，加入柴魚片，靜置 5 分鐘，讓風味融入湯汁。" },
     { "order": 8, "text": "撒上蔥花。" }
   ],
-  "cuisine": "其他",
+  "cuisine": "日式",
   "cooking_methods": ["炒", "燉"],
   "main_ingredient_types": ["肉類", "蔬食", "加工品"],
   "course": "主菜",
