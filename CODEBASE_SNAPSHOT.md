@@ -1,6 +1,6 @@
 # 食譜筆記本網站 — Codebase Snapshot
-- 產生時間：2026-08-04
-- Git commit：b2b0556e9757ebd0f6feafd16f1eabffa780dddb
+- 產生時間：2026-08-05
+- Git commit：987f21fdfb13321a18709aa50845cea8e7916067
 - 所在分支：main
 
 ## 目錄樹
@@ -21,13 +21,17 @@
 ./data/recipes/chicken-soup-with-scallop-and-ham.json
 ./data/recipes/dried-tofu-pork-celery-stirfry.json
 ./data/recipes/fried-rice-with-ham-and-mushroom.json
+./data/recipes/garlic-oil-shrimp.json
+./data/recipes/hungarian-beef-goulash.json
 ./data/recipes/index.json
 ./data/recipes/japanese-potato-beef-stew.json
 ./data/recipes/kimchi-tofu-stew.json
 ./data/recipes/leftover-veggie-ramen.json
 ./data/recipes/lobster-bisque-shrimp-pasta.json
 ./data/recipes/mala-celery-minced-pork.json
+./data/recipes/miso-chicken-hotpot.json
 ./data/recipes/pan-seared-steak-garlic-butter.json
+./data/recipes/paprika-air-fryer-potato.json
 ./data/recipes/roast-lamb-chops.json
 ./data/recipes/savory-tangyuan-soup.json
 ./data/recipes/seafood-hotpot-noodles.json
@@ -236,8 +240,16 @@ Thumbs.db
 食譜原文的材料欄有時會漏列某個食材，但步驟文字裡明確提到具體的使用動作（醃、炒、加、拌、撒等）。這種情況判定為原作者抄寫遺漏，**不需要跟使用者確認要不要收進食材清單，一律直接補進 `ingredients`**。
 
 份量處理：
-- 原文完全沒寫份量 → 標示「少許」或省略 `amount`/`unit` 欄位即可，不用因為份量不確定而停下來問。
-- 只有當這個食材是主料、份量會顯著影響整道菜、且原文毫無線索時，才需要詢問使用者。
+- 原文完全沒寫份量 → 遵守既有 schema 慣例，**直接省略 `amount`/`unit` 欄位**，不用因為份量不確定而停下來問，也**不要自動填「少許」這類預設文字**——「少許」只在使用者針對特定食譜明確要求這樣寫時才使用，不是漏列食材補齊份量時的通用預設值。
+- 完整的份量詢問判準見下方「食材份量詢問通用規則」，這裡不重複列出例外。
+
+### 食材份量詢問通用規則
+
+食譜裡的食材如果原文完全沒有提供份量，一律直接省略 `amount`/`unit` 欄位，交由使用者自己依經驗與喜好抓份量，**不需要停下來詢問使用者要不要補份量**。這條規則適用於所有食譜，**不限於「材料欄漏列食材」這種情況**——原文材料清單裡本來就沒寫份量的食材，也適用同樣處理方式。
+
+步驟文字裡出現「加水蓋過食材」「淹過表面」這類目測/手感判斷的描述，**同樣不需要換算成精確數字，也不需要詢問使用者**，直接保留原文描述即可——這本來就是交給下廚者臨場判斷的動作，不是份量缺失的問題。
+
+這條規則**不設**「份量缺失導致步驟無法執行」的例外。如果之後遇到真正因為步驟本身邏輯矛盾或動作對象不明確（不是「數字沒寫」）而無法理解的情況，才需要詢問使用者。
 
 ### 「隨興食材／類別限定食材」：食譜寫得不夠具體時怎麼處理
 
@@ -274,7 +286,7 @@ Thumbs.db
 
 辣度判斷很主觀，用下面這套規則自動評估，**不需要每次都先問使用者**，但判斷完要在回覆裡附上依據（用了哪些辣度來源、各自的份量級距），方便使用者一眼檢查合不合理、要不要調整：
 
-1. 掃描所有食材名稱（含備註），找出「辣度來源」關鍵字：辣椒、乾辣椒、辣椒粉、辣椒碎、辣椒醬、辣椒油、朝天椒、小米椒、剁椒、花椒、青花椒、藤椒、郫縣豆瓣醬、辣豆瓣醬、韓式辣醬（gochujang）等。
+1. 掃描所有食材名稱（含備註），找出「辣度來源」關鍵字：辣椒、乾辣椒、辣椒粉、辣椒碎、辣椒醬、辣椒油、朝天椒、小米椒、剁椒、花椒、青花椒、藤椒、郫縣豆瓣醬、辣豆瓣醬、韓式辣醬（gochujang）等。**「紅椒粉」（paprika，甜味紅椒粉）不算辣度來源**——名字裡雖然有「椒」跟「辣椒粉」長得像，但本身不具辣度，判斷 `spice_level` 時完全不列入計算，食譜裡有沒有紅椒粉都不影響判斷結果。
 2. 每個辣度來源依份量描述分四級（**種類多但每種份量都很少時，不能直接因為種類多就跳到大辣**——這是實測椒麻芹菜肉末這道菜後校正過的重點，v1 規則曾經因為「4 種來源」就誤判成大辣，實際吃起來是中辣）：
    - Tier 1（微量）：少許、少量、可選、≤ 1/2 小匙
    - Tier 2（小量明確）：約 1 小匙、1~2 根/顆
@@ -2046,7 +2058,8 @@ ol.steps li { margin-bottom: 8px; }
   "黑胡椒": ["黑胡椒粉"],
   "起司": ["帕瑪森", "切達", "Brie"],
   "海鮮": ["蝦仁"],
-  "菇類": ["蘑菇", "秀珍菇", "鴻喜菇", "雪白菇"]
+  "菇類": ["蘑菇", "秀珍菇", "鴻喜菇", "雪白菇"],
+  "高湯": ["牛高湯", "雞高湯"]
 }
 ```
 
@@ -2136,13 +2149,7 @@ ol.steps li { margin-bottom: 8px; }
     "蝦仁"
   ],
   "蔬菜": [
-    "高麗菜",
-    "蘑菇",
-    "秀珍菇",
-    "鴻喜菇",
-    "雪白菇",
-    "馬鈴薯",
-    "紅蘿蔔"
+    "高麗菜"
   ],
   "加工食品/火鍋料": [
     "魚餃",
@@ -2652,6 +2659,83 @@ ol.steps li { margin-bottom: 8px; }
 }
 ```
 
+### ./data/recipes/garlic-oil-shrimp.json
+```json
+{
+  "id": "garlic-oil-shrimp",
+  "title": "油蒜蝦",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "蝦子", "category": "海鮮" },
+    { "name": "蒜頭", "amount": "8", "unit": "顆", "category": "辛香蔬菜" },
+    { "name": "橄欖油", "amount": "一堆", "category": "調味料" },
+    { "name": "乾辣椒", "category": "香料" },
+    { "name": "羅勒", "amount": "一大堆", "category": "香草" },
+    { "name": "鹽", "category": "調味料" },
+    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "紅椒粉", "category": "調味粉" }
+  ],
+  "steps": [
+    { "order": 1, "text": "蝦子退冰吸乾、用鹽巴＆黑胡椒醃。" },
+    { "order": 2, "text": "切八顆蒜頭，加一堆橄欖油，用超小火慢慢煎香。" },
+    { "order": 3, "text": "加入乾辣椒，灑一大堆羅勒。" },
+    { "order": 4, "text": "下蝦子、大蒜，快焦就離火煎。" },
+    { "order": 5, "text": "再加鹽巴＆黑胡椒，最後撒紅椒粉。" }
+  ],
+  "cuisine": "西式",
+  "cooking_methods": ["煎"],
+  "main_ingredient_types": ["海鮮"],
+  "course": "主菜",
+  "spice_level": "小辣",
+  "created_at": "2026-08-04",
+  "raw_input": "油蒜蝦\n蝦子退冰吸乾、用鹽巴&黑胡椒醃\n切八顆蒜頭、加一堆橄欖油用超小火慢慢煎香\n加入乾辣椒、灑一大堆羅勒\n下蝦子、大蒜快焦就離火煎\n再加鹽巴&黑胡椒，最後撒紅椒粉"
+}
+```
+
+### ./data/recipes/hungarian-beef-goulash.json
+```json
+{
+  "id": "hungarian-beef-goulash",
+  "title": "匈牙利燉牛肉",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "牛肋條", "amount": "500", "unit": "克", "category": "肉類" },
+    { "name": "紅椒", "amount": "1", "unit": "顆", "category": "蔬菜" },
+    { "name": "番茄", "amount": "1", "unit": "顆", "category": "蔬菜" },
+    { "name": "紅蘿蔔", "amount": "1", "unit": "根", "category": "蔬菜" },
+    { "name": "馬鈴薯", "amount": "2", "unit": "小顆", "category": "蔬菜" },
+    { "name": "高湯", "amount": "1", "unit": "罐", "category": "調味料" },
+    { "name": "洋蔥", "amount": "1", "unit": "顆", "category": "辛香蔬菜" },
+    { "name": "辣椒", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
+    { "name": "大蒜", "amount": "3", "unit": "瓣", "category": "辛香蔬菜" },
+    { "name": "月桂葉", "amount": "2", "unit": "片", "category": "香草" },
+    { "name": "奶油", "amount": "一些", "category": "調味料" },
+    { "name": "鹽", "category": "調味料" },
+    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "麵粉", "category": "澱粉" },
+    { "name": "紅椒粉", "category": "調味粉" }
+  ],
+  "steps": [
+    { "order": 1, "text": "牛肉用鹽巴跟黑胡椒調味、裹上麵粉。" },
+    { "order": 2, "text": "紅椒、番茄切小塊、馬鈴薯&紅蘿蔔切小塊、洋蔥切丁。" },
+    { "order": 3, "text": "牛肋修下來的油拿去煸油脂。" },
+    { "order": 4, "text": "加一些些奶油炒洋蔥丁、再下大蒜&辣椒，加一些鹽＆黑胡椒。" },
+    { "order": 5, "text": "下牛肋、番茄、紅蘿蔔、紅椒、紅椒粉。" },
+    { "order": 6, "text": "加高湯&月桂葉。" },
+    { "order": 7, "text": "煮半小時之後放馬鈴薯、再燉半小時。" }
+  ],
+  "cuisine": "西式",
+  "cooking_methods": ["炒", "燉"],
+  "main_ingredient_types": ["肉類", "蔬食"],
+  "course": "主菜",
+  "spice_level": "小辣",
+  "created_at": "2026-08-04",
+  "raw_input": "匈牙利燉牛肉\t\n牛肋條500克\t牛肉用鹽巴跟黑胡椒調味、裹上麵粉\n紅椒1顆\t紅椒、番茄切小塊、馬鈴薯&蘿蔔切小塊、洋蔥切丁\n番茄1顆\t牛肋修下來的油拿去煸油脂\n紅蘿蔔1根\t加一些些奶油炒洋蔥丁、再下大蒜&辣椒，加一些鹽＆黑胡椒\n馬鈴薯2小顆\t下牛肋、番茄、紅蘿蔔、紅椒、紅椒粉\n高湯1罐\t加高湯&月桂葉\n\t煮半小時之後放馬鈴薯、再燉半小時\n洋蔥1顆\t\n辣椒1根\t\n大蒜3瓣\t\n月桂葉2片\t\n奶油一些"
+}
+```
+
 ### ./data/recipes/index.json
 ```json
 [
@@ -2675,7 +2759,11 @@ ol.steps li { margin-bottom: 8px; }
   "truffle-seafood-pasta",
   "kimchi-tofu-stew",
   "japanese-potato-beef-stew",
-  "borscht-beef-tomato-soup"
+  "borscht-beef-tomato-soup",
+  "hungarian-beef-goulash",
+  "miso-chicken-hotpot",
+  "garlic-oil-shrimp",
+  "paprika-air-fryer-potato"
 ]
 ```
 
@@ -3032,6 +3120,49 @@ ol.steps li { margin-bottom: 8px; }
 }
 ```
 
+### ./data/recipes/miso-chicken-hotpot.json
+```json
+{
+  "id": "miso-chicken-hotpot",
+  "title": "味噌雞肉鍋",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "雞腿肉", "category": "肉類" },
+    { "name": "蒜泥", "category": "辛香蔬菜" },
+    { "name": "薑泥", "category": "辛香蔬菜" },
+    { "name": "烹大師", "category": "調味粉" },
+    { "name": "味醂", "category": "調味料" },
+    { "name": "醬油", "category": "調味料" },
+    { "name": "米酒", "category": "調味料" },
+    { "name": "洋蔥", "category": "辛香蔬菜" },
+    { "name": "高麗菜", "category": "蔬菜" },
+    { "name": "紅蘿蔔", "category": "蔬菜" },
+    { "name": "板豆腐", "category": "生鮮食材", "choice_group": "豆腐擇一" },
+    { "name": "嫩豆腐", "category": "生鮮食材", "choice_group": "豆腐擇一" },
+    { "name": "生香菇", "category": "蔬菜" },
+    { "name": "金針菇", "category": "蔬菜" },
+    { "name": "味噌", "category": "醬" },
+    { "name": "鹽", "category": "調味料" },
+    { "name": "白胡椒粉", "category": "調味粉" }
+  ],
+  "steps": [
+    { "order": 1, "text": "雞肉用鹽、白胡椒醃漬。" },
+    { "order": 2, "text": "下鍋先煎香、炒洋蔥、加入蒜泥薑泥。" },
+    { "order": 3, "text": "加入水&烹大師，加入味醂醬油米酒。" },
+    { "order": 4, "text": "依序加入各種蔬菜豆腐。" },
+    { "order": 5, "text": "最後關小火加入味噌。" }
+  ],
+  "cuisine": "其他",
+  "cooking_methods": ["炒", "湯"],
+  "main_ingredient_types": ["肉類", "蔬食", "蛋豆製品"],
+  "course": "主菜",
+  "spice_level": "不辣",
+  "created_at": "2026-08-04",
+  "raw_input": "味噌雞肉鍋\t\n雞腿肉\t雞肉用鹽、白胡椒醃漬\n蒜泥、薑泥\t下鍋先煎香、炒洋蔥、加入蒜泥薑泥\n烹大師、味醂、醬油、米酒\t加入水&烹大師，加入味醂醬油米酒\n洋蔥、高麗菜\t依序加入各種蔬菜豆腐\n紅蘿蔔、豆腐\t最後關小火加入味噌\n香菇、金針菇\t\n味噌"
+}
+```
+
 ### ./data/recipes/pan-seared-steak-garlic-butter.json
 ```json
 {
@@ -3064,6 +3195,35 @@ ol.steps li { margin-bottom: 8px; }
   "course": "主菜",
   "created_at": "2026-07-31",
   "raw_input": "煎牛排\t\n材料\t作法\n牛排\t牛排退冰退到室溫　用紙巾擦乾\n大蒜6-8瓣\t蒜片黏液洗乾淨\n鹽巴少許\t小火加油炸蒜片\n奶油20g\t蒜片一轉金黃色就取出，油留著\n迷迭香4支\t牛排下鍋前撒上鹽巴後按摩\n\t開大火熱鍋熱到冒煙\n\t轉中火一面煎1.5分鐘\n\t各面煎完後，下奶油、迷迭香\n\t傾斜鍋面用湯匙撈奶油淋在牛排上\n\t起鍋後靜置5分鐘，再回去加熱1分鐘"
+}
+```
+
+### ./data/recipes/paprika-air-fryer-potato.json
+```json
+{
+  "id": "paprika-air-fryer-potato",
+  "title": "紅椒粉馬鈴薯塊",
+  "source": "",
+  "reference_url": "",
+  "ingredients": [
+    { "name": "馬鈴薯（切塊）", "category": "蔬菜" },
+    { "name": "油", "category": "調味料" },
+    { "name": "鹽", "category": "調味料" },
+    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "紅椒粉", "category": "調味粉" }
+  ],
+  "steps": [
+    { "order": 1, "text": "用油、鹽巴、黑胡椒、紅椒粉拌勻後刷上馬鈴薯。" },
+    { "order": 2, "text": "氣炸約10-15分鐘。" },
+    { "order": 3, "text": "出爐之後再撒一點紅椒粉。" }
+  ],
+  "cuisine": "西式",
+  "cooking_methods": ["氣炸"],
+  "main_ingredient_types": ["蔬食"],
+  "course": "配菜",
+  "spice_level": "不辣",
+  "created_at": "2026-08-04",
+  "raw_input": "紅椒粉馬鈴薯塊\n (用氣炸鍋)\n先用油、鹽巴、黑胡椒、紅椒粉拌勻後刷上馬鈴薯\n氣炸約10-15分鐘\n出爐之後再撒一點紅椒粉"
 }
 ```
 
@@ -3663,7 +3823,14 @@ ol.steps li { margin-bottom: 8px; }
   "番茄": ["番茄", "蕃茄"],
   "牛高湯": ["牛高湯"],
   "雞高湯": ["雞高湯"],
-  "月桂葉": ["月桂葉", "香葉"]
+  "月桂葉": ["月桂葉", "香葉"],
+  "紅椒": ["紅椒", "甜椒", "彩椒"],
+  "紅椒粉": ["紅椒粉", "匈牙利紅椒粉", "paprika"],
+  "味噌": ["味噌", "miso"],
+  "金針菇": ["金針菇"],
+  "板豆腐": ["板豆腐"],
+  "蝦子": ["蝦子"],
+  "油": ["油"]
 }
 ```
 
@@ -3671,7 +3838,7 @@ ol.steps li { margin-bottom: 8px; }
 ```json
 {
   "cuisine": ["中式", "西式", "其他"],
-  "cooking_methods": ["炒", "煎", "滷", "蒸", "烤", "炸", "燙/汆燙", "涼拌", "燉", "湯", "生食"],
+  "cooking_methods": ["炒", "煎", "滷", "蒸", "烤", "炸", "氣炸", "燙/汆燙", "涼拌", "燉", "湯", "生食"],
   "main_ingredient_types": ["肉類", "海鮮", "蛋豆製品", "蔬食", "澱粉/主食", "加工品"],
   "course": ["主菜", "配菜", "湯品", "甜點", "醬料/沾醬", "早餐"],
   "spice_level": ["不辣", "小辣", "中辣", "大辣"],
