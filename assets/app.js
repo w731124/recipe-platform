@@ -45,6 +45,7 @@ async function loadData() {
   state.taxonomy = taxonomy;
   state.pantryCategories = taxonomy.pantry_categories || [];
   state.pantryCategoryGroups = taxonomy.pantry_category_groups || {};
+  state.alwaysAvailableWhitelist = taxonomy.always_available_whitelist || [];
   state.pantry = pantry;
   state.pantryFlat = flattenPantry(pantry);
   state.synonyms = synonyms;
@@ -288,7 +289,8 @@ function renderIngredientList(items) {
     } else if (status) {
       addBtnHtml = `<button class="ing-add-btn" type="button" data-category="${escapeHtml(item.category || "")}" data-name="${escapeHtml(base)}">+ 加入</button>`;
     }
-    return `<li class="${status || ""}">
+    const liClass = item.always_available ? "staple" : (status || "");
+    return `<li class="${liClass}">
       <div class="ing-main">
         <span class="ing-name">${escapeHtml(base)}${hint}</span>
         <div class="ing-right">
@@ -695,6 +697,7 @@ function showDetail(id) {
     ${recipe.source ? `<div class="detail-meta">來源：${escapeHtml(recipe.source)}</div>` : ""}
     ${renderShoppingList(recipe)}
     <p class="legend"><span class="dot"></span>綠色底色代表素材庫已有此項目</p>
+    <p class="legend"><span class="dot dot-staple"></span>藍色底色代表國民常備調味料（不追蹤庫存，預設家裡一定有）</p>
 
     ${renderIngredientsByCategory(recipe)}
     ${renderSteps(recipe)}
@@ -1007,6 +1010,18 @@ function renderPantryView() {
     </details>`;
   }).join("");
 
+  // 國民常備調味料白名單：純唯讀參考顯示，不走 pantry.json、不能在網站上新增/刪除。
+  // 白名單本身的增減規則見 CLAUDE.md「always_available」一節，只能透過 Claude Code 離線確認調整。
+  const whitelistChips = state.alwaysAvailableWhitelist
+    .map(name => `<span class="pantry-chip pantry-chip-readonly">${escapeHtml(name)}</span>`)
+    .join("");
+  const whitelistOpen = state.pantryOpenGroups.has("__always_available__");
+  const whitelistHtml = `<details class="pantry-category-group" data-group="__always_available__"${whitelistOpen ? " open" : ""}>
+    <summary>🧂 國民常備調味料（${state.alwaysAvailableWhitelist.length}，唯讀）</summary>
+    <p class="legend">這些是家裡預設一定有、不追蹤庫存的基礎調味料，所有食譜裡出現這些食材都會自動視為已有，不列入購物清單。清單本身的增減只能透過 Claude Code 離線調整，網站上無法新增/刪除。</p>
+    <div class="pantry-chips">${whitelistChips}</div>
+  </details>`;
+
   const addForm = token
     ? `<div class="pantry-add-form">
         <h3>新增食材${selectedCategory ? `到「${escapeHtml(selectedCategory)}」` : ""}</h3>
@@ -1022,7 +1037,7 @@ function renderPantryView() {
     ${tokenPanel}
     ${addForm}
     <div id="pantry-status"></div>
-    <div class="pantry-category-groups">${categoriesHtml}</div>
+    <div class="pantry-category-groups">${categoriesHtml}${whitelistHtml}</div>
   `;
 
   el.querySelectorAll(".pantry-category-group").forEach(details => {

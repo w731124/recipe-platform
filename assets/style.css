@@ -9,6 +9,8 @@
   --pantry-yes-text: #2e6b32;
   --pantry-maybe: #fdecc8;
   --pantry-maybe-text: #8a5b13;
+  --pantry-staple: #dde6f5;
+  --pantry-staple-text: #3a5a8c;
   font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
 }
 
@@ -166,6 +168,8 @@ ul.ingredient-list li.have { background: var(--pantry-yes); border-color: var(--
 ul.ingredient-list li.have .ing-name { color: var(--pantry-yes-text); font-weight: 600; }
 ul.ingredient-list li.maybe { background: var(--pantry-maybe); border-color: var(--pantry-maybe-text); }
 ul.ingredient-list li.maybe .ing-name { color: var(--pantry-maybe-text); font-weight: 600; }
+ul.ingredient-list li.staple { background: var(--pantry-staple); border-color: var(--pantry-staple-text); }
+ul.ingredient-list li.staple .ing-name { color: var(--pantry-staple-text); font-weight: 600; }
 .ing-amount { color: var(--muted); flex-shrink: 0; }
 .ing-note { font-size: 0.75rem; color: var(--muted); }
 .ing-note-optional { color: var(--accent); font-weight: 600; }
@@ -209,6 +213,7 @@ ol.steps li { margin-bottom: 8px; }
 
 .legend { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
 .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--pantry-yes-text); margin-right: 4px; }
+.legend .dot-staple { background: var(--pantry-staple-text); }
 
 .site-footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 24px; }
 
@@ -291,6 +296,10 @@ ol.steps li { margin-bottom: 8px; }
 }
 .chip-remove:hover, .chip-remove:focus-visible {
   background: #c0392b; color: #fff;
+}
+.pantry-chip-readonly {
+  background: var(--card-bg); color: var(--muted);
+  border: 1px solid var(--border); padding: 4px 10px;
 }
 
 .pantry-add-form {
