@@ -1,61 +1,63 @@
 # 食譜筆記本網站 — Codebase Snapshot
-- 產生時間：2026-08-05
-- Git commit：987f21fdfb13321a18709aa50845cea8e7916067
+- 產生時間：2026-08-14 10:55:17 +0800
+- Git commit：c4da7bac395fddd01710e091f29ab6c289c3805d
 - 所在分支：main
 
 ## 目錄樹
 ```
-./.gitignore
-./CLAUDE.md
-./CODEBASE_SNAPSHOT.md
-./PROJECT_SPEC.md
-./README.md
-./assets/app.js
-./assets/style.css
-./data/ingredient_families.json
-./data/pantry.json
-./data/prep_forms.json
-./data/recipes/borscht-beef-tomato-soup.json
-./data/recipes/braised-pork-belly-taiwanese.json
-./data/recipes/braised-tofu-with-mushroom.json
-./data/recipes/chicken-soup-with-scallop-and-ham.json
-./data/recipes/dried-tofu-pork-celery-stirfry.json
-./data/recipes/fried-rice-with-ham-and-mushroom.json
-./data/recipes/garlic-oil-shrimp.json
-./data/recipes/hungarian-beef-goulash.json
-./data/recipes/index.json
-./data/recipes/japanese-potato-beef-stew.json
-./data/recipes/kimchi-tofu-stew.json
-./data/recipes/leftover-veggie-ramen.json
-./data/recipes/lobster-bisque-shrimp-pasta.json
-./data/recipes/mala-celery-minced-pork.json
-./data/recipes/miso-chicken-hotpot.json
-./data/recipes/pan-seared-steak-garlic-butter.json
-./data/recipes/paprika-air-fryer-potato.json
-./data/recipes/roast-lamb-chops.json
-./data/recipes/savory-tangyuan-soup.json
-./data/recipes/seafood-hotpot-noodles.json
-./data/recipes/sesame-oil-chicken.json
-./data/recipes/shrimp-stirfry-scallion.json
-./data/recipes/spicy-creamy-shrimp-pasta.json
-./data/recipes/spicy-diced-chicken.json
-./data/recipes/stir-fried-instant-noodles.json
-./data/recipes/truffle-seafood-pasta.json
-./data/synonyms.json
-./data/taxonomy.json
-./index.html
+.gitignore
+CLAUDE.md
+PROJECT_SPEC.md
+README.md
+assets/app.js
+assets/style.css
+data/ingredient_families.json
+data/pantry.json
+data/prep_forms.json
+data/recipes/borscht-beef-tomato-soup.json
+data/recipes/braised-pork-belly-taiwanese.json
+data/recipes/braised-tofu-with-mushroom.json
+data/recipes/chicken-soup-with-scallop-and-ham.json
+data/recipes/dried-tofu-pork-celery-stirfry.json
+data/recipes/fried-rice-with-ham-and-mushroom.json
+data/recipes/garlic-oil-shrimp.json
+data/recipes/hungarian-beef-goulash.json
+data/recipes/index.json
+data/recipes/japanese-potato-beef-stew.json
+data/recipes/kimchi-tofu-stew.json
+data/recipes/leftover-veggie-ramen.json
+data/recipes/lobster-bisque-shrimp-pasta.json
+data/recipes/mala-celery-minced-pork.json
+data/recipes/miso-chicken-hotpot.json
+data/recipes/pan-seared-steak-garlic-butter.json
+data/recipes/paprika-air-fryer-potato.json
+data/recipes/roast-lamb-chops.json
+data/recipes/savory-tangyuan-soup.json
+data/recipes/seafood-hotpot-noodles.json
+data/recipes/sesame-oil-chicken.json
+data/recipes/shrimp-stirfry-scallion.json
+data/recipes/spicy-creamy-shrimp-pasta.json
+data/recipes/spicy-diced-chicken.json
+data/recipes/stir-fried-instant-noodles.json
+data/recipes/truffle-seafood-pasta.json
+data/synonyms.json
+data/taxonomy.json
+index.html
+scripts/check-synonyms.js
+scripts/snapshot.sh
 ```
 
+## 檔案內容
 
 ### ./.gitignore
-```gitignore
+```
 .DS_Store
 Thumbs.db
 .vscode/
 ```
 
 ### ./CLAUDE.md
-```md
+```markdown
 # CLAUDE.md — 食譜筆記本網站開發指引
 
 給未來在這個 repo 裡工作的 Claude Code 對話讀的規格摘要。完整脈絡見 `PROJECT_SPEC.md`；這份文件只放「每次處理食譜/素材庫都要遵守」的具體規則，避免每次重新解釋。
@@ -71,6 +73,10 @@ Thumbs.db
 - 食譜相關連結（`reference_url`）的直接編輯（純粹修改這一個欄位的值，接受空字串代表清除連結）。
 
 除此之外的所有寫入（新增食譜、食譜的其他欄位、分類詞彙表、同義詞庫）仍然只能透過 Claude Code 對話離線寫入。
+
+## 「快照檔」約定
+
+當使用者說「快照檔」「產生快照」或類似說法時，指的是執行 `scripts/snapshot.sh` 產生完整版 `CODEBASE_SNAPSHOT.md`（涵蓋目錄樹、所有規則文件、`assets/app.js`、`assets/style.css`、`index.html`、以及全部 `data` 檔與食譜 JSON 的完整內容）。用途是讓使用者上傳給另一個 Claude 對話檢查網站最新狀態。產生時要用命令列拼檔、不要逐檔讀進上下文重新理解或改寫，也不要把內容輸出到對話裡，只回報檔案路徑與行數/大小。
 
 ## Git commit / push 規則（覆蓋預設行為）
 
@@ -139,20 +145,29 @@ Thumbs.db
 - `steps[].stage_note`：可選，補充說明這個階段跟其他階段的關係（例如「與熬湯頭同時進行」），畫面上會用小字附加在階段標題旁邊。
 - `ingredients[].component`：這個食材屬於食譜的哪個組件分組（自由文字，例如「湯頭材料」「雞湯配料」），跟 `category` 是兩件不同的事——`category` 是食材庫比對用的固定 16 大分類，`component` 純粹是這份食譜自己的組件分組，兩者互不影響、都要填。
 
+**`component` 的命名刻意不收斂、不維護建議用詞清單、也不需要跨食譜一致**——即使不同食譜出現語意相近但用字不同的 component 名稱（例如「湯頭」「湯底調味料」「湯頭材料」），這是可接受的，不要試圖統一它們，也不要因此停下來問使用者要不要收斂。理由：`component` 純粹是單一食譜內部的顯示分組標籤，前端不對它做任何跨食譜的運算、篩選或統計，所以命名不一致不會造成任何功能問題。這是使用者明確決定不需要管理的部分。
+
 **只在食譜真的有多條獨立流程或多個組件時才用這組欄位**（湯底/配料/組合分開熬煮、醬汁/主料/配菜分開製作這類情況）。單一流程的家常炒菜、燉菜這類簡單食譜不要為了用這個功能而刻意拆分 stage/component，維持原本攤平寫法，避免簡單食譜也被過度切碎。
 
 前端渲染邏輯（`assets/app.js` 的 `renderSteps`／`renderIngredientsByCategory`）：只要 `recipe.steps` 裡有任一項帶 `stage`，做法區塊就依 stage 第一次出現的順序分組顯示；`recipe.ingredients` 裡有任一項帶 `component`，食材區塊就依 component 分組（不再疊加 category 二次分組）。沒有任何一項帶這些欄位的食譜，畫面呈現完全不受影響。
 
 ### `always_available`：不需要追蹤庫存的食材
 
-`ingredients[].always_available` 處理的是「這個食材根本不該進入食材庫比對邏輯」的情況（例如「水」）——這裡要解決的不是「歸類到哪一類」，是這個食材客觀上不存在採購/庫存這件事，硬塞進某個 `category` 沒有意義。
+`ingredients[].always_available` 處理的是「這個食材不需要靠食材庫比對/購物清單追蹤」的情況——`category` 欄位不受這個欄位影響，還是要照常填（純粹給食材清單分組顯示用）。適用**兩種情況**：
 
-**判準是「客觀上不存在採購/庫存這件事」，不是「主觀上覺得很常見」**：
+**(a) 客觀上不存在採購/庫存這件事的食材**：例如「水」——**不可能是採購行為對象**，不會有人把水列進購物清單，也不會有人「檢查家裡還有沒有水」。遇到「水」可以直接標 `always_available: true`，不用每次都詢問。
 
-- 可以標 `always_available: true` 的只有像「水」這種**不可能是採購行為對象**的東西——不會有人把水列進購物清單，也不會有人「檢查家裡還有沒有水」。
-- **不要**濫用在「我剛好家裡通常有」的食材上，即使是鹽、米酒這類幾乎每次都會用到的常備品，還是要走正常的 `category` + `synonyms.json` 比對，不能因為主觀覺得「通常都有」就標成 `always_available`——那種情況本來就該讓食材庫比對邏輯（`have`/`missing`/`maybe`）判斷，而不是繞過它。
-- `category` 欄位不受這個欄位影響，還是要照常填（純粹給食材清單分組顯示用）。
-- 遇到「水」這個食材時可以直接標 `always_available: true`，不用每次都詢問；其他候選食材如果拿不準是否符合「客觀上不存在採購/庫存」這條判準，先跟使用者確認，不要自己擴大範圍。
+**(b) 使用者明確指定的「國民常備調味料」白名單**：使用者已經確認以下這些是家裡一定隨時都有、不需要靠購物清單追蹤的基礎調味料，直接標 `always_available: true`：
+
+> 鹽、油、糖、黑胡椒粉、白胡椒粉、胡椒鹽、辣椒粉、醬油、白醋、米酒、蠔油、太白粉、香油、麻油
+
+（共 14 項。**香油與麻油是兩個獨立食材**，依既有「香油≠麻油不可合併」原則各自獨立標記，不是同一項的兩種寫法。）
+
+以後新增食譜時，凡是 `ingredients` 裡出現這份白名單裡的食材，**一律自動標 `always_available: true`，不需要詢問使用者**；**白名單本身的增減才需要使用者確認**，不要自己擴大或縮減這份清單。比對時要看食材本名，不要誤判：例如「醬油膏」不是白名單裡的「醬油」、「白胡椒粒」不是白名單裡的「白胡椒粉」、食譜裡寫的是特定的「橄欖油」「辣椒油」「豬油」也不算白名單裡籠統的「油」，這些都不適用。
+
+**白名單外的「我通常有」食材，維持原本的謹慎原則，不套用 `always_available`**：即使某個食材主觀上覺得「幾乎每次都會用到」，只要不在上面這份白名單裡，還是要走正常的 `category` + `synonyms.json` 比對，讓食材庫比對邏輯（`have`/`missing`/`maybe`）判斷，**不能自行把白名單以外的食材也標成 `always_available`**——這是避免白名單無限擴張的守則，跟白名單本身「這 14 項不用問」的規則並不矛盾，只是適用範圍嚴格限定在這份清單。
+
+**跟 `spice_level` 的交互作用**：「辣椒粉」雖然在白名單裡（不追蹤庫存、不進購物清單），但它**仍然是 `spice_level` 判斷的辣度來源之一**——`always_available` 只影響「要不要追蹤庫存/進購物清單」，不影響辣度判斷，兩者互相獨立。**不要因為某個食材標了 `always_available` 就把它從辣度來源清單排除。**
 
 前端行為（`assets/app.js` 的 `renderIngredientList`／`renderShoppingList`）：`always_available: true` 的食材不呼叫 `pantryStatus`，不套用 have/missing/maybe 顏色、不顯示「+ 加入」按鈕，純粹列出名稱和份量；購物清單（`renderShoppingList`）計算前也會先排除這些項目，不會出現在任何一個購物清單分類裡。
 
@@ -168,7 +183,7 @@ Thumbs.db
 - 食譜詳細頁的食材清單（`renderIngredientList`／`renderIngredientsByCategory`）**不受影響**——每個食材依然各自獨立顯示 have/maybe/missing 顏色，`choice_group` 只影響購物清單的合併邏輯，不影響食材清單本身的逐項顯示。
 - 購物清單（`renderShoppingList`）：同一個 `choice_group` 內只要有任一成員狀態是 `have`，整組視為已滿足，全部不列入購物清單（不進 missing 也不進 maybe）；如果組內沒有任何成員是 `have`，取組內最高優先狀態（`maybe` 優先於 `missing`）當作整組狀態，用「成員名稱1／成員名稱2／...（擇一）」合併成一行放進對應清單，不會把組內每個成員各自列一行。合併顯示用的名稱一樣經過 `stripNotes()` 去掉備註文字。
 
-### 食材分類（`ingredients[].category`，沿用食材庫的 16 大分類）
+### 食材分類（`ingredients[].category`，沿用食材庫的 16 大分類：15 個有明確判準的分類 + 1 個「生鮮食材」接底分類）
 
 食譜裡每個食材都要歸類到 `data/taxonomy.json` 的 `pantry_categories` 詞彙表（跟食材庫分頁用的是同一份，這樣食譜詳細頁才能用跟食材庫一致的分類呈現，也讓使用者一眼看出「這個食材屬於食材庫哪一類、平常會不會囤貨」）：
 
@@ -318,13 +333,15 @@ Thumbs.db
    ```
    如果網站「食材庫」分頁新增的項目還沒有對應的同義詞群組，記得在下次對話中提醒使用者要不要順便補上別名——網站本身不會、也不應該自動生成同義詞（同義詞生成屬於離線輔助工作，不是網站執行期功能）。
 3. 如果某個素材庫項目目前想不到有意義的別名，`synonyms.json` 裡至少要有一筆 `"正式名稱": ["正式名稱"]`，讓查表邏輯能命中自己。
-4. 刪除素材庫項目時，同步詢問是否要一併移除 `synonyms.json` 裡對應的群組（不移除也不會壞，只是留著沒作用的資料）。
+4. **刪除素材庫項目時，預設不移除 `synonyms.json` 裡對應的同義詞群組，也不用詢問**——`pantry.json` 記錄的是「現在有沒有庫存」，`synonyms.json` 記錄的是「食材身份/別名對照」，兩者是不同層次的資料：食材用完之後很可能之後還會買回來，同義詞群組留著完全無害（比對邏輯是「查同義詞群組→看正式名稱在不在 `pantry.json`」，`pantry.json` 沒有就正常顯示 missing，不會因為同義詞群組還在而誤判成 have），留著還能在下次買回來時直接沿用、不用重新想別名。只有在食材本身**永久性**不再相關時才需要考慮移除同義詞群組並詢問使用者，例如：這筆同義詞群組本身是打錯字/判斷錯誤要重建、或要把它併進其他群組——單純的庫存進出（用完、之後可能再買）不屬於這個情況。
+5. **同一食材有多種不可合併形態、使用者家裡可能同時擁有多種時，`pantry.json` 要分開登記每一種實際擁有的形態，各自是獨立的項目**——「粒/粉」「新鮮/乾燥」「不同品種」這類不可合併的形態差異（見下方「食材別名的不可合併原則」一節）不能只登記其中一種（會導致食譜寫到另一種形態時被誤判成 missing，即使家裡其實有），也不能登記一個籠統詞（會踩到籠統詞比對的既有 bug，同樣見不可合併原則一節）。例如使用者家裡黑胡椒粒、黑胡椒粉兩種都有，`pantry.json` 就分開登記「黑胡椒粒」「黑胡椒粉」兩個項目，各自對應各自的同義詞群組，食譜寫「黑胡椒粒」就精確比對到粒、寫「黑胡椒粉」就精確比對到粉，兩者互不干擾。這條原則跟三件事保持一致，不是獨立的新規則：
+   - 跟「粒≠粉不可合併」的同義詞原則一致——同義詞層級既然不合併，庫存層級也分開登記，才不會自相矛盾。
+   - 讓比對結果最誠實——食譜寫哪種形態，就精確反映家裡有沒有那種形態。
+   - 跟 `always_available` 白名單的設計自洽——白名單裡「黑胡椒粉、白胡椒粉」是粉、沒有納入「黑胡椒粒」，正是因為粒和粉在使用者家裡是分開管理的兩樣東西（粉常備、粒不一定有要追蹤），這個區別只有在庫存分開登記的前提下才成立。
 
 ## 食材別名的「不可合併」原則，以及家族關係（`data/ingredient_families.json`）
 
 **同義詞（`synonyms.json`）只能收「對烹飪來說完全可以互相取代」的講法**，不能因為兩個詞長得像、或字面上有包含關係就合併。已知的反例（不可合併）：蒜苗≠蔥、香油≠麻油、花椒粒≠花椒粉、青花椒≠紅花椒、**醬油≠醬油膏**（質地跟用途不同，醬油膏是加了澱粉的濃稠版，常用來沾/收尾，不是醬油的另一種寫法）。判斷原則：**只要「品種」或「形態／加工方式」任一軸不同，就不是同義詞**，即使原文只用一個籠統的詞（例如單純寫「花椒」），也不要因此把它塞進某個特定品種/形態的同義詞群組——寧可讓它比對不到、由下面的「家族」機制軟提示，也不要製造誤判成「已有」的假陽性。
-
-真實案例（曾經是 bug）：`synonyms.json` 一度把 `"花椒": ["花椒", "花椒粒", "花椒粉"]` 合併成一群，但素材庫裡「花椒」跟「花椒粉」其實是兩個獨立項目，導致食譜寫「花椒粉」時，比對邏輯查到「花椒」在庫存裡就誤判成「已有」，即使實際上沒有花椒粉。修法是把這個群組拆開成各自獨立、不互相合併的同義詞群組，籠統的講法就讓它比對不到，交給「家族」機制處理。
 
 **家族關係**（`data/ingredient_families.json`）是介於「同義詞（完全可取代）」跟「完全不相關」之間的第三種關係，用來處理「同一個食材，衍生出多個品種/形態，使用者庫存裡可能有其中一種，但食譜講得籠統、看不出是哪一種」的情況：
 
@@ -336,26 +353,16 @@ Thumbs.db
 - 比對邏輯（`assets/app.js` 的 `pantryStatus`）：先照 `isInPantry` 做嚴格比對，比對到才算「已有」（have）；比對不到時，才看食材名稱是否包含/被包含於某個家族代表詞，且該家族裡有任一成員在庫存中，是的話算「可能已有，請確認品種/形態」（maybe，畫面上是琥珀色，還需要買清單裡會分開列出來）；兩者都沒有才算「還需要買」（missing）。
 - 新增家族關係時，跟同義詞一樣要讓使用者 review 確認：這個籠統詞底下真的有哪些品種/形態、使用者庫存裡實際有哪些，不要自己亂猜著寫。
 - 什麼時候該新增家族關係：發現某個食材有明顯的品種/形態分支、而且使用者庫存剛好有其中特定一種時（像花椒、白胡椒粒/白胡椒粉、黑胡椒粉的案例；起司也是同一類——庫存習慣直接記具體品種名稱如「帕瑪森」「切達」「Brie」，但食譜常常只籠統寫「起司」，所以 `ingredient_families.json` 有 `"起司": ["帕瑪森", "切達", "Brie"]`，之後新增其他起司品種到食材庫時記得同步把它加進這個家族清單，不然新品種的起司不會被籠統的「起司」帶到）。不是每個食材都需要，多數食材維持單純的同義詞比對就夠了。這個機制也是「隨興食材／類別限定食材」規則 B 的核心做法（例如「海鮮」代表整個海鮮類），見上方「隨興食材／類別限定食材」一節的規則 B。
-- **這個「不可合併」原則不是只有花椒才要注意**——只要一個食材同時有「粒/粉」「新鮮/乾燥」「品種」這類會影響用法的分支，新增同義詞或補資料時都要先檢查會不會犯同樣的錯（例如這次補「白胡椒粉」的同義詞時，一度手滑把籠統的「白胡椒」也合併進去，就是同一種錯誤，事後才發現修正）。
+- **這個「不可合併」原則不是只有花椒才要注意**——只要一個食材同時有「粒/粉」「新鮮/乾燥」「品種」這類會影響用法的分支，新增同義詞或補資料時都要先檢查會不會犯同樣的錯（例如補「白胡椒粉」的同義詞時，一度手滑把籠統的「白胡椒」也合併進去，就是同一種錯誤，事後才發現修正）。
 
-**另外兩個真實案例（演算法層級的 bug，不是資料層級，修過兩輪才穩定）**：
+**目前 `assets/app.js` 的 `safeExtension(longer, shorter)` 判準**：只有兩種情況把「較長字串包含較短字串」當作同一食材的延伸寫法直接判定已有——(a) 較短字串在開頭、後面接的是括號備註（例：「辣椒（切末）」延伸自「辣椒」），或 (b) 較短字串在結尾、前面是目前清單裡的敘述性前綴 `["熟", "冷凍", "有機", "去皮", "帶皮"]`（**不包含「新鮮/乾燥/生」**——這三個詞對薑、蒜這類食材是安全的狀態描述，買的是同一樣東西，但對香菇、蝦米這類食材代表不同商品，一律不放進這份清單）。其餘所有「較長字串包含較短字串」的狀況一律不算安全延伸，寧可讓它比對不到、交給「家族」機制軟提示。
 
-1. 新增 `"米": ["米", "白米"]` 後，食譜寫「米酒」被誤判成已有——因為「米酒」「味醂」的別名「米霖」字面上都包含「米」這個字根。第一輪修法：加了 `looseMatch()`，要求寬鬆子字串比對時「比較短的那一邊至少 2 個字」，單一漢字只接受完全相等。
-2. 但這樣還不夠：「醬油膏」被誤判成跟「醬油」已有，因為「醬油」（2 字）跟「醬油膏」（3 字）都 ≥ 2 字，通過了 `looseMatch()` 的長度門檻，卻仍然是完全不同的食材。中文很多食材名是「字＋字」直接黏在一起組成不同東西（米→米酒、醬油→醬油膏、花→花椒），不是只有單一漢字才會這樣，字數門檻擋不住這種情況。
+**之後新增同義詞或處理類似比對需求時，套用以下三條個案處理原則**：
+- 遇到「A/B 只差一個生鮮狀態前綴（新鮮/乾燥/生）」的比對需求，一律用明確的同義詞別名處理（例如「辣椒」群組直接補上「新鮮辣椒」這個別名），**不要往 `SAFE_DESCRIPTIVE_PREFIXES` 加新鮮/乾燥/生這類詞**。
+- 裸字食材名（例如「香菇」）在「新鮮 vs 乾燥是不同商品」的情況下，比照「辣椒／乾辣椒」的既有模式：裸字歸類新鮮那一組（例如 `"香菇": ["香菇", "生香菇", "鮮香菇"]`），乾燥版用完全不同的名稱獨立成群（`"乾香菇": ["乾香菇"]`），不共用裸字。如果之後發現某則食譜的裸字食材其實指的是乾燥版，應該去修正那則食譜檔案本身的食材名稱（改成明確的「乾XX」），而不是回頭修改同義詞群組的判準。
+- 遇到「大/小/中」這類尺寸描述比對不到既有食材名的情況（例如食譜寫「大雞腿」，比對不到「雞腿」），一律走個案別名路線（例如 `"雞腿": ["雞腿", "大雞腿"]`），**不要把尺寸詞加進 `SAFE_DESCRIPTIVE_PREFIXES`**——中文有大量食材名本身就內建「大/小」這類字（大蒜、小黃瓜、小魚乾都不是尺寸描述），全域安全前綴風險太高。除非之後累積夠多案例、且都確認相關食材沒有這種「尺寸字內建在名稱裡」的風險，才重新考慮通用化。
 
-最終修法是 `assets/app.js` 的 `safeExtension(longer, shorter)`：只有兩種情況把「較長字串包含較短字串」當作同一食材的延伸寫法直接判定已有——(a) 較短字串在開頭、後面接的是括號備註（例：「辣椒（切末）」延伸自「辣椒」），或 (b) 較短字串在結尾、前面是「熟/冷凍/有機/去皮/帶皮」這類不影響食材本身的敘述性前綴（**不包含「新鮮/乾燥/生」，理由見下方第四個真實案例**）。其餘所有「較長字串包含較短字串」的狀況（例如字直接黏在一起形成新品項）一律不算安全延伸。這是通用的演算法防呆，不是逐一資料修正——之後如果又出現類似的誤判，先檢查是不是新的「字黏在一起變成不同食材」案例，理論上已經被 `safeExtension` 擋掉了，但如果發現新的漏網案例要在這裡補充說明，也可以視情況擴充 `SAFE_DESCRIPTIVE_PREFIXES` 這個安全前綴清單——但新增前務必先確認這個食材的新鮮/乾燥狀態不會構成不同商品（見下方第四個真實案例的教訓）。
-
-3. 第三個真實案例（跟上面同一個 bug class，但方向相反）：`isInPantry` 裡有一段專門處理「食譜寫的名稱比同義詞條目更籠統」的分支（例如食譜只寫「起司」，同義詞條目是更具體的「帕瑪森起司」），舊寫法是 `looseMatch(alias, name) && name.length < alias.length`——只看長度、沒有走 `safeExtension` 防呆，於是「起司」被誤判成跟「帕瑪森起司」（canonical「帕瑪森」）已有；用同樣邏輯反查全部食譜後，還發現「香菜」被誤判成跟「洋香菜」（canonical「巴西里」，也就是巴西里香菜，跟香菜／芫荽是完全不同的香草）已有——這個誤判已經在 `stir-fried-instant-noodles.json`（炒泡麵）裡存在了一段時間都沒被發現。修法是把這個分支也換成 `safeExtension(alias, name)`，跟另一個方向共用同一套「開頭+括號」「結尾+敘述性前綴」判準，不再是只看長度的寬鬆比對。**這也是為什麼寧可讓籠統詞比對不到、交給下面的「家族」機制軟提示，也不要靠長度或字數這種粗略門檻直接判定已有**——這個 bug class 已經抓到三次，以後新增比對邏輯時預設不能信任「單純長度夠長就算安全」這個假設。
-
-4. 第四個真實案例（跟 `safeExtension` 的 `SAFE_DESCRIPTIVE_PREFIXES` 假設根本衝突，修過兩輪才穩定）：`data/pantry.json` 的「乾貨」分類底下曾經直接存成 `"香菇"`（沒有加「乾」字首），本意是指乾香菇，但字面上跟「生香菇」只差一個「生」字首——`safeExtension` 原本把「新鮮/乾燥/生/熟」都當成「不影響食材本身的敘述性前綴」，所以「生香菇」會被判定成「香菇」的安全延伸，誤判成已有乾香菇＝已有生香菇。
-
-   第一輪修法只把 `pantry.json` 的乾貨項目改成明確的 `"乾香菇"`，以為避開裸字「香菇」就沒事——**結果不夠**：依實際資料反查發現 `savory-tangyuan-soup.json`（鹹湯圓）的「香菇（切片）」本來就分類在「乾貨」，做法第一步「香菇、蝦米先泡水放著」跟蝦米一起泡發，看起來像是把裸字「香菇」當乾香菇用；新增的「香菇燴豆腐」也有同樣的「泡發」步驟。當時一度依這個線索把裸字「香菇」併進「乾香菇」群組。
-
-   **後來使用者明確拍板，改用相反的判準**：裸字「香菇」的分類邏輯要比照「辣椒／乾辣椒」的既有模式——`辣椒` 群組本身就是裸字「辣椒」當канonical（預設指新鮮），乾燥版另外用完全不同的名稱「乾辣椒」獨立成群，兩者不共用裸字。香菇依樣處理：**裸字「香菇」歸類「生香菇／鮮香菇」那一組（預設指新鮮），「乾香菇」保持完全獨立、不含裸字「香菇」**：`"香菇": ["香菇", "生香菇", "鮮香菇"]`、`"乾香菇": ["乾香菇"]`。這代表鹹湯圓、香菇燴豆腐這兩則食譜裡的裸字「香菇」，在使用者只有乾香菇、沒有新鮮香菇庫存的情況下，會顯示「還需要買」——即使這兩則食譜的「泡發」步驟讀起來更像是乾香菇的用法，**這是使用者明確選擇的判準，不要自己改回「裸字=乾」**；如果之後確認這兩則食譜真的是乾香菇，應該去修正那兩個食譜檔案本身的食材名稱（改成明確的「乾香菇」），而不是回頭修改同義詞群組的判準。
-
-   但只要「香菇」這個裸字本身是任何群組的別名，`safeExtension` 的「生/新鮮」前綴規則就會讓「生香菇」「新鮮香菇」自動安全延伸回這個裸字，導致又繞回同一個誤判（這次方向相反：生香菇被誤判成乾香菇已有）。**真正的修法是把 `SAFE_DESCRIPTIVE_PREFIXES` 裡的「新鮮」「乾燥」「生」整個移除**，因為這三個詞剛好就是本文件「食材分類」一節拿來區分「主食/乾貨」跟「生鮮食材」的判斷軸線本身——對薑、蒜這類食材，新鮮/乾燥只是「狀態」，買的是同一樣東西，用這三個前綴沒問題；但對香菇、蝦米這類食材，新鮮/乾燥根本是**不同的商品**，用同一套前綴規則本質上就是錯的，不能靠「食材而定」的例外去補，乾脆整個移出安全清單，改用明確的同義詞別名處理需要的個案（例如「辣椒」群組直接補上「新鮮辣椒」這個別名，取代原本靠前綴規則產生的比對）。移除後只剩 `["熟", "冷凍", "有機", "去皮", "帶皮"]`——這些詞不是「保存方式」的分界線，對目前用到的食材都還算安全。**以後遇到新的「A/B 只差一個生鮮狀態前綴」的比對需求，一律用明確的同義詞別名處理，不要再往 `SAFE_DESCRIPTIVE_PREFIXES` 加新鮮/乾燥/生這類詞。**
-
-5. 第五個案例（尺寸前綴，判斷後選擇「個案別名」而非「擴充安全前綴清單」）：食譜寫「大雞腿」，比對不到既有的「雞腿」，因為「大」不在 `SAFE_DESCRIPTIVE_PREFIXES` 裡。這裡有兩種修法：(a) 只把「大雞腿」當成「雞腿」的個案別名加進 `synonyms.json`；(b) 把「大/小/中」這類尺寸描述整個加進 `SAFE_DESCRIPTIVE_PREFIXES`，變成通用規則。**選了 (a)**：尺寸前綴比「新鮮/乾燥/生」風險更高——中文有大量食材名本身就內建「大/小」這類字（「大蒜」是蒜頭不是尺寸描述、「小黃瓜」是特定品種的瓜不是「黃瓜」的小尺寸版、「小魚乾」是獨立的乾貨品項不是「魚乾」的小尺寸版），如果把「大/小/中」列為全域安全前綴，會讓 `safeExtension` 在這些完全不相關的食材對之間產生大量誤判，風險遠高於逐一加別名的維護成本。`"雞腿": ["雞腿", "大雞腿"]` 是目前唯一加入的尺寸別名，**之後遇到類似「大/小 + 食材名」比對不到的情況，預設也走個案別名路線，不要把尺寸詞加進 `SAFE_DESCRIPTIVE_PREFIXES`**，除非之後累積夠多案例、且都確認相關食材沒有這種「尺寸字內建在名稱裡」的風險，才重新考慮通用化。
+這些不可合併原則背後的完整歷史 bug 案例（誤判經過、`looseMatch`/`safeExtension` 演算法修了幾輪、`SAFE_DESCRIPTIVE_PREFIXES` 為什麼移除新鮮/乾燥/生的完整推導）見 `PROJECT_SPEC.md` 第 5 節。
 
 ## 切法／處理方式參考詞彙表（`data/prep_forms.json`）
 
@@ -405,8 +412,9 @@ Thumbs.db
 - 沒有設定 token 的訪客仍然可以正常瀏覽食材庫內容、食譜內容（唯讀），只是看不到新增/刪除/刪除食譜的按鈕，符合「單一維護者上傳、其他人唯讀瀏覽」的定位。
 
 ## 分類詞彙表（`data/taxonomy.json`）維護原則
-- `cuisine` 刻意只停在「中式／西式／其他」這一層，不要往下細分國家（例如不要自作主張加「日式」「泰式」），因為很多菜色本來就跨國別，硬分反而製造分類困難。跨菜系的差異改用 `cooking_methods` / `main_ingredient_types` 這些不受國別限制的維度來區分。
-- 除非使用者明確要求，不要新增詞彙表裡沒有的分類值。
+- `cuisine` 目前是「中式／西式／日式／韓式／其他」——原本刻意只停在「中式／西式／其他」，不往下細分國家，但日式、韓式是高頻且國別明確的菜系，使用者已確認新增這兩個值。
+- **跨國別菜色的歸類判準**：判斷 `cuisine` 時**先看這道菜的主體屬於哪個菜系框架**（用什麼烹調邏輯、主食/主結構是什麼），**調味料層次的異國元素不改變歸類**。例如「韓式辣醬義大利麵」主體是義大利麵（西式框架、義式烹調邏輯），只是用韓式調味，歸「西式」；「味噌雞肉鍋」主體是日式鍋物的烹調邏輯，歸「日式」。這條準則保留了「避免跨國別硬分造成困難」的精神——真正跨國別、主體難以判斷的菜才歸「其他」，國別明確的菜（不論主體是哪一國）就照主體歸類，不要因為食譜裡出現任何異國食材/調味就猶豫。跨菜系的細節差異可以改用 `cooking_methods` / `main_ingredient_types` 這些不受國別限制的維度補充區分。
+- 除非使用者明確要求，不要新增詞彙表裡沒有的分類值。日式、韓式是使用者確認後新增的先例，**之後若再遇到高頻且國別明確的菜系（例如泰式、義式），可以比照提出來討論，但預設仍不自行擴充，要先問過使用者**，不要因為有這次的先例就自己判斷「夠明確」而直接加值。
 
 ## 前端行為（`assets/app.js`，非必要不要改動核心邏輯）
 - 素材庫比對邏輯（`isInPantry`）：先查 `synonyms.json` 找出食材所屬的同義詞群組，群組的正式名稱若在 `pantry.json`（攤平後的 `state.pantryFlat`）裡就標記已有；如果食材完全沒有對應的同義詞群組，才退回直接對素材庫做字面包含比對。這是刻意設計，修改前先看 `PROJECT_SPEC.md` 第 5 節的理由。
@@ -425,12 +433,8 @@ Thumbs.db
 - 不要把網站直接寫入 GitHub 的模式擴大到「食材庫新增/刪除」「食譜刪除」「食譜標題/步驟文字編輯」「食譜相關連結（`reference_url`）編輯」以外的操作（尤其是食譜的新增、食材/分類/菜系等需要判斷的欄位），也不要把 token 硬編碼進原始碼或以任何方式提交進 repo。
 ```
 
-### ./CODEBASE_SNAPSHOT.md
-```md
-```
-
 ### ./PROJECT_SPEC.md
-```md
+```markdown
 # 食譜筆記本網站 — 專案規格 v0.1
 
 ## 1. 定位
@@ -519,6 +523,30 @@ Thumbs.db
 - 已知限制：只能涵蓋同義詞庫裡已收錄的別名，遇到完全沒預料到的新別名（例如某食譜寫「軟絲」而庫裡沒收錄）仍會漏判，需你事後手動補進 `synonyms.json`。這比純字面比對的誤判率低很多，但不是 100% 自動化，仍需要你偶爾維護。
 - 重要提醒：合併同義詞前必須先確認語意上真的是同一食材，例如「蒜苗」不是「蔥」的別名，不能因為長得像就合併，否則會製造新的誤判。這件事沒辦法靠程式規則防呆，只能靠你（或你要求 Claude）在生成同義詞時做食材知識上的把關。
 
+### 5.1 已知 bug 修正歷程（比對演算法的設計推導）
+
+這裡記錄同義詞/家族機制在實際使用中踩過的比對邏輯 bug，以及每一輪修法的推導過程，供之後要修改 `assets/app.js` 比對邏輯（`isInPantry`／`safeExtension`／`looseMatch`）時參考「這條路已經走過、為什麼行不通」。`CLAUDE.md` 只保留這些案例濃縮後的結論規則，完整過程留在這裡。
+
+**起點：花椒粒/花椒粉誤合併**。`synonyms.json` 一度把 `"花椒": ["花椒", "花椒粒", "花椒粉"]` 合併成一群，但素材庫裡「花椒」跟「花椒粉」其實是兩個獨立項目，導致食譜寫「花椒粉」時，比對邏輯查到「花椒」在庫存裡就誤判成「已有」，即使實際上沒有花椒粉。修法是把這個群組拆開成各自獨立、不互相合併的同義詞群組，籠統的講法就讓它比對不到，交給「家族」機制處理——這是「家族關係」機制存在的直接原因。
+
+**第一輪：`looseMatch()` 的字數門檻，以及它為什麼不夠**。新增 `"米": ["米", "白米"]` 後，食譜寫「米酒」被誤判成已有——因為「米酒」「味醂」的別名「米霖」字面上都包含「米」這個字根。第一輪修法加了 `looseMatch()`，要求寬鬆子字串比對時「比較短的那一邊至少 2 個字」，單一漢字只接受完全相等。但這樣還不夠：「醬油膏」被誤判成跟「醬油」已有，因為「醬油」（2 字）跟「醬油膏」（3 字）都 ≥ 2 字，通過了 `looseMatch()` 的長度門檻，卻仍然是完全不同的食材。中文很多食材名是「字＋字」直接黏在一起組成不同東西（米→米酒、醬油→醬油膏、花→花椒），不是只有單一漢字才會這樣，字數門檻擋不住這種情況。
+
+**第二輪：改用 `safeExtension()`，放棄純長度判準**。最終修法是 `assets/app.js` 的 `safeExtension(longer, shorter)`：只有兩種情況把「較長字串包含較短字串」當作同一食材的延伸寫法直接判定已有——(a) 較短字串在開頭、後面接的是括號備註（例：「辣椒（切末）」延伸自「辣椒」），或 (b) 較短字串在結尾、前面是「熟/冷凍/有機/去皮/帶皮」這類不影響食材本身的敘述性前綴。其餘所有「較長字串包含較短字串」的狀況（例如字直接黏在一起形成新品項）一律不算安全延伸。這是通用的演算法防呆，不是逐一資料修正。
+
+**第三輪：反方向一樣會中招（起司/帕瑪森、香菜/洋香菜）**。`isInPantry` 裡有一段專門處理「食譜寫的名稱比同義詞條目更籠統」的分支（例如食譜只寫「起司」，同義詞條目是更具體的「帕瑪森起司」），舊寫法是 `looseMatch(alias, name) && name.length < alias.length`——只看長度、沒有走 `safeExtension` 防呆，於是「起司」被誤判成跟「帕瑪森起司」（canonical「帕瑪森」）已有；用同樣邏輯反查全部食譜後，還發現「香菜」被誤判成跟「洋香菜」（canonical「巴西里」，也就是巴西里香菜，跟香菜／芫荽是完全不同的香草）已有——這個誤判已經在 `stir-fried-instant-noodles.json`（炒泡麵）裡存在了一段時間都沒被發現。修法是把這個分支也換成 `safeExtension(alias, name)`，跟另一個方向共用同一套「開頭+括號」「結尾+敘述性前綴」判準，不再是只看長度的寬鬆比對。這個 bug class（純粹用長度或字數判斷安全性）已經抓到三次，以後新增比對邏輯時預設不能信任「單純長度夠長就算安全」這個假設。
+
+**第四輪：`SAFE_DESCRIPTIVE_PREFIXES` 裡的「新鮮/乾燥/生」本身就是錯的**。`data/pantry.json` 的「乾貨」分類底下曾經直接存成 `"香菇"`（沒有加「乾」字首），本意是指乾香菇，但字面上跟「生香菇」只差一個「生」字首——`safeExtension` 原本把「新鮮/乾燥/生/熟」都當成「不影響食材本身的敘述性前綴」，所以「生香菇」會被判定成「香菇」的安全延伸，誤判成已有乾香菇＝已有生香菇。
+
+第一輪修法只把 `pantry.json` 的乾貨項目改成明確的 `"乾香菇"`，以為避開裸字「香菇」就沒事——結果不夠：依實際資料反查發現 `savory-tangyuan-soup.json`（鹹湯圓）的「香菇（切片）」本來就分類在「乾貨」，做法第一步「香菇、蝦米先泡水放著」跟蝦米一起泡發，看起來像是把裸字「香菇」當乾香菇用；新增的「香菇燴豆腐」也有同樣的「泡發」步驟。當時一度依這個線索把裸字「香菇」併進「乾香菇」群組。
+
+後來使用者明確拍板，改用相反的判準：裸字「香菇」的分類邏輯要比照「辣椒／乾辣椒」的既有模式——`辣椒` 群組本身就是裸字「辣椒」當 canonical（預設指新鮮），乾燥版另外用完全不同的名稱「乾辣椒」獨立成群，兩者不共用裸字。香菇依樣處理：裸字「香菇」歸類「生香菇／鮮香菇」那一組（預設指新鮮），「乾香菇」保持完全獨立、不含裸字「香菇」。這代表鹹湯圓、香菇燴豆腐這兩則食譜裡的裸字「香菇」，在使用者只有乾香菇、沒有新鮮香菇庫存的情況下，會顯示「還需要買」——即使這兩則食譜的「泡發」步驟讀起來更像是乾香菇的用法，這是使用者明確選擇的判準，不要自己改回「裸字=乾」。
+
+但只要「香菇」這個裸字本身是任何群組的別名，`safeExtension` 的「生/新鮮」前綴規則就會讓「生香菇」「新鮮香菇」自動安全延伸回這個裸字，導致又繞回同一個誤判（這次方向相反：生香菇被誤判成乾香菇已有）。真正的修法是把 `SAFE_DESCRIPTIVE_PREFIXES` 裡的「新鮮」「乾燥」「生」整個移除，因為這三個詞剛好就是「食材分類」判斷「主食/乾貨」跟「生鮮食材」的判斷軸線本身——對薑、蒜這類食材，新鮮/乾燥只是「狀態」，買的是同一樣東西，用這三個前綴沒問題；但對香菇、蝦米這類食材，新鮮/乾燥根本是不同的商品，用同一套前綴規則本質上就是錯的，不能靠「食材而定」的例外去補，乾脆整個移出安全清單，改用明確的同義詞別名處理需要的個案（例如「辣椒」群組直接補上「新鮮辣椒」這個別名，取代原本靠前綴規則產生的比對）。移除後只剩 `["熟", "冷凍", "有機", "去皮", "帶皮"]`。
+
+**第五輪：尺寸前綴，選擇個案別名而非通用前綴**。食譜寫「大雞腿」，比對不到既有的「雞腿」，因為「大」不在 `SAFE_DESCRIPTIVE_PREFIXES` 裡。這裡有兩種修法：(a) 只把「大雞腿」當成「雞腿」的個案別名加進 `synonyms.json`；(b) 把「大/小/中」這類尺寸描述整個加進 `SAFE_DESCRIPTIVE_PREFIXES`，變成通用規則。選了 (a)：尺寸前綴比「新鮮/乾燥/生」風險更高——中文有大量食材名本身就內建「大/小」這類字（「大蒜」是蒜頭不是尺寸描述、「小黃瓜」是特定品種的瓜不是「黃瓜」的小尺寸版、「小魚乾」是獨立的乾貨品項不是「魚乾」的小尺寸版），如果把「大/小/中」列為全域安全前綴，會讓 `safeExtension` 在這些完全不相關的食材對之間產生大量誤判，風險遠高於逐一加別名的維護成本。`"雞腿": ["雞腿", "大雞腿"]` 是目前唯一加入的尺寸別名。
+
+這五輪修正共同的教訓：**任何「用長度、字數、或固定前綴清單」判斷兩個食材名是否同一商品的簡化規則，都容易在中文食材命名的邊界案例上出錯**——比對邏輯目前收斂到 `safeExtension` 的「開頭+括號」「結尾+安全前綴清單」兩種情況，這是目前為止最穩定的版本，之後修改前建議先重讀這份歷程，避免重蹈覆轍。
+
 ## 6. 校正流程（brief 中遺漏、但必要的環節）
 - 解析既然發生在 Claude / Claude Code 對話裡，校正也在同一個對話中完成：Claude 產出 JSON 後，你 review 一次再確認 commit，而不是無條件信任解析結果直接寫入。
 - 原因：AI 對「適量」「少許」「一把」等模糊份量、以及台式/中式料理的食材別名，錯誤率不會是 0。
@@ -544,7 +572,7 @@ Thumbs.db
 ```
 
 ### ./README.md
-```md
+```markdown
 # 食譜筆記本
 
 把各種格式蒐集來的食譜統一整理成同一種格式的個人食譜資料庫，並依手邊素材庫自動標示哪些食材已經有、不用再買。
@@ -595,7 +623,7 @@ data/recipes/{id}.json        單筆食譜資料
 ```
 
 ### ./assets/app.js
-```js
+```javascript
 // 食譜筆記本 — 純前端靜態網站
 // 資料來源：/data/*.json，無任何後端或 API 呼叫（食材庫寫入除外，見下方 GitHub 直接寫入區塊）。
 // 素材庫比對邏輯見 PROJECT_SPEC.md 第 5 節（同義詞庫查表）。
@@ -2050,6 +2078,50 @@ ol.steps li { margin-bottom: 8px; }
 }
 ```
 
+### ./index.html
+```html
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>食譜筆記本</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>食譜筆記本</h1>
+    <p class="subtitle">統一格式整理的個人食譜資料庫</p>
+    <nav class="tabs">
+      <button class="tab-btn active" id="tab-recipes" type="button">食譜</button>
+      <button class="tab-btn" id="tab-pantry" type="button">食材庫</button>
+    </nav>
+  </header>
+
+  <main id="app">
+    <div id="list-view">
+      <aside class="filters" id="filters"></aside>
+      <div class="recipe-list-main">
+        <p class="recipe-count" id="recipe-count"></p>
+        <section class="recipe-list" id="recipe-list"></section>
+      </div>
+    </div>
+    <div id="detail-view" class="hidden"></div>
+  </main>
+
+  <main id="pantry-app" class="hidden">
+    <div id="pantry-view"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>資料以人工整理維護，僅供個人參考。</p>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
+```
+
 ### ./data/ingredient_families.json
 ```json
 {
@@ -2125,7 +2197,6 @@ ol.steps li { margin-bottom: 8px; }
   "辛香蔬菜": [
     "薑",
     "蒜頭",
-    "洋蔥",
     "辣椒"
   ],
   "起司": [
@@ -2185,6 +2256,182 @@ ol.steps li { margin-bottom: 8px; }
 }
 ```
 
+### ./data/synonyms.json
+```json
+{
+  "蝦仁": ["蝦仁"],
+  "牛排": ["牛排"],
+  "雞腿": ["雞腿", "大雞腿", "雞腿肉"],
+  "蔥": ["蔥", "青蔥", "珠蔥", "大蔥", "蔥花", "蔥段", "蔥絲"],
+  "蒜頭": ["蒜頭", "蒜仁", "蒜末", "蒜", "大蒜", "蒜片", "蒜泥", "蒜蓉"],
+  "醬油": ["醬油"],
+  "醬油膏": ["醬油膏"],
+  "孜然": ["孜然", "孜然粉"],
+  "丁香": ["丁香"],
+  "綠荳蔻": ["綠荳蔻", "小豆蔻"],
+  "紅花椒": ["紅花椒", "紅花椒粒"],
+  "青花椒粉": ["青花椒粉", "青花椒粉末"],
+  "豆瓣醬": ["豆瓣醬", "郫縣豆瓣醬", "辣豆瓣醬"],
+  "乾辣椒": ["乾辣椒", "辣椒乾", "乾辣椒段"],
+  "義大利綜合香料": ["義大利綜合香料", "義式香料"],
+  "羅勒": ["羅勒", "甜羅勒"],
+  "巴西里": ["巴西里", "洋香菜"],
+  "蒔蘿": ["蒔蘿", "dill"],
+  "迷迭香": ["迷迭香", "rosemary"],
+  "九層塔": ["九層塔", "塔羅勒"],
+  "咖哩粉": ["咖哩粉", "咖哩"],
+  "辣椒粉": ["辣椒粉"],
+  "五香粉": ["五香粉"],
+  "白胡椒粉": ["白胡椒粉"],
+  "白胡椒粒": ["白胡椒粒"],
+  "黑胡椒粉": ["黑胡椒粉"],
+  "香油": ["香油"],
+  "麻油": ["麻油"],
+  "白醋": ["白醋"],
+  "烏醋": ["烏醋", "黑醋"],
+  "味醂": ["味醂", "米霖"],
+  "巴薩米克醋": ["巴薩米克醋", "balsamic", "義大利黑醋"],
+  "米酒": ["米酒", "料理米酒"],
+  "米": ["米", "白米", "白飯"],
+  "鹽巴": ["鹽巴", "鹽"],
+  "白糖": ["白糖", "砂糖", "細砂糖", "糖"],
+  "清酒": ["清酒", "日本酒", "sake"],
+  "魚露": ["魚露", "fish sauce"],
+  "五味醬": ["五味醬"],
+  "番茄醬": ["番茄醬", "蕃茄醬"],
+  "芥末籽醬": ["芥末籽醬", "顆粒芥末醬"],
+  "黃芥末醬": ["黃芥末醬", "黃芥末", "美式芥末醬"],
+  "美乃滋": ["美乃滋", "美奶滋", "mayo"],
+  "薑": ["薑", "生薑", "老薑", "嫩薑", "薑末", "薑片", "薑絲", "薑泥", "薑塊"],
+  "洋蔥": ["洋蔥", "洋蔥丁", "洋蔥絲", "洋蔥圈"],
+  "辣椒": ["辣椒", "紅辣椒", "青辣椒", "小辣椒", "辣椒末", "辣椒片", "辣椒絲", "新鮮辣椒", "生辣椒"],
+  "帕瑪森": ["帕瑪森", "帕瑪森起司", "Parmesan"],
+  "切達": ["切達", "切達起司", "cheddar"],
+  "Brie": ["Brie", "brie", "布里起司"],
+  "酸豆": ["酸豆", "續隨子", "capers"],
+  "醃漬綠橄欖": ["醃漬綠橄欖", "綠橄欖"],
+  "墨西哥綠辣椒": ["墨西哥綠辣椒", "墨西哥辣椒", "jalapeño", "jalapeno"],
+  "鯷魚": ["鯷魚", "鯷魚罐頭", "anchovy"],
+  "鱈魚肝": ["鱈魚肝", "鱈魚肝罐頭"],
+  "太白粉": ["太白粉", "太白粉水"],
+  "香菇": ["香菇", "生香菇", "鮮香菇"],
+  "乾香菇": ["乾香菇"],
+  "橄欖油": ["橄欖油", "olive oil", "特級初榨橄欖油", "初榨橄欖油"],
+  "蠔油": ["蠔油", "oyster sauce"],
+  "義大利麵": ["義大利麵", "pasta"],
+  "蝦米": ["蝦米"],
+  "烹大師": ["烹大師"],
+  "柴魚片": ["柴魚片"],
+  "日式醬油": ["日式醬油"],
+  "雞粉": ["雞粉"],
+  "雞蛋": ["雞蛋", "蛋"],
+  "白麵條": ["白麵條", "麵條", "陽春麵"],
+  "麵粉": ["麵粉"],
+  "鮮奶油": ["鮮奶油"],
+  "檸檬汁": ["檸檬汁"],
+  "高麗菜": ["高麗菜", "包心菜", "甘藍"],
+  "蘑菇": ["蘑菇"],
+  "秀珍菇": ["秀珍菇"],
+  "鴻喜菇": ["鴻喜菇", "鴻喜"],
+  "雪白菇": ["雪白菇", "雪白"],
+  "松露醬": ["松露醬"],
+  "白酒": ["白酒", "乾白酒"],
+  "奶油": ["奶油", "butter"],
+  "泡菜": ["泡菜", "韓式泡菜", "韓國泡菜"],
+  "韓式湯錠": ["韓式湯錠"],
+  "韓式辣椒醬": ["韓式辣椒醬", "韓式辣醬", "gochujang"],
+  "韓式辣椒粉": ["韓式辣椒粉", "gochugaru"],
+  "韓式芝麻油": ["韓式芝麻油"],
+  "豬五花肉片": ["豬五花肉片", "五花肉片", "五花肉", "豬五花肉", "豬五花"],
+  "嫩豆腐": ["嫩豆腐"],
+  "黃豆芽": ["黃豆芽"],
+  "玉米筍": ["玉米筍"],
+  "馬鈴薯": ["馬鈴薯", "洋芋"],
+  "蒟蒻絲": ["蒟蒻絲", "蒟蒻麵"],
+  "牛肉片": ["牛肉片"],
+  "豬肉片": ["豬肉片"],
+  "紅蘿蔔": ["紅蘿蔔", "胡蘿蔔"],
+  "西洋芹": ["西洋芹"],
+  "番茄糊": ["番茄糊"],
+  "牛肋條": ["牛肋條"],
+  "番茄": ["番茄", "蕃茄"],
+  "牛高湯": ["牛高湯"],
+  "雞高湯": ["雞高湯"],
+  "月桂葉": ["月桂葉", "香葉"],
+  "紅椒": ["紅椒", "甜椒", "彩椒"],
+  "紅椒粉": ["紅椒粉", "匈牙利紅椒粉", "paprika"],
+  "味噌": ["味噌", "miso"],
+  "金針菇": ["金針菇"],
+  "板豆腐": ["板豆腐"],
+  "蝦子": ["蝦子"],
+  "油": ["油"],
+  "乾干貝": ["乾干貝", "干貝乾", "瑤柱"],
+  "小番茄": ["小番茄", "聖女番茄", "櫻桃番茄"],
+  "小白菜": ["小白菜"],
+  "小羊排": ["小羊排", "羊排"],
+  "扁尖筍": ["扁尖筍"],
+  "木耳": ["木耳", "黑木耳"],
+  "油豆腐": ["油豆腐"],
+  "白蘿蔔": ["白蘿蔔", "菜頭"],
+  "芹菜": ["芹菜"],
+  "茼蒿": ["茼蒿"],
+  "菠菜": ["菠菜"],
+  "蘆筍": ["蘆筍"],
+  "豆干": ["豆干", "豆乾"],
+  "豬肉絲": ["豬肉絲"],
+  "肉絲": ["肉絲"],
+  "里肌": ["里肌", "里肌肉", "豬里肌"],
+  "雞架子": ["雞架子", "雞骨架"],
+  "雞爪": ["雞爪", "鳳爪"],
+  "雞翅": ["雞翅"],
+  "雞胸肉": ["雞胸肉", "雞胸"],
+  "香菜": ["香菜", "芫荽"],
+  "鳥蛋": ["鳥蛋", "鵪鶉蛋"],
+  "絞肉": ["絞肉"],
+  "腳蹄": ["腳蹄", "豬腳", "蹄膀"],
+  "龍骨": ["龍骨", "豬龍骨", "背骨"],
+  "竹輪": ["竹輪"],
+  "花枝丸": ["花枝丸"],
+  "福州丸": ["福州丸"],
+  "鹹湯圓": ["鹹湯圓"],
+  "大餛飩": ["大餛飩", "餛飩"],
+  "麵輪": ["麵輪"],
+  "豬血糕": ["豬血糕", "米血糕", "米血"],
+  "豬油": ["豬油"],
+  "紅蔥頭油": ["紅蔥頭油", "紅蔥油", "油蔥酥油"],
+  "素蠔油": ["素蠔油"],
+  "火腿": ["火腿"],
+  "金華火腿": ["金華火腿"],
+  "白菜": ["白菜"],
+  "娃娃菜": ["娃娃菜"],
+  "青花椒": ["青花椒", "青花椒粒"],
+  "蒜苗": ["蒜苗", "青蒜"],
+  "泡麵": ["泡麵"],
+  "滷包": ["滷包"],
+  "好市多龍蝦濃湯": ["好市多龍蝦濃湯"],
+  "魚餃": ["魚餃"],
+  "貢丸": ["貢丸"]
+}
+```
+
+### ./data/taxonomy.json
+```json
+{
+  "cuisine": ["中式", "西式", "日式", "韓式", "其他"],
+  "cooking_methods": ["炒", "煎", "滷", "蒸", "烤", "炸", "氣炸", "燙/汆燙", "涼拌", "燉", "湯", "生食"],
+  "main_ingredient_types": ["肉類", "海鮮", "蛋豆製品", "蔬食", "澱粉/主食", "加工品"],
+  "course": ["主菜", "配菜", "湯品", "甜點", "醬料/沾醬", "早餐"],
+  "spice_level": ["不辣", "小辣", "中辣", "大辣"],
+  "pantry_categories": ["香料", "香草", "調味粉", "調味料", "醬", "辛香蔬菜", "起司", "罐頭/醃漬", "肉類", "海鮮", "蔬菜", "加工食品/火鍋料", "主食", "澱粉", "乾貨", "生鮮食材"],
+  "pantry_category_groups": {
+    "🥩 生鮮／冷藏冷凍": ["肉類", "海鮮", "蔬菜", "辛香蔬菜", "起司", "生鮮食材"],
+    "🥫 罐頭／加工／乾貨": ["罐頭/醃漬", "加工食品/火鍋料", "乾貨"],
+    "🍚 主食／澱粉": ["主食", "澱粉"],
+    "🧂 調味料理": ["香料", "香草", "調味粉", "調味料", "醬"]
+  }
+}
+```
+
 ### ./data/recipes/borscht-beef-tomato-soup.json
 ```json
 {
@@ -2208,8 +2455,8 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "蒜頭", "amount": "5", "unit": "顆", "category": "辛香蔬菜" },
     { "name": "月桂葉", "amount": "2", "unit": "片", "category": "香草" },
     { "name": "麵粉", "amount": "少許", "category": "澱粉" },
-    { "name": "鹽", "amount": "少許", "category": "調味料" },
-    { "name": "黑胡椒粉", "amount": "少許", "category": "調味粉" },
+    { "name": "鹽", "amount": "少許", "category": "調味料", "always_available": true },
+    { "name": "黑胡椒粉", "amount": "少許", "category": "調味粉", "always_available": true },
     { "name": "義大利綜合香料", "amount": "少許", "category": "香草" }
   ],
   "steps": [
@@ -2256,12 +2503,12 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "蒜頭（拍扁）", "amount": "6", "unit": "顆", "category": "辛香蔬菜" },
     { "name": "辣椒", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
     { "name": "滷包", "amount": "1", "unit": "包", "category": "香料" },
-    { "name": "砂糖（可用冰糖5顆替代）", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "蠔油", "amount": "1", "unit": "大匙", "category": "調味料" },
-    { "name": "醬油", "amount": "200", "unit": "ml", "category": "調味料" },
+    { "name": "砂糖（可用冰糖5顆替代）", "amount": "2", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "蠔油", "amount": "1", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "醬油", "amount": "200", "unit": "ml", "category": "調味料", "always_available": true },
     { "name": "醬油膏（可選，有的話加分）", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "米酒", "amount": "100", "unit": "ml", "category": "調味料" },
-    { "name": "白胡椒粉", "amount": "少許", "category": "調味粉" },
+    { "name": "米酒", "amount": "100", "unit": "ml", "category": "調味料", "always_available": true },
+    { "name": "白胡椒粉", "amount": "少許", "category": "調味粉", "always_available": true },
     { "name": "五香粉", "amount": "少許", "category": "調味粉" }
   ],
   "steps": [
@@ -2296,12 +2543,12 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "乾香菇", "amount": "4", "unit": "朵", "category": "乾貨" },
     { "name": "紅蘿蔔", "amount": "半", "unit": "根", "category": "蔬菜" },
     { "name": "蒜頭", "amount": "2", "unit": "顆", "category": "辛香蔬菜" },
-    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
-    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
-    { "name": "白胡椒粉", "amount": "少許", "category": "調味粉" },
+    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料", "always_available": true },
+    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料", "always_available": true },
+    { "name": "白胡椒粉", "amount": "少許", "category": "調味粉", "always_available": true },
     { "name": "素蠔油", "amount": "1.5", "unit": "茶匙", "category": "調味料" },
-    { "name": "太白粉水", "amount": "一些", "category": "澱粉" },
-    { "name": "香油", "amount": "少許", "category": "調味料" }
+    { "name": "太白粉水", "amount": "一些", "category": "澱粉", "always_available": true },
+    { "name": "香油", "amount": "少許", "category": "調味料", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "香菇泡發。" },
@@ -2390,7 +2637,8 @@ ol.steps li { margin-bottom: 8px; }
       "amount": "150",
       "unit": "cc",
       "category": "調味料",
-      "component": "湯頭配料"
+      "component": "湯頭配料",
+      "always_available": true
     },
     {
       "name": "乾干貝",
@@ -2514,16 +2762,16 @@ ol.steps li { margin-bottom: 8px; }
   "ingredients": [
     { "name": "豆干（切片）", "category": "生鮮食材" },
     { "name": "豬肉絲", "category": "肉類" },
-    { "name": "鹽", "amount": "1/4", "unit": "小匙", "category": "調味料" },
-    { "name": "醬油", "amount": "1/2", "unit": "小匙", "category": "調味料" },
-    { "name": "太白粉", "amount": "1/2", "unit": "小匙", "category": "澱粉" },
-    { "name": "米酒", "amount": "1", "unit": "小匙", "category": "調味料" },
-    { "name": "油", "amount": "1", "unit": "小匙", "category": "調味料" },
-    { "name": "醬油", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "蠔油", "amount": "1", "unit": "大匙", "category": "調味料" },
-    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "鹽", "amount": "1/4", "unit": "小匙", "category": "調味料" },
-    { "name": "糖", "amount": "1", "unit": "小匙", "category": "調味料" },
+    { "name": "鹽", "amount": "1/4", "unit": "小匙", "category": "調味料", "always_available": true },
+    { "name": "醬油", "amount": "1/2", "unit": "小匙", "category": "調味料", "always_available": true },
+    { "name": "太白粉", "amount": "1/2", "unit": "小匙", "category": "澱粉", "always_available": true },
+    { "name": "米酒", "amount": "1", "unit": "小匙", "category": "調味料", "always_available": true },
+    { "name": "油", "amount": "1", "unit": "小匙", "category": "調味料", "always_available": true },
+    { "name": "醬油", "amount": "2", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "蠔油", "amount": "1", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "鹽", "amount": "1/4", "unit": "小匙", "category": "調味料", "always_available": true },
+    { "name": "糖", "amount": "1", "unit": "小匙", "category": "調味料", "always_available": true },
     { "name": "蔥段", "amount": "2", "unit": "根", "category": "辛香蔬菜" },
     { "name": "辣椒", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
     { "name": "蒜頭", "amount": "3", "unit": "粒", "category": "辛香蔬菜" },
@@ -2591,17 +2839,20 @@ ol.steps li { margin-bottom: 8px; }
     {
       "name": "香油",
       "amount": "少許",
-      "category": "調味料"
+      "category": "調味料",
+      "always_available": true
     },
     {
       "name": "鹽",
       "amount": "少許",
-      "category": "調味料"
+      "category": "調味料",
+      "always_available": true
     },
     {
       "name": "醬油",
       "amount": "少許",
-      "category": "調味料"
+      "category": "調味料",
+      "always_available": true
     },
     {
       "name": "豬油",
@@ -2672,8 +2923,8 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "橄欖油", "amount": "一堆", "category": "調味料" },
     { "name": "乾辣椒", "category": "香料" },
     { "name": "羅勒", "amount": "一大堆", "category": "香草" },
-    { "name": "鹽", "category": "調味料" },
-    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "鹽", "category": "調味料", "always_available": true },
+    { "name": "黑胡椒粉", "category": "調味粉", "always_available": true },
     { "name": "紅椒粉", "category": "調味粉" }
   ],
   "steps": [
@@ -2712,8 +2963,8 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "大蒜", "amount": "3", "unit": "瓣", "category": "辛香蔬菜" },
     { "name": "月桂葉", "amount": "2", "unit": "片", "category": "香草" },
     { "name": "奶油", "amount": "一些", "category": "調味料" },
-    { "name": "鹽", "category": "調味料" },
-    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "鹽", "category": "調味料", "always_available": true },
+    { "name": "黑胡椒粉", "category": "調味粉", "always_available": true },
     { "name": "麵粉", "category": "澱粉" },
     { "name": "紅椒粉", "category": "調味粉" }
   ],
@@ -2784,8 +3035,8 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "蔥花", "category": "辛香蔬菜" },
     { "name": "日式醬油", "amount": "6", "unit": "大匙", "category": "調味料" },
     { "name": "味醂", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "砂糖", "amount": "1", "unit": "小匙", "category": "調味料" },
+    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "砂糖", "amount": "1", "unit": "小匙", "category": "調味料", "always_available": true },
     { "name": "柴魚片（可選）", "category": "乾貨" }
   ],
   "steps": [
@@ -2798,7 +3049,7 @@ ol.steps li { margin-bottom: 8px; }
     { "order": 7, "text": "關火後，加入柴魚片，靜置 5 分鐘，讓風味融入湯汁。" },
     { "order": 8, "text": "撒上蔥花。" }
   ],
-  "cuisine": "其他",
+  "cuisine": "日式",
   "cooking_methods": ["炒", "燉"],
   "main_ingredient_types": ["肉類", "蔬食", "加工品"],
   "course": "主菜",
@@ -2829,7 +3080,7 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "韓式湯錠", "category": "調味料" },
     { "name": "韓式辣椒醬", "amount": "1", "unit": "大匙", "category": "醬" },
     { "name": "韓式辣椒粉", "amount": "1", "unit": "大匙", "category": "調味粉" },
-    { "name": "醬油", "amount": "1", "unit": "大匙", "category": "調味料" },
+    { "name": "醬油", "amount": "1", "unit": "大匙", "category": "調味料", "always_available": true },
     { "name": "味醂", "amount": "1", "unit": "大匙", "category": "調味料" },
     { "name": "韓式芝麻油", "amount": "1", "unit": "小匙", "category": "調味料" }
   ],
@@ -2842,7 +3093,7 @@ ol.steps li { margin-bottom: 8px; }
     { "order": 6, "text": "加豆腐與豆芽菜：加入豆腐塊、豆芽菜、菇菇、玉米筍與高麗菜，輕輕攪拌，繼續煮約 5 分鐘。" },
     { "order": 7, "text": "撒蔥完成：起鍋前撒上剩下的蔥段即可上桌。" }
   ],
-  "cuisine": "其他",
+  "cuisine": "韓式",
   "cooking_methods": ["炒", "湯"],
   "main_ingredient_types": ["肉類", "海鮮", "蔬食", "蛋豆製品"],
   "course": "主菜",
@@ -2866,11 +3117,11 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "蒜", "category": "辛香蔬菜" },
     { "name": "辣椒", "category": "辛香蔬菜" },
     { "name": "日式醬油", "category": "調味料" },
-    { "name": "蠔油", "category": "調味料" },
-    { "name": "米酒", "category": "調味料" },
+    { "name": "蠔油", "category": "調味料", "always_available": true },
+    { "name": "米酒", "category": "調味料", "always_available": true },
     { "name": "雞粉", "category": "調味粉" },
-    { "name": "白胡椒粉", "category": "調味粉" },
-    { "name": "香油", "category": "調味料" },
+    { "name": "白胡椒粉", "category": "調味粉", "always_available": true },
+    { "name": "香油", "category": "調味料", "always_available": true },
     { "name": "白麵條", "category": "主食" }
   ],
   "steps": [
@@ -2997,7 +3248,8 @@ ol.steps li { margin-bottom: 8px; }
     {
       "name": "黑胡椒粉",
       "amount": "適量",
-      "category": "調味粉"
+      "category": "調味粉",
+      "always_available": true
     },
     {
       "name": "巴西里（乾燥或新鮮）",
@@ -3091,10 +3343,10 @@ ol.steps li { margin-bottom: 8px; }
   "ingredients": [
     { "name": "絞肉", "category": "肉類" },
     { "name": "芹菜（切丁）", "category": "蔬菜" },
-    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料" },
+    { "name": "米酒", "amount": "2", "unit": "大匙", "category": "調味料", "always_available": true },
     { "name": "郫縣豆瓣醬", "amount": "1", "unit": "小匙", "category": "醬" },
-    { "name": "醬油", "amount": "2", "unit": "大匙", "category": "調味料" },
-    { "name": "糖", "amount": "適量", "category": "調味料" },
+    { "name": "醬油", "amount": "2", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "糖", "amount": "適量", "category": "調味料", "always_available": true },
     { "name": "乾辣椒", "amount": "少許", "category": "香料" },
     { "name": "青花椒", "amount": "1/2", "unit": "小匙", "category": "香料" },
     { "name": "新鮮辣椒（切末）", "amount": "少許", "category": "辛香蔬菜" },
@@ -3133,8 +3385,8 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "薑泥", "category": "辛香蔬菜" },
     { "name": "烹大師", "category": "調味粉" },
     { "name": "味醂", "category": "調味料" },
-    { "name": "醬油", "category": "調味料" },
-    { "name": "米酒", "category": "調味料" },
+    { "name": "醬油", "category": "調味料", "always_available": true },
+    { "name": "米酒", "category": "調味料", "always_available": true },
     { "name": "洋蔥", "category": "辛香蔬菜" },
     { "name": "高麗菜", "category": "蔬菜" },
     { "name": "紅蘿蔔", "category": "蔬菜" },
@@ -3143,8 +3395,8 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "生香菇", "category": "蔬菜" },
     { "name": "金針菇", "category": "蔬菜" },
     { "name": "味噌", "category": "醬" },
-    { "name": "鹽", "category": "調味料" },
-    { "name": "白胡椒粉", "category": "調味粉" }
+    { "name": "鹽", "category": "調味料", "always_available": true },
+    { "name": "白胡椒粉", "category": "調味粉", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "雞肉用鹽、白胡椒醃漬。" },
@@ -3153,7 +3405,7 @@ ol.steps li { margin-bottom: 8px; }
     { "order": 4, "text": "依序加入各種蔬菜豆腐。" },
     { "order": 5, "text": "最後關小火加入味噌。" }
   ],
-  "cuisine": "其他",
+  "cuisine": "日式",
   "cooking_methods": ["炒", "湯"],
   "main_ingredient_types": ["肉類", "蔬食", "蛋豆製品"],
   "course": "主菜",
@@ -3173,7 +3425,7 @@ ol.steps li { margin-bottom: 8px; }
   "ingredients": [
     { "name": "牛排", "category": "肉類" },
     { "name": "大蒜（切片）", "amount": "6~8", "unit": "瓣", "category": "辛香蔬菜" },
-    { "name": "鹽巴", "amount": "少許", "category": "調味料" },
+    { "name": "鹽巴", "amount": "少許", "category": "調味料", "always_available": true },
     { "name": "奶油", "amount": "20", "unit": "g", "category": "調味料" },
     { "name": "迷迭香", "amount": "4", "unit": "支", "category": "香草" }
   ],
@@ -3207,9 +3459,9 @@ ol.steps li { margin-bottom: 8px; }
   "reference_url": "",
   "ingredients": [
     { "name": "馬鈴薯（切塊）", "category": "蔬菜" },
-    { "name": "油", "category": "調味料" },
-    { "name": "鹽", "category": "調味料" },
-    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "油", "category": "調味料", "always_available": true },
+    { "name": "鹽", "category": "調味料", "always_available": true },
+    { "name": "黑胡椒粉", "category": "調味粉", "always_available": true },
     { "name": "紅椒粉", "category": "調味粉" }
   ],
   "steps": [
@@ -3239,7 +3491,7 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "橄欖油", "category": "調味料" },
     { "name": "大蒜（切末）", "category": "辛香蔬菜" },
     { "name": "迷迭香", "category": "香草" },
-    { "name": "黑胡椒粉", "category": "調味粉" },
+    { "name": "黑胡椒粉", "category": "調味粉", "always_available": true },
     { "name": "義式香料", "category": "香草" }
   ],
   "steps": [
@@ -3275,7 +3527,7 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "茼蒿", "category": "蔬菜" },
     { "name": "高湯罐", "category": "罐頭/醃漬" },
     { "name": "紅蔥頭油", "category": "調味料" },
-    { "name": "鹽巴", "category": "調味料" }
+    { "name": "鹽巴", "category": "調味料", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "香菇、蝦米先泡水放著。" },
@@ -3359,25 +3611,29 @@ ol.steps li { margin-bottom: 8px; }
       "name": "太白粉",
       "amount": "一些",
       "category": "澱粉",
-      "component": "醃肉絲"
+      "component": "醃肉絲",
+      "always_available": true
     },
     {
       "name": "白胡椒粉",
       "amount": "一些",
       "category": "調味粉",
-      "component": "醃肉絲"
+      "component": "醃肉絲",
+      "always_available": true
     },
     {
       "name": "醬油",
       "amount": "一些",
       "category": "調味料",
-      "component": "醃肉絲"
+      "component": "醃肉絲",
+      "always_available": true
     },
     {
       "name": "米酒",
       "amount": "一些些",
       "category": "調味料",
-      "component": "醃肉絲"
+      "component": "醃肉絲",
+      "always_available": true
     }
   ],
   "steps": [
@@ -3408,9 +3664,9 @@ ol.steps li { margin-bottom: 8px; }
   "ingredients": [
     { "name": "大雞腿", "amount": "1", "unit": "支", "category": "肉類" },
     { "name": "老薑", "amount": "50", "unit": "g", "category": "辛香蔬菜" },
-    { "name": "麻油", "amount": "70", "unit": "g", "category": "調味料" },
+    { "name": "麻油", "amount": "70", "unit": "g", "category": "調味料", "always_available": true },
     { "name": "橄欖油", "amount": "30", "unit": "g", "category": "調味料" },
-    { "name": "米酒", "amount": "2", "unit": "支", "category": "調味料" },
+    { "name": "米酒", "amount": "2", "unit": "支", "category": "調味料", "always_available": true },
     { "name": "高麗菜", "amount": "1", "unit": "顆", "category": "蔬菜" },
     { "name": "豬血糕", "amount": "1", "unit": "塊", "category": "加工食品/火鍋料" }
   ],
@@ -3444,9 +3700,9 @@ ol.steps li { margin-bottom: 8px; }
   "ingredients": [
     { "name": "蝦仁", "amount": "300", "unit": "g", "category": "海鮮" },
     { "name": "青蔥", "amount": "3", "unit": "根", "category": "辛香蔬菜" },
-    { "name": "醬油", "amount": "1", "unit": "大匙", "category": "調味料" },
-    { "name": "米酒", "amount": "1", "unit": "大匙", "category": "調味料" },
-    { "name": "白胡椒粉", "amount": "適量", "category": "調味粉" }
+    { "name": "醬油", "amount": "1", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "米酒", "amount": "1", "unit": "大匙", "category": "調味料", "always_available": true },
+    { "name": "白胡椒粉", "amount": "適量", "category": "調味粉", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "蝦仁洗淨去腸泥，用廚房紙巾拍乾。" },
@@ -3553,14 +3809,16 @@ ol.steps li { margin-bottom: 8px; }
       "amount": "2.5",
       "unit": "小匙",
       "category": "調味料",
-      "component": "料汁"
+      "component": "料汁",
+      "always_available": true
     },
     {
       "name": "醬油",
       "amount": "2.5",
       "unit": "小匙",
       "category": "調味料",
-      "component": "料汁"
+      "component": "料汁",
+      "always_available": true
     },
     {
       "name": "番茄醬",
@@ -3609,20 +3867,20 @@ ol.steps li { margin-bottom: 8px; }
   "reference_url": "",
   "ingredients": [
     { "name": "雞胸肉（切丁）", "category": "肉類" },
-    { "name": "醬油", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
+    { "name": "醬油", "amount": "1/2", "unit": "茶匙", "category": "調味料", "always_available": true },
     { "name": "水", "amount": "20", "unit": "cc", "category": "調味料", "always_available": true },
-    { "name": "太白粉", "amount": "1", "unit": "茶匙", "category": "澱粉" },
-    { "name": "米酒", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
-    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
-    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料" },
+    { "name": "太白粉", "amount": "1", "unit": "茶匙", "category": "澱粉", "always_available": true },
+    { "name": "米酒", "amount": "1/2", "unit": "茶匙", "category": "調味料", "always_available": true },
+    { "name": "糖", "amount": "1/4", "unit": "茶匙", "category": "調味料", "always_available": true },
+    { "name": "鹽", "amount": "1/4", "unit": "茶匙", "category": "調味料", "always_available": true },
     { "name": "蔥", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
     { "name": "薑", "amount": "15", "unit": "克", "category": "辛香蔬菜" },
     { "name": "蒜", "amount": "2", "unit": "顆", "category": "辛香蔬菜" },
     { "name": "辣椒", "amount": "1", "unit": "根", "category": "辛香蔬菜" },
     { "name": "豆瓣醬", "amount": "1", "unit": "茶匙", "category": "醬" },
     { "name": "水", "amount": "30", "unit": "cc", "category": "調味料", "always_available": true },
-    { "name": "糖", "amount": "1/2", "unit": "茶匙", "category": "調味料" },
-    { "name": "太白粉水", "amount": "一些", "category": "澱粉" }
+    { "name": "糖", "amount": "1/2", "unit": "茶匙", "category": "調味料", "always_available": true },
+    { "name": "太白粉水", "amount": "一些", "category": "澱粉", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "下重油，炒雞胸肉。" },
@@ -3699,8 +3957,8 @@ ol.steps li { margin-bottom: 8px; }
     { "name": "洋蔥（切丁）", "amount": "1/3", "unit": "顆", "category": "辛香蔬菜" },
     { "name": "松露醬", "amount": "2-3", "unit": "大匙", "category": "醬" },
     { "name": "奶油", "amount": "1", "unit": "塊", "category": "調味料" },
-    { "name": "鹽", "amount": "少許", "category": "調味料" },
-    { "name": "黑胡椒粉", "amount": "少許", "category": "調味粉" }
+    { "name": "鹽", "amount": "少許", "category": "調味料", "always_available": true },
+    { "name": "黑胡椒粉", "amount": "少許", "category": "調味粉", "always_available": true }
   ],
   "steps": [
     { "order": 1, "text": "煮義大利麵至8分熟。" },
@@ -3720,178 +3978,4 @@ ol.steps li { margin-bottom: 8px; }
   "created_at": "2026-08-04",
   "raw_input": "松露海鮮義大利麵\t\n材料\t作法\n義大利麵 \t煮義大利麵至8分熟\n各種綜合海鮮\t海鮮先燙起來\n蘑菇、秀珍菇、鴻喜、雪白\t大蒜洋蔥爆香\n白酒200cc\t菇類、海鮮下鍋一起炒\n大蒜2-3顆切片\t加入白酒200cc悶煮\n洋蔥1/3顆切丁\t收到剩1/4之後加入兩大匙松露醬\n松露醬2-3匙\t加鹽巴&黑胡椒調味\n奶油1塊\t關火之後加入1塊奶油\n鹽少許\t加入義大利麵拌一拌\n黑胡椒少許"
 }
-```
-
-### ./data/synonyms.json
-```json
-{
-  "蝦仁": ["蝦仁"],
-  "牛排": ["牛排"],
-  "雞腿": ["雞腿", "大雞腿"],
-  "蔥": ["蔥", "青蔥", "珠蔥", "大蔥", "蔥花", "蔥段", "蔥絲"],
-  "蒜頭": ["蒜頭", "蒜仁", "蒜末", "蒜", "大蒜", "蒜片", "蒜泥", "蒜蓉"],
-  "醬油": ["醬油"],
-  "醬油膏": ["醬油膏"],
-  "孜然": ["孜然", "孜然粉"],
-  "丁香": ["丁香"],
-  "綠荳蔻": ["綠荳蔻", "小豆蔻"],
-  "紅花椒": ["紅花椒", "紅花椒粒"],
-  "青花椒粉": ["青花椒粉", "青花椒粉末"],
-  "豆瓣醬": ["豆瓣醬", "郫縣豆瓣醬", "辣豆瓣醬"],
-  "乾辣椒": ["乾辣椒", "辣椒乾", "乾辣椒段"],
-  "義大利綜合香料": ["義大利綜合香料", "義式香料"],
-  "羅勒": ["羅勒", "甜羅勒"],
-  "巴西里": ["巴西里", "洋香菜"],
-  "蒔蘿": ["蒔蘿", "dill"],
-  "迷迭香": ["迷迭香", "rosemary"],
-  "九層塔": ["九層塔", "塔羅勒"],
-  "咖哩粉": ["咖哩粉", "咖哩"],
-  "辣椒粉": ["辣椒粉"],
-  "五香粉": ["五香粉"],
-  "白胡椒粉": ["白胡椒粉"],
-  "白胡椒粒": ["白胡椒粒"],
-  "黑胡椒粉": ["黑胡椒粉"],
-  "香油": ["香油"],
-  "麻油": ["麻油"],
-  "白醋": ["白醋"],
-  "烏醋": ["烏醋", "黑醋"],
-  "味醂": ["味醂", "米霖"],
-  "巴薩米克醋": ["巴薩米克醋", "balsamic", "義大利黑醋"],
-  "米酒": ["米酒", "料理米酒"],
-  "米": ["米", "白米", "白飯"],
-  "鹽巴": ["鹽巴", "鹽"],
-  "白糖": ["白糖", "砂糖", "細砂糖", "糖"],
-  "清酒": ["清酒", "日本酒", "sake"],
-  "魚露": ["魚露", "fish sauce"],
-  "五味醬": ["五味醬"],
-  "番茄醬": ["番茄醬", "蕃茄醬"],
-  "芥末籽醬": ["芥末籽醬", "顆粒芥末醬"],
-  "黃芥末醬": ["黃芥末醬", "黃芥末", "美式芥末醬"],
-  "美乃滋": ["美乃滋", "美奶滋", "mayo"],
-  "薑": ["薑", "生薑", "老薑", "嫩薑", "薑末", "薑片", "薑絲", "薑泥", "薑塊"],
-  "洋蔥": ["洋蔥", "洋蔥丁", "洋蔥絲", "洋蔥圈"],
-  "辣椒": ["辣椒", "紅辣椒", "青辣椒", "小辣椒", "辣椒末", "辣椒片", "辣椒絲", "新鮮辣椒", "生辣椒"],
-  "帕瑪森": ["帕瑪森", "帕瑪森起司", "Parmesan"],
-  "切達": ["切達", "切達起司", "cheddar"],
-  "Brie": ["Brie", "brie", "布里起司"],
-  "酸豆": ["酸豆", "續隨子", "capers"],
-  "醃漬綠橄欖": ["醃漬綠橄欖", "綠橄欖"],
-  "墨西哥綠辣椒": ["墨西哥綠辣椒", "墨西哥辣椒", "jalapeño", "jalapeno"],
-  "鯷魚": ["鯷魚", "鯷魚罐頭", "anchovy"],
-  "鱈魚肝": ["鱈魚肝", "鱈魚肝罐頭"],
-  "太白粉": ["太白粉", "太白粉水"],
-  "香菇": ["香菇", "生香菇", "鮮香菇"],
-  "乾香菇": ["乾香菇"],
-  "橄欖油": ["橄欖油", "olive oil", "特級初榨橄欖油", "初榨橄欖油"],
-  "蠔油": ["蠔油", "oyster sauce"],
-  "義大利麵": ["義大利麵", "pasta"],
-  "蝦米": ["蝦米"],
-  "烹大師": ["烹大師"],
-  "柴魚片": ["柴魚片"],
-  "日式醬油": ["日式醬油"],
-  "雞粉": ["雞粉"],
-  "雞蛋": ["雞蛋", "蛋"],
-  "白麵條": ["白麵條", "麵條", "陽春麵"],
-  "麵粉": ["麵粉"],
-  "鮮奶油": ["鮮奶油"],
-  "檸檬汁": ["檸檬汁"],
-  "高麗菜": ["高麗菜", "包心菜", "甘藍"],
-  "蘑菇": ["蘑菇"],
-  "秀珍菇": ["秀珍菇"],
-  "鴻喜菇": ["鴻喜菇", "鴻喜"],
-  "雪白菇": ["雪白菇", "雪白"],
-  "松露醬": ["松露醬"],
-  "白酒": ["白酒"],
-  "奶油": ["奶油", "butter"],
-  "泡菜": ["泡菜", "韓式泡菜", "韓國泡菜"],
-  "韓式湯錠": ["韓式湯錠"],
-  "韓式辣椒醬": ["韓式辣椒醬", "韓式辣醬", "gochujang"],
-  "韓式辣椒粉": ["韓式辣椒粉", "gochugaru"],
-  "韓式芝麻油": ["韓式芝麻油"],
-  "豬五花肉片": ["豬五花肉片", "五花肉片", "五花肉", "豬五花肉", "豬五花"],
-  "嫩豆腐": ["嫩豆腐"],
-  "黃豆芽": ["黃豆芽"],
-  "玉米筍": ["玉米筍"],
-  "馬鈴薯": ["馬鈴薯", "洋芋"],
-  "蒟蒻絲": ["蒟蒻絲", "蒟蒻麵"],
-  "牛肉片": ["牛肉片"],
-  "豬肉片": ["豬肉片"],
-  "紅蘿蔔": ["紅蘿蔔", "胡蘿蔔"],
-  "西洋芹": ["西洋芹"],
-  "番茄糊": ["番茄糊"],
-  "牛肋條": ["牛肋條"],
-  "番茄": ["番茄", "蕃茄"],
-  "牛高湯": ["牛高湯"],
-  "雞高湯": ["雞高湯"],
-  "月桂葉": ["月桂葉", "香葉"],
-  "紅椒": ["紅椒", "甜椒", "彩椒"],
-  "紅椒粉": ["紅椒粉", "匈牙利紅椒粉", "paprika"],
-  "味噌": ["味噌", "miso"],
-  "金針菇": ["金針菇"],
-  "板豆腐": ["板豆腐"],
-  "蝦子": ["蝦子"],
-  "油": ["油"]
-}
-```
-
-### ./data/taxonomy.json
-```json
-{
-  "cuisine": ["中式", "西式", "其他"],
-  "cooking_methods": ["炒", "煎", "滷", "蒸", "烤", "炸", "氣炸", "燙/汆燙", "涼拌", "燉", "湯", "生食"],
-  "main_ingredient_types": ["肉類", "海鮮", "蛋豆製品", "蔬食", "澱粉/主食", "加工品"],
-  "course": ["主菜", "配菜", "湯品", "甜點", "醬料/沾醬", "早餐"],
-  "spice_level": ["不辣", "小辣", "中辣", "大辣"],
-  "pantry_categories": ["香料", "香草", "調味粉", "調味料", "醬", "辛香蔬菜", "起司", "罐頭/醃漬", "肉類", "海鮮", "蔬菜", "加工食品/火鍋料", "主食", "澱粉", "乾貨", "生鮮食材"],
-  "pantry_category_groups": {
-    "🥩 生鮮／冷藏冷凍": ["肉類", "海鮮", "蔬菜", "辛香蔬菜", "起司", "生鮮食材"],
-    "🥫 罐頭／加工／乾貨": ["罐頭/醃漬", "加工食品/火鍋料", "乾貨"],
-    "🍚 主食／澱粉": ["主食", "澱粉"],
-    "🧂 調味料理": ["香料", "香草", "調味粉", "調味料", "醬"]
-  }
-}
-```
-
-### ./index.html
-```html
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>食譜筆記本</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-  <header class="site-header">
-    <h1>食譜筆記本</h1>
-    <p class="subtitle">統一格式整理的個人食譜資料庫</p>
-    <nav class="tabs">
-      <button class="tab-btn active" id="tab-recipes" type="button">食譜</button>
-      <button class="tab-btn" id="tab-pantry" type="button">食材庫</button>
-    </nav>
-  </header>
-
-  <main id="app">
-    <div id="list-view">
-      <aside class="filters" id="filters"></aside>
-      <div class="recipe-list-main">
-        <p class="recipe-count" id="recipe-count"></p>
-        <section class="recipe-list" id="recipe-list"></section>
-      </div>
-    </div>
-    <div id="detail-view" class="hidden"></div>
-  </main>
-
-  <main id="pantry-app" class="hidden">
-    <div id="pantry-view"></div>
-  </main>
-
-  <footer class="site-footer">
-    <p>資料以人工整理維護，僅供個人參考。</p>
-  </footer>
-
-  <script src="assets/app.js"></script>
-</body>
-</html>
 ```
